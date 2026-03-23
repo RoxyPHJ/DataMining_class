@@ -1,0 +1,1376 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Data Mining — Decision Tree (2)</title>
+<style>
+  :root {
+    --bg:        #0a0e1a;
+    --surface:   #111827;
+    --surface2:  #1a2236;
+    --surface3:  #1f2d44;
+    --border:    #2a3a55;
+    --accent:    #38bdf8;
+    --accent2:   #a78bfa;
+    --accent3:   #34d399;
+    --accent4:   #fb923c;
+    --accent5:   #f472b6;
+    --danger:    #f87171;
+    --text:      #e2e8f0;
+    --text-muted:#94a3b8;
+    --text-dim:  #64748b;
+    --code-bg:   #0d1525;
+    --toc-w:     260px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Apple SD Gothic Neo','Malgun Gothic','Nanum Gothic',sans-serif;
+    font-size:15px;
+    line-height:1.7;
+    display:flex;
+  }
+
+  /* ── TOC ── */
+  #toc{
+    position:fixed;top:0;left:0;
+    width:var(--toc-w);height:100vh;
+    background:var(--surface);
+    border-right:1px solid var(--border);
+    overflow-y:auto;padding:24px 0;
+    z-index:100;
+    transition:transform .3s;
+  }
+  #toc::-webkit-scrollbar{width:4px;}
+  #toc::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+  .toc-header{
+    padding:0 20px 16px;
+    border-bottom:1px solid var(--border);
+    margin-bottom:12px;
+  }
+  .toc-header .course{font-size:11px;color:var(--accent);letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px;}
+  .toc-header .title{font-size:13px;font-weight:700;color:var(--text);line-height:1.4;}
+  .toc-item{
+    display:flex;align-items:baseline;gap:8px;
+    padding:7px 20px;
+    font-size:12px;color:var(--text-muted);
+    text-decoration:none;
+    border-left:3px solid transparent;
+    transition:all .2s;
+    cursor:pointer;
+  }
+  .toc-item:hover{color:var(--text);background:var(--surface2);}
+  .toc-item.active{
+    color:var(--accent);
+    border-left-color:var(--accent);
+    background:rgba(56,189,248,.06);
+  }
+  .toc-num{
+    font-family:'Menlo','Courier New',monospace;
+    font-size:10px;color:var(--accent2);
+    min-width:22px;
+  }
+
+  /* ── MAIN ── */
+  #main{
+    margin-left:var(--toc-w);
+    padding:48px 40px 80px;
+    max-width:1080px;
+    width:100%;
+  }
+
+  /* ── HERO ── */
+  .hero{
+    padding:48px 0 40px;
+    border-bottom:1px solid var(--border);
+    margin-bottom:48px;
+  }
+  .hero-tag{
+    font-family:'Menlo','Courier New',monospace;
+    font-size:11px;color:var(--accent2);letter-spacing:.12em;
+    text-transform:uppercase;margin-bottom:12px;
+  }
+  .hero h1{
+    font-family:'Impact','Arial Narrow',sans-serif;
+    font-size:48px;letter-spacing:.03em;
+    color:var(--text);line-height:1.1;margin-bottom:8px;
+  }
+  .hero h1 span{color:var(--accent);}
+  .hero-sub{font-size:14px;color:var(--text-muted);}
+  .hero-meta{
+    margin-top:24px;display:flex;gap:16px;flex-wrap:wrap;
+  }
+  .hero-badge{
+    background:var(--surface2);border:1px solid var(--border);
+    border-radius:6px;padding:6px 12px;
+    font-size:12px;color:var(--text-muted);
+  }
+  .hero-badge span{color:var(--accent3);}
+
+  /* ── SECTION ── */
+  .section{
+    margin-bottom:64px;
+    scroll-margin-top:24px;
+  }
+  .section-header{
+    display:flex;align-items:center;gap:16px;
+    margin-bottom:24px;
+    padding-bottom:12px;
+    border-bottom:1px solid var(--border);
+  }
+  .section-num{
+    font-family:'Impact','Arial Narrow',sans-serif;
+    font-size:32px;color:var(--accent2);opacity:.6;
+    line-height:1;min-width:48px;
+  }
+  .section-title{
+    font-family:'Impact','Arial Narrow',sans-serif;
+    font-size:26px;letter-spacing:.03em;color:var(--text);
+  }
+
+  /* ── CARD ── */
+  .card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:24px;
+    margin-bottom:16px;
+  }
+  .card-title{
+    font-size:13px;font-weight:700;
+    color:var(--accent);letter-spacing:.05em;text-transform:uppercase;
+    margin-bottom:14px;
+  }
+  .card p{color:var(--text-muted);margin-bottom:8px;font-size:14px;}
+  .card p:last-child{margin-bottom:0;}
+
+  /* ── TWO-COL ── */
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;}
+
+  /* ── GRAPH CARD ── */
+  .graph-card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:24px;
+    margin-bottom:16px;
+    display:grid;
+    grid-template-columns:1fr 1.3fr;
+    gap:24px;
+    align-items:start;
+  }
+  .graph-desc{}
+  .graph-desc h3{font-size:14px;font-weight:700;color:var(--accent3);margin-bottom:10px;}
+  .graph-desc p{font-size:13px;color:var(--text-muted);margin-bottom:6px;}
+  .graph-area canvas{border-radius:8px;width:100%;height:auto;display:block;}
+
+  /* ── BULLET LIST ── */
+  .blist{list-style:none;padding:0;}
+  .blist li{
+    padding:6px 0 6px 20px;
+    position:relative;font-size:14px;color:var(--text-muted);
+  }
+  .blist li::before{
+    content:'▸';
+    position:absolute;left:0;
+    color:var(--accent2);font-size:11px;top:8px;
+  }
+  .blist li strong{color:var(--text);}
+  .blist li .hl{color:var(--accent);}
+  .blist li .hl2{color:var(--accent2);}
+  .blist li .hl3{color:var(--accent3);}
+  .blist li .hl4{color:var(--accent4);}
+  .blist li .hl5{color:var(--danger);}
+
+  /* ── SUB BLIST ── */
+  .blist .sub{
+    list-style:none;padding:0;margin-top:4px;
+  }
+  .blist .sub li{padding-left:16px;font-size:13px;}
+  .blist .sub li::before{content:'·';color:var(--text-dim);}
+
+  /* ── TABLE ── */
+  .tbl-wrap{overflow-x:auto;margin-bottom:16px;}
+  table{width:100%;border-collapse:collapse;}
+  th{
+    background:var(--surface2);
+    padding:10px 14px;text-align:left;
+    font-size:12px;font-weight:700;
+    color:var(--accent);letter-spacing:.05em;text-transform:uppercase;
+    border-bottom:2px solid var(--border);
+  }
+  td{
+    padding:9px 14px;font-size:13px;color:var(--text-muted);
+    border-bottom:1px solid var(--border);
+  }
+  tr:last-child td{border-bottom:none;}
+  tr:hover td{background:rgba(255,255,255,.02);}
+  td .formula{
+    font-family:'Menlo','Courier New',monospace;
+    font-size:12px;color:var(--accent3);
+  }
+
+  /* ── CODE BLOCK ── */
+  pre{
+    background:var(--code-bg);
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:16px 18px;
+    font-family:'Menlo','Courier New',monospace;
+    font-size:12.5px;line-height:1.7;
+    overflow-x:auto;
+    color:#cdd9e5;
+    margin-bottom:12px;
+  }
+  .kw{color:#79c0ff;}
+  .cm{color:#8b949e;font-style:italic;}
+  .fn{color:#d2a8ff;}
+  .str{color:#a5d6ff;}
+  .num{color:#f0883e;}
+  .op{color:#ff7b72;}
+
+  /* ── HIGHLIGHT BOX ── */
+  .hbox{
+    border-radius:8px;padding:14px 18px;
+    margin-bottom:12px;font-size:13px;
+    border-left:3px solid;
+  }
+  .hbox-blue{background:rgba(56,189,248,.07);border-color:var(--accent);}
+  .hbox-purple{background:rgba(167,139,250,.07);border-color:var(--accent2);}
+  .hbox-green{background:rgba(52,211,153,.07);border-color:var(--accent3);}
+  .hbox-orange{background:rgba(251,146,60,.07);border-color:var(--accent4);}
+  .hbox-red{background:rgba(248,113,113,.07);border-color:var(--danger);}
+  .hbox strong{display:block;margin-bottom:4px;font-size:12px;letter-spacing:.05em;text-transform:uppercase;}
+  .hbox-blue strong{color:var(--accent);}
+  .hbox-purple strong{color:var(--accent2);}
+  .hbox-green strong{color:var(--accent3);}
+  .hbox-orange strong{color:var(--accent4);}
+  .hbox-red strong{color:var(--danger);}
+
+  /* ── FORMULA ── */
+  .formula-block{
+    background:var(--code-bg);
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:16px 20px;
+    font-family:'Menlo','Courier New',monospace;
+    font-size:14px;color:var(--accent3);
+    text-align:center;
+    margin:12px 0;
+  }
+
+  /* ── SUMMARY BOX ── */
+  .summary-section{
+    background:linear-gradient(135deg,var(--surface2),var(--surface3));
+    border:1px solid var(--border);
+    border-radius:16px;
+    padding:32px;
+    margin-top:48px;
+  }
+  .summary-section h2{
+    font-family:'Impact','Arial Narrow',sans-serif;
+    font-size:28px;letter-spacing:.04em;
+    color:var(--accent);margin-bottom:24px;
+  }
+  .summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+  .sum-card{
+    background:rgba(0,0,0,.25);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:18px;
+  }
+  .sum-card .sum-icon{font-size:20px;margin-bottom:8px;}
+  .sum-card h4{font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px;}
+  .sum-card p{font-size:12px;color:var(--text-muted);line-height:1.6;}
+
+  /* ── TREE VISUAL ── */
+  .tree-canvas-wrap{
+    background:var(--surface2);
+    border-radius:10px;
+    padding:16px;
+    overflow:hidden;
+  }
+
+  /* ── CONFUSION MATRIX GRID ── */
+  .cm-grid{
+    display:grid;
+    grid-template-columns:80px 1fr 1fr;
+    gap:2px;
+    max-width:420px;
+    margin:16px auto;
+  }
+  .cm-cell{
+    padding:14px 10px;
+    text-align:center;
+    border-radius:4px;
+    font-size:13px;
+  }
+  .cm-header{background:var(--surface2);color:var(--text-muted);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;}
+  .cm-tp{background:rgba(52,211,153,.15);border:1px solid rgba(52,211,153,.3);color:var(--accent3);}
+  .cm-tn{background:rgba(56,189,248,.15);border:1px solid rgba(56,189,248,.3);color:var(--accent);}
+  .cm-fp{background:rgba(251,146,60,.15);border:1px solid rgba(251,146,60,.3);color:var(--accent4);}
+  .cm-fn{background:rgba(248,113,113,.15);border:1px solid rgba(248,113,113,.3);color:var(--danger);}
+  .cm-cell strong{display:block;font-size:16px;margin-bottom:2px;}
+  .cm-cell span{font-size:10px;opacity:.7;}
+
+  /* ── BADGE ── */
+  .badge{
+    display:inline-block;
+    padding:2px 8px;border-radius:4px;
+    font-size:11px;font-weight:700;
+    margin-left:6px;vertical-align:middle;
+  }
+  .badge-blue{background:rgba(56,189,248,.15);color:var(--accent);}
+  .badge-purple{background:rgba(167,139,250,.15);color:var(--accent2);}
+  .badge-green{background:rgba(52,211,153,.15);color:var(--accent3);}
+  .badge-orange{background:rgba(251,146,60,.15);color:var(--accent4);}
+
+  /* scrollbar */
+  ::-webkit-scrollbar{width:6px;height:6px;}
+  ::-webkit-scrollbar-track{background:var(--bg);}
+  ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+
+  @media(max-width:900px){
+    :root{--toc-w:0px;}
+    #toc{transform:translateX(-260px);}
+    #main{margin-left:0;padding:24px 20px 60px;}
+    .two-col,.three-col,.graph-card{grid-template-columns:1fr;}
+    .summary-grid{grid-template-columns:1fr 1fr;}
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════ TOC ══════════ -->
+<nav id="toc">
+  <div class="toc-header">
+    <div class="course">Data Mining · FE06064001</div>
+    <div class="title">Decision Tree (2)</div>
+  </div>
+  <a class="toc-item active" href="#s01" onclick="setActive(this)"><span class="toc-num">01</span>가지치기 개요</a>
+  <a class="toc-item" href="#s02" onclick="setActive(this)"><span class="toc-num">02</span>Pre vs Post-Pruning</a>
+  <a class="toc-item" href="#s03" onclick="setActive(this)"><span class="toc-num">03</span>가지치기 방법론</a>
+  <a class="toc-item" href="#s04" onclick="setActive(this)"><span class="toc-num">04</span>모델 평가 및 선택</a>
+  <a class="toc-item" href="#s05" onclick="setActive(this)"><span class="toc-num">05</span>Confusion Matrix</a>
+  <a class="toc-item" href="#s06" onclick="setActive(this)"><span class="toc-num">06</span>클래스 불균형 문제</a>
+  <a class="toc-item" href="#s07" onclick="setActive(this)"><span class="toc-num">07</span>신뢰할 수 있는 평가</a>
+  <a class="toc-item" href="#s08" onclick="setActive(this)"><span class="toc-num">08</span>앙상블 방법 소개</a>
+  <a class="toc-item" href="#s09" onclick="setActive(this)"><span class="toc-num">09</span>Voting & 앙상블 원리</a>
+  <a class="toc-item" href="#s10" onclick="setActive(this)"><span class="toc-num">10</span>Bagging</a>
+  <a class="toc-item" href="#s11" onclick="setActive(this)"><span class="toc-num">11</span>Boosting & AdaBoost</a>
+  <a class="toc-item" href="#s12" onclick="setActive(this)"><span class="toc-num">12</span>Random Forest</a>
+  <a class="toc-item" href="#s13" onclick="setActive(this)"><span class="toc-num">13</span>핵심 요약</a>
+</nav>
+
+<!-- ══════════ MAIN ══════════ -->
+<main id="main">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-tag">Lecture 5 · Decision Tree (2)</div>
+    <h1>Decision Tree <span>(2)</span></h1>
+    <div class="hero-sub">Pruning · Model Evaluation · Ensemble Methods</div>
+    <div class="hero-meta">
+      <div class="hero-badge">📘 <span>Jangho Lee</span> · INU CSE</div>
+      <div class="hero-badge">📄 <span>19</span> slides</div>
+      <div class="hero-badge">📑 Data Mining <span>FE06064001</span></div>
+    </div>
+  </div>
+
+  <!-- ══ 01 ══ -->
+  <section class="section" id="s01">
+    <div class="section-header">
+      <div class="section-num">01</div>
+      <div class="section-title">Decision Tree Pruning — 가지치기 개요</div>
+    </div>
+
+    <div class="hbox hbox-red">
+      <strong>⚠ 왜 가지치기가 필요한가?</strong>
+      결정 트리를 완전히 성장시키면 훈련 데이터에 과적합(overfitting)되어 노이즈·이상치를 암기하게 되고, 새로운 데이터에 대한 예측 성능이 떨어진다.
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">🚨 완전 성장 트리의 문제점</div>
+        <ul class="blist">
+          <li><span class="hl5">Overfitting</span> — 노이즈·이상치에 과적합</li>
+          <li><span class="hl5">과도한 복잡성</span> — 트리가 너무 복잡해짐</li>
+          <li><span class="hl5">낮은 일반화</span> — 미학습 데이터에서 성능 저하</li>
+        </ul>
+        <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
+          <p style="font-size:13px;color:var(--text-muted);">핵심 직관: 매우 세밀한 트리는 훈련 데이터를 <strong style="color:var(--accent2)">암기(memorize)</strong>하지만 <strong style="color:var(--accent3)">일반화(generalize)</strong>에 실패한다.</p>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">✂ 가지치기(Pruning)의 효과</div>
+        <ul class="blist">
+          <li><span class="hl3">트리를 더 작게</span> 만든다</li>
+          <li><span class="hl3">해석하기 쉬워진다</span></li>
+          <li><span class="hl3">예측 속도가 빨라진다</span></li>
+          <li><span class="hl3">테스트 데이터 정확도 향상</span></li>
+        </ul>
+        <div class="hbox hbox-green" style="margin-top:14px;margin-bottom:0;">
+          <strong>핵심</strong>
+          모델 복잡성과 일반화 능력 사이의 균형을 맞추는 것이 가지치기의 목적이다.
+        </div>
+      </div>
+    </div>
+
+    <!-- tree diagram via SVG -->
+    <div class="card" style="margin-top:8px;">
+      <div class="card-title">🌳 가지치기 전후 비교 (SVG 시각화)</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;">
+        <div>
+          <p style="font-size:12px;color:#fb923c;margin-bottom:8px;font-weight:700;">BEFORE — 완전 성장 트리 (과적합)</p>
+          <svg viewBox="0 0 340 320" xmlns="http://www.w3.org/2000/svg" style="width:100%;border-radius:8px;background:#1a2236;display:block;">
+            <defs><marker id="ah1" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#2a3a55"/></marker></defs>
+            <!-- edges -->
+            <line x1="170" y1="52" x2="100" y2="88" stroke="#2a3a55" stroke-width="1.5"/>
+            <line x1="170" y1="52" x2="240" y2="88" stroke="#2a3a55" stroke-width="1.5"/>
+            <line x1="100" y1="112" x2="60"  y2="148" stroke="#2a3a55" stroke-width="1.5"/>
+            <line x1="100" y1="112" x2="140" y2="148" stroke="#2a3a55" stroke-width="1.5"/>
+            <line x1="240" y1="112" x2="200" y2="148" stroke="#2a3a55" stroke-width="1.5"/>
+            <line x1="240" y1="112" x2="280" y2="148" stroke="#2a3a55" stroke-width="1.5"/>
+            <line x1="60"  y1="172" x2="34"  y2="216" stroke="#2a3a55" stroke-width="1.5"/>
+            <line x1="60"  y1="172" x2="86"  y2="216" stroke="#2a3a55" stroke-width="1.5"/>
+            <line x1="200" y1="172" x2="174" y2="216" stroke="#2a3a55" stroke-width="1.5"/>
+            <line x1="200" y1="172" x2="226" y2="216" stroke="#2a3a55" stroke-width="1.5"/>
+            <!-- edge labels -->
+            <text x="128" y="74" fill="#34d399" font-size="9" text-anchor="middle">yes</text>
+            <text x="212" y="74" fill="#f87171" font-size="9" text-anchor="middle">no</text>
+            <text x="72"  y="134" fill="#34d399" font-size="9" text-anchor="middle">yes</text>
+            <text x="126" y="134" fill="#f87171" font-size="9" text-anchor="middle">no</text>
+            <text x="213" y="134" fill="#34d399" font-size="9" text-anchor="middle">yes</text>
+            <text x="267" y="134" fill="#f87171" font-size="9" text-anchor="middle">no</text>
+            <text x="40"  y="198" fill="#34d399" font-size="9" text-anchor="middle">yes</text>
+            <text x="80"  y="198" fill="#f87171" font-size="9" text-anchor="middle">no</text>
+            <text x="180" y="198" fill="#34d399" font-size="9" text-anchor="middle">yes</text>
+            <text x="220" y="198" fill="#f87171" font-size="9" text-anchor="middle">no</text>
+            <!-- internal nodes -->
+            <circle cx="170" cy="36" r="22" fill="#38bdf822" stroke="#38bdf8" stroke-width="2"/>
+            <text x="170" y="40" fill="#e2e8f0" font-size="11" font-weight="bold" text-anchor="middle" font-family="Menlo,monospace">A₁?</text>
+            <circle cx="100" cy="100" r="22" fill="#a78bfa22" stroke="#a78bfa" stroke-width="2"/>
+            <text x="100" y="104" fill="#e2e8f0" font-size="11" font-weight="bold" text-anchor="middle" font-family="Menlo,monospace">A₂?</text>
+            <circle cx="240" cy="100" r="22" fill="#a78bfa22" stroke="#a78bfa" stroke-width="2"/>
+            <text x="240" y="104" fill="#e2e8f0" font-size="11" font-weight="bold" text-anchor="middle" font-family="Menlo,monospace">A₃?</text>
+            <circle cx="60"  cy="160" r="22" fill="#fb923c22" stroke="#fb923c" stroke-width="2"/>
+            <text x="60"  y="164" fill="#e2e8f0" font-size="11" font-weight="bold" text-anchor="middle" font-family="Menlo,monospace">A₄?</text>
+            <circle cx="200" cy="160" r="22" fill="#fb923c22" stroke="#fb923c" stroke-width="2"/>
+            <text x="200" y="164" fill="#e2e8f0" font-size="11" font-weight="bold" text-anchor="middle" font-family="Menlo,monospace">A₅?</text>
+            <!-- leaf: cls A -->
+            <rect x="116" y="136" width="48" height="24" rx="4" fill="#34d39922" stroke="#34d399" stroke-width="1.5"/>
+            <text x="140" y="152" fill="#34d399" font-size="10" font-weight="bold" text-anchor="middle" font-family="Menlo,monospace">cls A</text>
+            <rect x="256" y="136" width="48" height="24" rx="4" fill="#f8717122" stroke="#f87171" stroke-width="1.5"/>
+            <text x="280" y="152" fill="#f87171" font-size="10" font-weight="bold" text-anchor="middle" font-family="Menlo,monospace">cls B</text>
+            <!-- level 3 leaves -->
+            <rect x="10"  y="216" width="48" height="24" rx="4" fill="#34d39922" stroke="#34d399" stroke-width="1.5"/>
+            <text x="34"  y="232" fill="#34d399" font-size="10" font-weight="bold" text-anchor="middle" font-family="Menlo,monospace">cls A</text>
+            <rect x="62"  y="216" width="48" height="24" rx="4" fill="#f8717122" stroke="#f87171" stroke-width="1.5"/>
+            <text x="86"  y="232" fill="#f87171" font-size="10" font-weight="bold" text-anchor="middle" font-family="Menlo,monospace">cls B</text>
+            <rect x="150" y="216" width="48" height="24" rx="4" fill="#f8717122" stroke="#f87171" stroke-width="1.5"/>
+            <text x="174" y="232" fill="#f87171" font-size="10" font-weight="bold" text-anchor="middle" font-family="Menlo,monospace">cls B</text>
+            <rect x="202" y="216" width="48" height="24" rx="4" fill="#34d39922" stroke="#34d399" stroke-width="1.5"/>
+            <text x="226" y="232" fill="#34d399" font-size="10" font-weight="bold" text-anchor="middle" font-family="Menlo,monospace">cls A</text>
+            <!-- caption -->
+            <text x="170" y="268" fill="#fb923c" font-size="10" font-weight="bold" text-anchor="middle">완전 성장 트리 — Overfitting 위험</text>
+          </svg>
+        </div>
+        <div>
+          <p style="font-size:12px;color:#34d399;margin-bottom:8px;font-weight:700;">AFTER — 가지치기 후 트리 (일반화)</p>
+          <svg viewBox="0 0 340 280" xmlns="http://www.w3.org/2000/svg" style="width:100%;border-radius:8px;background:#1a2236;display:block;">
+            <!-- edges -->
+            <line x1="170" y1="52" x2="100" y2="88" stroke="#2a3a55" stroke-width="1.5"/>
+            <line x1="170" y1="52" x2="240" y2="88" stroke="#2a3a55" stroke-width="1.5"/>
+            <line x1="100" y1="112" x2="60"  y2="152" stroke="#2a3a55" stroke-width="1.5"/>
+            <line x1="100" y1="112" x2="140" y2="152" stroke="#2a3a55" stroke-width="1.5"/>
+            <line x1="60"  y1="176" x2="30"  y2="216" stroke="#2a3a55" stroke-width="1.5"/>
+            <line x1="60"  y1="176" x2="90"  y2="216" stroke="#2a3a55" stroke-width="1.5"/>
+            <!-- edge labels -->
+            <text x="128" y="74" fill="#34d399" font-size="9" text-anchor="middle">yes</text>
+            <text x="212" y="74" fill="#f87171" font-size="9" text-anchor="middle">no</text>
+            <text x="72"  y="136" fill="#34d399" font-size="9" text-anchor="middle">yes</text>
+            <text x="126" y="136" fill="#f87171" font-size="9" text-anchor="middle">no</text>
+            <text x="38"  y="200" fill="#34d399" font-size="9" text-anchor="middle">yes</text>
+            <text x="82"  y="200" fill="#f87171" font-size="9" text-anchor="middle">no</text>
+            <!-- nodes -->
+            <circle cx="170" cy="36" r="22" fill="#38bdf822" stroke="#38bdf8" stroke-width="2"/>
+            <text x="170" y="40" fill="#e2e8f0" font-size="11" font-weight="bold" text-anchor="middle" font-family="Menlo,monospace">A₁?</text>
+            <circle cx="100" cy="100" r="22" fill="#a78bfa22" stroke="#a78bfa" stroke-width="2"/>
+            <text x="100" y="104" fill="#e2e8f0" font-size="11" font-weight="bold" text-anchor="middle" font-family="Menlo,monospace">A₂?</text>
+            <circle cx="60"  cy="164" r="22" fill="#fb923c22" stroke="#fb923c" stroke-width="2"/>
+            <text x="60"  y="168" fill="#e2e8f0" font-size="11" font-weight="bold" text-anchor="middle" font-family="Menlo,monospace">A₄?</text>
+            <!-- leaves -->
+            <rect x="216" y="76" width="48" height="24" rx="4" fill="#f8717122" stroke="#f87171" stroke-width="1.5"/>
+            <text x="240" y="92" fill="#f87171" font-size="10" font-weight="bold" text-anchor="middle" font-family="Menlo,monospace">cls B</text>
+            <rect x="116" y="140" width="48" height="24" rx="4" fill="#34d39922" stroke="#34d399" stroke-width="1.5"/>
+            <text x="140" y="156" fill="#34d399" font-size="10" font-weight="bold" text-anchor="middle" font-family="Menlo,monospace">cls A</text>
+            <rect x="6"   y="216" width="48" height="24" rx="4" fill="#34d39922" stroke="#34d399" stroke-width="1.5"/>
+            <text x="30"  y="232" fill="#34d399" font-size="10" font-weight="bold" text-anchor="middle" font-family="Menlo,monospace">cls A</text>
+            <rect x="66"  y="216" width="48" height="24" rx="4" fill="#f8717122" stroke="#f87171" stroke-width="1.5"/>
+            <text x="90"  y="232" fill="#f87171" font-size="10" font-weight="bold" text-anchor="middle" font-family="Menlo,monospace">cls B</text>
+            <!-- caption -->
+            <text x="170" y="262" fill="#34d399" font-size="10" font-weight="bold" text-anchor="middle">가지치기 후 — 일반화 향상</text>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ 02 ══ -->
+  <section class="section" id="s02">
+    <div class="section-header">
+      <div class="section-num">02</div>
+      <div class="section-title">Pruning 두 가지 접근법</div>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title" style="color:var(--accent);">🔵 Pre-Pruning (사전 가지치기)</div>
+        <div class="badge badge-blue">Early Stopping</div>
+        <ul class="blist" style="margin-top:12px;">
+          <li>트리 구성 <strong>도중에</strong> 분할을 중단</li>
+          <li>기준 사용 <span class="hl">(Information Gain, Gini)</span></li>
+          <li>분할이 유의미하지 않으면 노드를 <strong>리프</strong>로 전환</li>
+          <li class="hl5">위험: 너무 일찍 중단 → 과소적합(Underfitting)</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-title" style="color:var(--accent2);">🟣 Post-Pruning (사후 가지치기)</div>
+        <div class="badge badge-purple">Backward Pruning</div>
+        <ul class="blist" style="margin-top:12px;">
+          <li>먼저 <strong>완전한 트리</strong>를 생성</li>
+          <li>이후 불필요한 서브트리를 제거</li>
+          <li>서브트리를 <span class="hl2">리프(최빈 클래스)</span>로 교체</li>
+          <li class="hl3">더 신뢰할 수 있으나 계산 비용이 높음</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr><th>구분</th><th>Pre-Pruning</th><th>Post-Pruning</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>시점</td><td>트리 생성 중</td><td>트리 완성 후</td></tr>
+          <tr><td>방법</td><td>조기 분할 중단</td><td>서브트리 제거</td></tr>
+          <tr><td>속도</td><td>빠름</td><td>느림 (완전 트리 필요)</td></tr>
+          <tr><td>위험</td><td>과소적합(Underfitting)</td><td>높은 계산 비용</td></tr>
+          <tr><td>신뢰성</td><td>보통</td><td>더 신뢰할 수 있음</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="hbox hbox-blue">
+      <strong>핵심 아이디어</strong>
+      Pre-Pruning은 빠르지만 보수적일 수 있고, Post-Pruning은 신뢰할 수 있지만 비용이 높다. 두 방법 모두 <strong>모델 복잡성과 일반화 능력의 균형</strong>을 목표로 한다.
+    </div>
+  </section>
+
+  <!-- ══ 03 ══ -->
+  <section class="section" id="s03">
+    <div class="section-header">
+      <div class="section-num">03</div>
+      <div class="section-title">Pruning 대표 방법론</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title" style="color:var(--accent3);">① Cost Complexity Pruning — CART</div>
+      <p style="font-size:14px;color:var(--text-muted);margin-bottom:12px;">오류율과 트리 복잡성을 결합한 비용 함수를 최소화한다.</p>
+      <div class="formula-block">R<sub>α</sub>(T) = R(T) + α · |T|</div>
+      <ul class="blist">
+        <li><strong>R(T)</strong>: 트리의 훈련 오류 (또는 불순도)</li>
+        <li><strong>|T|</strong>: 리프 노드의 수 (모델 복잡성)</li>
+        <li><strong>α</strong>: 복잡도 패널티 파라미터</li>
+        <li>서브트리 vs 가지치기 버전을 비교하여 더 낮은 비용을 가진 것 선택</li>
+        <li>최적 α는 <span class="hl">별도의 가지치기 데이터셋</span>으로 선택</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="card-title" style="color:var(--accent2);">② Pessimistic Pruning — C4.5</div>
+      <ul class="blist">
+        <li>훈련 데이터만 사용 <span class="hl2">(별도 가지치기 세트 불필요)</span></li>
+        <li>보다 현실적인 오류 추정을 위해 <strong>패널티를 추가</strong></li>
+        <li>수정된 리프 오류가 서브트리 오류보다 낮으면 가지치기 수행</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="card-title" style="color:var(--accent4);">③ MDL-based Pruning</div>
+      <div class="badge badge-orange">Minimum Description Length</div>
+      <ul class="blist" style="margin-top:10px;">
+        <li>총 인코딩 길이를 최소화하는 모델 선택</li>
+        <li><strong>총 인코딩 길이 ≈ 모델 복잡성 + 정밀도 오류</strong></li>
+        <li>서브트리를 리프로 대체했을 때 전체 설명 길이가 감소하면 가지치기 수행</li>
+        <li>트리 크기와 데이터 피팅을 모두 고려하여 균형을 맞춤</li>
+      </ul>
+    </div>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>방법론</th><th>데이터 필요</th><th>핵심 기준</th><th>특징</th></tr></thead>
+        <tbody>
+          <tr><td>Cost Complexity (CART)</td><td>별도 가지치기 세트</td><td>R(T) + α·|T|</td><td>α로 복잡도 조절</td></tr>
+          <tr><td>Pessimistic (C4.5)</td><td>훈련 데이터만</td><td>수정된 오류율</td><td>빠르고 간편</td></tr>
+          <tr><td>MDL</td><td>훈련 데이터만</td><td>최소 설명 길이</td><td>정보 이론 기반</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══ 04 ══ -->
+  <section class="section" id="s04">
+    <div class="section-header">
+      <div class="section-num">04</div>
+      <div class="section-title">모델 평가 및 선택</div>
+    </div>
+
+    <div class="hbox hbox-orange">
+      <strong>핵심 질문</strong>
+      분류기를 만든 후 반드시 물어야 할 것: (1) 모델이 얼마나 정확한가? (2) 미학습 데이터에 일반화할 수 있는가? (3) 여러 모델을 어떻게 비교하는가?
+    </div>
+
+    <div class="card">
+      <div class="card-title">📊 훈련 정확도의 한계</div>
+      <ul class="blist">
+        <li>훈련 정확도는 과적합으로 인해 종종 <span class="hl5">지나치게 낙관적</span>이다</li>
+        <li>따라서 평가는 반드시 <span class="hl3">미학습(Unseen) 테스트 데이터</span>에서 수행되어야 한다</li>
+      </ul>
+    </div>
+
+    <div class="graph-card" style="grid-template-columns:1fr 1.5fr;">
+      <div class="graph-desc">
+        <h3>모델 평가 프로세스</h3>
+        <p><strong style="color:var(--accent)">1. 데이터 분할</strong><br>훈련 세트와 테스트 세트로 분리</p>
+        <p><strong style="color:var(--accent2)">2. 모델 평가</strong><br>고훈련 정확도 + 과적합 감지</p>
+        <p><strong style="color:var(--accent3)">3. 모델 비교</strong><br>다수의 모델을 정확도·안정성·일반화로 비교</p>
+        <p><strong style="color:var(--accent4)">4. 최적 모델 선택</strong><br>정확도, 안정성, 일반화 등 종합 고려</p>
+      </div>
+      <div class="graph-area">
+          <svg viewBox="0 0 480 320" xmlns="http://www.w3.org/2000/svg" style="width:100%;border-radius:8px;background:#1a2236;display:block;">
+            <!-- Data box -->
+            <rect x="190" y="20" width="100" height="38" rx="8" fill="#94a3b822" stroke="#94a3b8" stroke-width="1.5"/>
+            <text x="240" y="43" fill="#94a3b8" font-size="12" font-weight="bold" text-anchor="middle">Data D</text>
+            <!-- arrows from Data -->
+            <line x1="215" y1="58" x2="140" y2="90" stroke="#64748b" stroke-width="1.5"/>
+            <line x1="265" y1="58" x2="340" y2="90" stroke="#64748b" stroke-width="1.5"/>
+            <polygon points="136,86 144,86 140,94" fill="#64748b"/>
+            <polygon points="336,86 344,86 340,94" fill="#64748b"/>
+            <!-- Train Set -->
+            <rect x="90"  y="90" width="100" height="38" rx="8" fill="#38bdf822" stroke="#38bdf8" stroke-width="1.5"/>
+            <text x="140" y="107" fill="#38bdf8" font-size="11" font-weight="bold" text-anchor="middle">Train Set</text>
+            <text x="140" y="120" fill="#94a3b8" font-size="10" text-anchor="middle">70–80%</text>
+            <!-- Test Set -->
+            <rect x="290" y="90" width="100" height="38" rx="8" fill="#a78bfa22" stroke="#a78bfa" stroke-width="1.5"/>
+            <text x="340" y="107" fill="#a78bfa" font-size="11" font-weight="bold" text-anchor="middle">Test Set</text>
+            <text x="340" y="120" fill="#94a3b8" font-size="10" text-anchor="middle">20–30%</text>
+            <!-- arrow Train → Train Model -->
+            <line x1="140" y1="128" x2="140" y2="158" stroke="#64748b" stroke-width="1.5"/>
+            <polygon points="136,154 144,154 140,162" fill="#64748b"/>
+            <!-- Train Model -->
+            <rect x="90"  y="158" width="100" height="38" rx="8" fill="#34d39922" stroke="#34d399" stroke-width="1.5"/>
+            <text x="140" y="175" fill="#34d399" font-size="11" font-weight="bold" text-anchor="middle">Train Model</text>
+            <text x="140" y="188" fill="#94a3b8" font-size="10" text-anchor="middle">M₁, M₂, …</text>
+            <!-- arrow Train Model → Evaluate -->
+            <line x1="140" y1="196" x2="140" y2="226" stroke="#64748b" stroke-width="1.5"/>
+            <polygon points="136,222 144,222 140,230" fill="#64748b"/>
+            <!-- Evaluate -->
+            <rect x="90"  y="226" width="100" height="38" rx="8" fill="#fb923c22" stroke="#fb923c" stroke-width="1.5"/>
+            <text x="140" y="243" fill="#fb923c" font-size="11" font-weight="bold" text-anchor="middle">Evaluate</text>
+            <text x="140" y="256" fill="#94a3b8" font-size="10" text-anchor="middle">on Test Set</text>
+            <!-- dashed line from Test Set into Evaluate -->
+            <line x1="340" y1="128" x2="340" y2="258" stroke="#a78bfa" stroke-width="1" stroke-dasharray="4,4"/>
+            <line x1="340" y1="258" x2="192" y2="258" stroke="#a78bfa" stroke-width="1" stroke-dasharray="4,4"/>
+            <polygon points="188,254 196,254 192,262" fill="#a78bfa"/>
+            <!-- arrow Evaluate → Best Model -->
+            <line x1="190" y1="264" x2="240" y2="282" stroke="#64748b" stroke-width="1.5"/>
+            <polygon points="236,280 244,278 242,286" fill="#64748b"/>
+            <!-- Best Model -->
+            <rect x="180" y="282" width="120" height="30" rx="8" fill="#38bdf822" stroke="#38bdf8" stroke-width="1.5"/>
+            <text x="240" y="301" fill="#38bdf8" font-size="11" font-weight="bold" text-anchor="middle">Best Model M*</text>
+            <!-- labels -->
+            <text x="240" y="15" fill="#94a3b8" font-size="10" text-anchor="middle">모델 평가 프로세스</text>
+          </svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ 05 ══ -->
+  <section class="section" id="s05">
+    <div class="section-header">
+      <div class="section-num">05</div>
+      <div class="section-title">Confusion Matrix & 평가 지표</div>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">혼동 행렬 (Confusion Matrix)</div>
+        <div class="cm-grid">
+          <div class="cm-cell cm-header"></div>
+          <div class="cm-cell cm-header">Predicted +</div>
+          <div class="cm-cell cm-header">Predicted −</div>
+          <div class="cm-cell cm-header">Actual +</div>
+          <div class="cm-cell cm-tp"><strong>TP</strong><span>True Positive</span></div>
+          <div class="cm-cell cm-fn"><strong>FN</strong><span>False Negative</span></div>
+          <div class="cm-cell cm-header">Actual −</div>
+          <div class="cm-cell cm-fp"><strong>FP</strong><span>False Positive</span></div>
+          <div class="cm-cell cm-tn"><strong>TN</strong><span>True Negative</span></div>
+        </div>
+        <ul class="blist" style="margin-top:12px;">
+          <li><span class="hl3">TP</span>: 양성을 양성으로 올바르게 예측</li>
+          <li><span class="hl">TN</span>: 음성을 음성으로 올바르게 예측</li>
+          <li><span class="hl4">FP</span>: 오경보 (음성 → 양성, False Alarm)</li>
+          <li><span class="hl5">FN</span>: 놓친 양성 (양성 → 음성, Miss)</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-title">📝 참고 (Note)</div>
+        <div class="hbox hbox-blue" style="margin-bottom:8px;">
+          <strong>Accuracy</strong>클래스가 균형 잡혀 있을 때 잘 작동한다.
+        </div>
+        <div class="hbox hbox-green" style="margin-bottom:8px;">
+          <strong>Sensitivity (Recall)</strong>양성이 얼마나 잘 감지되는지 측정한다.
+        </div>
+        <div class="hbox hbox-purple" style="margin-bottom:0;">
+          <strong>Specificity</strong>음성이 얼마나 잘 감지되는지 측정한다.
+        </div>
+      </div>
+    </div>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr><th>Measure</th><th>공식</th><th>설명</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Accuracy (정확도)</td><td><span class="formula">(TP+TN) / (P+N)</span></td><td>전체 중 올바르게 예측한 비율</td></tr>
+          <tr><td>Error Rate (오류율)</td><td><span class="formula">(FP+FN) / (P+N)</span></td><td>전체 중 잘못 예측한 비율</td></tr>
+          <tr><td>Sensitivity / Recall (재현율)</td><td><span class="formula">TP / P</span></td><td>실제 양성 중 올바르게 탐지된 비율</td></tr>
+          <tr><td>Specificity (특이도)</td><td><span class="formula">TN / N</span></td><td>실제 음성 중 올바르게 탐지된 비율</td></tr>
+          <tr><td>Precision (정밀도)</td><td><span class="formula">TP / (TP+FP)</span></td><td>양성 예측 중 실제 양성 비율</td></tr>
+          <tr><td>F₁-score</td><td><span class="formula">2×precision×recall / (precision+recall)</span></td><td>정밀도와 재현율의 조화 평균</td></tr>
+          <tr><td>Fβ-score</td><td><span class="formula">(1+β²)×precision×recall / (β²×precision+recall)</span></td><td>β로 precision/recall 가중치 조절</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══ 06 ══ -->
+  <section class="section" id="s06">
+    <div class="section-header">
+      <div class="section-num">06</div>
+      <div class="section-title">클래스 불균형 문제 (Class Imbalance)</div>
+    </div>
+
+    <div class="hbox hbox-red">
+      <strong>⚠ 정확도의 함정</strong>
+      데이터의 97%가 음성이라면, 모든 샘플을 음성으로 예측하는 모델도 97% 정확도를 달성한다. 하지만 이 모델은 실제 양성 케이스를 전혀 감지하지 못한다!
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">실제 불균형 데이터 예시</div>
+        <ul class="blist">
+          <li><span class="hl4">사기 탐지</span> — 정상 거래 99%+, 사기 1% 미만</li>
+          <li><span class="hl4">암 진단</span> — 정상 환자 다수, 암 환자 소수</li>
+          <li><span class="hl4">침입 탐지</span> — 정상 트래픽 다수, 공격 소수</li>
+        </ul>
+        <div class="hbox hbox-orange" style="margin-top:12px;margin-bottom:0;">
+          <strong>문제점</strong>
+          모델이 소수(Minority) 클래스를 무시하는데, 의료 진단이나 보안 등 중요한 응용에서 양성 케이스 누락(False Negative)은 매우 심각하다.
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">✅ 해결책 — 클래스에 집중하는 지표 사용</div>
+        <ul class="blist">
+          <li><strong>Precision (정밀도)</strong>: 양성 예측의 신뢰성</li>
+          <li><strong>Recall (재현율/Sensitivity)</strong>: 양성(희귀 클래스) 감지 능력</li>
+          <li><strong>F₁-score</strong>: 정밀도와 재현율의 균형</li>
+        </ul>
+        <svg viewBox="0 0 320 160" xmlns="http://www.w3.org/2000/svg" style="width:100%;border-radius:8px;margin-top:14px;background:#1a2236;display:block;">
+          <text x="160" y="22" fill="#94a3b8" font-size="10" font-weight="bold" text-anchor="middle">클래스 불균형 예시 (97% vs 3%)</text>
+          <!-- Negative bar (97%) -->
+          <rect x="10" y="36" width="255" height="34" rx="4" fill="#38bdf833" stroke="#38bdf8" stroke-width="1.5"/>
+          <text x="20" y="57" fill="#38bdf8" font-size="11" font-weight="bold">Negative (정상) 97%</text>
+          <text x="272" y="57" fill="#38bdf8" font-size="10" text-anchor="start">← 다수</text>
+          <!-- Positive bar (3%) -->
+          <rect x="10" y="82" width="8" height="34" rx="4" fill="#f8717133" stroke="#f87171" stroke-width="1.5"/>
+          <text x="24"  y="103" fill="#f87171" font-size="11" font-weight="bold">Positive (희귀) 3%</text>
+          <text x="272" y="103" fill="#f87171" font-size="10" text-anchor="start">← 소수</text>
+          <!-- warning -->
+          <rect x="10" y="126" width="300" height="22" rx="4" fill="#fb923c11" stroke="#fb923c" stroke-width="1"/>
+          <text x="160" y="141" fill="#fb923c" font-size="10" font-weight="bold" text-anchor="middle">⚠ Accuracy만으로는 불충분! → Precision·Recall·F1 사용</text>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ 07 ══ -->
+  <section class="section" id="s07">
+    <div class="section-header">
+      <div class="section-num">07</div>
+      <div class="section-title">신뢰할 수 있는 평가 방법</div>
+    </div>
+
+    <div class="hbox hbox-blue">
+      <strong>목표</strong>
+      미학습 데이터에서의 일반화 성능을 신뢰할 수 있게 추정하고, 평가의 편향과 분산을 줄이며, 서로 다른 모델 간 공정한 비교를 보장하는 것.
+    </div>
+
+    <div class="three-col">
+      <div class="card">
+        <div class="card-title" style="color:var(--accent);">① Holdout Method</div>
+        <ul class="blist">
+          <li>데이터를 <strong>훈련 세트와 테스트 세트</strong>로 분할</li>
+          <li>간단하고 빠름</li>
+          <li class="hl5">분할 방식에 따라 결과가 달라질 수 있음</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-title" style="color:var(--accent2);">② Cross-Validation</div>
+        <ul class="blist">
+          <li>데이터를 여러 <strong>Fold</strong>로 분할</li>
+          <li>서로 다른 분할에서 반복 훈련·테스트</li>
+          <li class="hl3">더 안정적이고 신뢰할 수 있는 추정</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-title" style="color:var(--accent3);">③ Bootstrap</div>
+        <ul class="blist">
+          <li><strong>복원 추출(w/ replacement)</strong>로 샘플링</li>
+          <li>여러 재샘플링 데이터셋에서 성능 평가</li>
+          <li class="hl3">데이터가 제한적일 때 유용</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="graph-card">
+      <div class="graph-desc">
+        <h3>5-Fold Cross-Validation</h3>
+        <p>데이터를 5개의 Fold로 나누고, 각 Fold를 번갈아 테스트 세트로 사용한다.</p>
+        <p>5번의 훈련-테스트를 반복하여 성능을 평균낸다.</p>
+        <p><strong style="color:var(--accent3)">장점:</strong> 모든 데이터가 훈련과 테스트에 모두 사용된다.</p>
+        <div class="hbox hbox-purple" style="margin-top:12px;margin-bottom:0;">
+          <strong>k-Fold CV</strong>일반적으로 k=10을 사용하며, 편향과 분산 간의 좋은 균형을 제공한다.
+        </div>
+      </div>
+      <div class="graph-area">
+        <svg viewBox="0 0 460 280" xmlns="http://www.w3.org/2000/svg" style="width:100%;border-radius:8px;background:#1a2236;display:block;">
+          <text x="230" y="20" fill="#e2e8f0" font-size="12" font-weight="bold" text-anchor="middle">5-Fold Cross-Validation</text>
+          <!-- Column headers -->
+          <text x="100" y="38" fill="#94a3b8" font-size="10" text-anchor="middle">Fold 1</text>
+          <text x="170" y="38" fill="#94a3b8" font-size="10" text-anchor="middle">Fold 2</text>
+          <text x="240" y="38" fill="#94a3b8" font-size="10" text-anchor="middle">Fold 3</text>
+          <text x="310" y="38" fill="#94a3b8" font-size="10" text-anchor="middle">Fold 4</text>
+          <text x="380" y="38" fill="#94a3b8" font-size="10" text-anchor="middle">Fold 5</text>
+          <!-- Row labels -->
+          <text x="42" y="62"  fill="#94a3b8" font-size="10" text-anchor="end">Split 1</text>
+          <text x="42" y="106" fill="#94a3b8" font-size="10" text-anchor="end">Split 2</text>
+          <text x="42" y="150" fill="#94a3b8" font-size="10" text-anchor="end">Split 3</text>
+          <text x="42" y="194" fill="#94a3b8" font-size="10" text-anchor="end">Split 4</text>
+          <text x="42" y="238" fill="#94a3b8" font-size="10" text-anchor="end">Split 5</text>
+          <!-- Split 1: TEST=Fold1, train=rest -->
+          <rect x="65"  y="44" width="58" height="26" rx="4" fill="#38bdf844" stroke="#38bdf8" stroke-width="2"/>
+          <text x="94"  y="61" fill="#38bdf8" font-size="9" font-weight="bold" text-anchor="middle">TEST</text>
+          <rect x="135" y="44" width="58" height="26" rx="4" fill="#34d39922" stroke="#34d39966" stroke-width="1"/>
+          <text x="164" y="61" fill="#34d399" font-size="9" text-anchor="middle">train</text>
+          <rect x="205" y="44" width="58" height="26" rx="4" fill="#34d39922" stroke="#34d39966" stroke-width="1"/>
+          <text x="234" y="61" fill="#34d399" font-size="9" text-anchor="middle">train</text>
+          <rect x="275" y="44" width="58" height="26" rx="4" fill="#34d39922" stroke="#34d39966" stroke-width="1"/>
+          <text x="304" y="61" fill="#34d399" font-size="9" text-anchor="middle">train</text>
+          <rect x="345" y="44" width="58" height="26" rx="4" fill="#34d39922" stroke="#34d39966" stroke-width="1"/>
+          <text x="374" y="61" fill="#34d399" font-size="9" text-anchor="middle">train</text>
+          <!-- Split 2 -->
+          <rect x="65"  y="88" width="58" height="26" rx="4" fill="#34d39922" stroke="#34d39966" stroke-width="1"/>
+          <text x="94"  y="105" fill="#34d399" font-size="9" text-anchor="middle">train</text>
+          <rect x="135" y="88" width="58" height="26" rx="4" fill="#38bdf844" stroke="#38bdf8" stroke-width="2"/>
+          <text x="164" y="105" fill="#38bdf8" font-size="9" font-weight="bold" text-anchor="middle">TEST</text>
+          <rect x="205" y="88" width="58" height="26" rx="4" fill="#34d39922" stroke="#34d39966" stroke-width="1"/>
+          <text x="234" y="105" fill="#34d399" font-size="9" text-anchor="middle">train</text>
+          <rect x="275" y="88" width="58" height="26" rx="4" fill="#34d39922" stroke="#34d39966" stroke-width="1"/>
+          <text x="304" y="105" fill="#34d399" font-size="9" text-anchor="middle">train</text>
+          <rect x="345" y="88" width="58" height="26" rx="4" fill="#34d39922" stroke="#34d39966" stroke-width="1"/>
+          <text x="374" y="105" fill="#34d399" font-size="9" text-anchor="middle">train</text>
+          <!-- Split 3 -->
+          <rect x="65"  y="132" width="58" height="26" rx="4" fill="#34d39922" stroke="#34d39966" stroke-width="1"/>
+          <text x="94"  y="149" fill="#34d399" font-size="9" text-anchor="middle">train</text>
+          <rect x="135" y="132" width="58" height="26" rx="4" fill="#34d39922" stroke="#34d39966" stroke-width="1"/>
+          <text x="164" y="149" fill="#34d399" font-size="9" text-anchor="middle">train</text>
+          <rect x="205" y="132" width="58" height="26" rx="4" fill="#38bdf844" stroke="#38bdf8" stroke-width="2"/>
+          <text x="234" y="149" fill="#38bdf8" font-size="9" font-weight="bold" text-anchor="middle">TEST</text>
+          <rect x="275" y="132" width="58" height="26" rx="4" fill="#34d39922" stroke="#34d39966" stroke-width="1"/>
+          <text x="304" y="149" fill="#34d399" font-size="9" text-anchor="middle">train</text>
+          <rect x="345" y="132" width="58" height="26" rx="4" fill="#34d39922" stroke="#34d39966" stroke-width="1"/>
+          <text x="374" y="149" fill="#34d399" font-size="9" text-anchor="middle">train</text>
+          <!-- Split 4 -->
+          <rect x="65"  y="176" width="58" height="26" rx="4" fill="#34d39922" stroke="#34d39966" stroke-width="1"/>
+          <text x="94"  y="193" fill="#34d399" font-size="9" text-anchor="middle">train</text>
+          <rect x="135" y="176" width="58" height="26" rx="4" fill="#34d39922" stroke="#34d39966" stroke-width="1"/>
+          <text x="164" y="193" fill="#34d399" font-size="9" text-anchor="middle">train</text>
+          <rect x="205" y="176" width="58" height="26" rx="4" fill="#34d39922" stroke="#34d39966" stroke-width="1"/>
+          <text x="234" y="193" fill="#34d399" font-size="9" text-anchor="middle">train</text>
+          <rect x="275" y="176" width="58" height="26" rx="4" fill="#38bdf844" stroke="#38bdf8" stroke-width="2"/>
+          <text x="304" y="193" fill="#38bdf8" font-size="9" font-weight="bold" text-anchor="middle">TEST</text>
+          <rect x="345" y="176" width="58" height="26" rx="4" fill="#34d39922" stroke="#34d39966" stroke-width="1"/>
+          <text x="374" y="193" fill="#34d399" font-size="9" text-anchor="middle">train</text>
+          <!-- Split 5 -->
+          <rect x="65"  y="220" width="58" height="26" rx="4" fill="#34d39922" stroke="#34d39966" stroke-width="1"/>
+          <text x="94"  y="237" fill="#34d399" font-size="9" text-anchor="middle">train</text>
+          <rect x="135" y="220" width="58" height="26" rx="4" fill="#34d39922" stroke="#34d39966" stroke-width="1"/>
+          <text x="164" y="237" fill="#34d399" font-size="9" text-anchor="middle">train</text>
+          <rect x="205" y="220" width="58" height="26" rx="4" fill="#34d39922" stroke="#34d39966" stroke-width="1"/>
+          <text x="234" y="237" fill="#34d399" font-size="9" text-anchor="middle">train</text>
+          <rect x="275" y="220" width="58" height="26" rx="4" fill="#34d39922" stroke="#34d39966" stroke-width="1"/>
+          <text x="304" y="237" fill="#34d399" font-size="9" text-anchor="middle">train</text>
+          <rect x="345" y="220" width="58" height="26" rx="4" fill="#38bdf844" stroke="#38bdf8" stroke-width="2"/>
+          <text x="374" y="237" fill="#38bdf8" font-size="9" font-weight="bold" text-anchor="middle">TEST</text>
+          <!-- bottom label -->
+          <text x="230" y="268" fill="#34d399" font-size="10" font-weight="bold" text-anchor="middle">최종 성능 = 5회 평균 (Average Performance)</text>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ 08 ══ -->
+  <section class="section" id="s08">
+    <div class="section-header">
+      <div class="section-num">08</div>
+      <div class="section-title">앙상블 방법 소개</div>
+    </div>
+
+    <div class="hbox hbox-purple">
+      <strong>앙상블 학습이란?</strong>
+      여러 모델 M₁, M₂, …, Mₖ를 결합하여 단일 모델보다 강력한 복합 모델을 만들고 분류 성능을 향상시키는 방법이다. 각 분류기는 주어진 데이터의 클래스 레이블에 "투표"한다.
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">📋 기본 프로세스</div>
+        <ul class="blist">
+          <li>여러 훈련 세트 D₁, D₂, …, Dₖ 생성</li>
+          <li>기본 분류기 Mᵢ 훈련</li>
+          <li>각 모델이 예측값을 생성</li>
+          <li>→ <span class="hl3">최종 예측은 결합된 출력에 기반</span></li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-title">🎯 앙상블 학습의 목표</div>
+        <ul class="blist">
+          <li>단일 모델보다 <span class="hl3">더 강력한 복합 모델</span> 구축</li>
+          <li>분류 성능 향상</li>
+          <li>다양성(Diversity)을 통해 정확도 개선</li>
+          <li>다수 모델이 틀릴 때만 앙상블이 오류 발생</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="graph-card">
+      <div class="graph-desc">
+        <h3>앙상블 구조</h3>
+        <p>원본 데이터 D에서 여러 훈련 세트 D₁~Dₖ를 생성하고, 각각의 모델 M₁~Mₖ를 훈련시킨다.</p>
+        <p>새로운 데이터 입력 시 각 모델이 예측하고, 투표(Classification) 또는 평균(Regression)으로 최종 출력을 결정한다.</p>
+      </div>
+      <div class="graph-area">
+        <svg viewBox="0 0 460 300" xmlns="http://www.w3.org/2000/svg" style="width:100%;border-radius:8px;background:#1a2236;display:block;">
+          <!-- Data D ellipse -->
+          <ellipse cx="50" cy="150" rx="38" ry="26" fill="#94a3b822" stroke="#94a3b8" stroke-width="1.5"/>
+          <text x="50" y="154" fill="#94a3b8" font-size="11" font-weight="bold" text-anchor="middle">Data D</text>
+          <!-- lines from Data to D1,D2,Dk -->
+          <line x1="88"  y1="130" x2="128" y2="80"  stroke="#64748b" stroke-width="1.5"/>
+          <line x1="88"  y1="150" x2="128" y2="150" stroke="#64748b" stroke-width="1.5"/>
+          <line x1="88"  y1="170" x2="128" y2="220" stroke="#64748b" stroke-width="1.5"/>
+          <!-- D boxes -->
+          <rect x="128" y="64"  width="44" height="28" rx="6" fill="#a78bfa22" stroke="#a78bfa" stroke-width="1.5"/>
+          <text x="150" y="82"  fill="#a78bfa" font-size="11" font-weight="bold" text-anchor="middle">D₁</text>
+          <rect x="128" y="136" width="44" height="28" rx="6" fill="#a78bfa22" stroke="#a78bfa" stroke-width="1.5"/>
+          <text x="150" y="154" fill="#a78bfa" font-size="11" font-weight="bold" text-anchor="middle">D₂</text>
+          <rect x="128" y="208" width="44" height="28" rx="6" fill="#a78bfa22" stroke="#a78bfa" stroke-width="1.5"/>
+          <text x="150" y="226" fill="#a78bfa" font-size="11" font-weight="bold" text-anchor="middle">Dₖ</text>
+          <!-- dots -->
+          <text x="150" y="180" fill="#64748b" font-size="14" text-anchor="middle">⋮</text>
+          <!-- arrows D→M -->
+          <line x1="172" y1="78"  x2="210" y2="78"  stroke="#64748b" stroke-width="1.5"/>
+          <line x1="172" y1="150" x2="210" y2="150" stroke="#64748b" stroke-width="1.5"/>
+          <line x1="172" y1="222" x2="210" y2="222" stroke="#64748b" stroke-width="1.5"/>
+          <polygon points="206,74 214,78 206,82"  fill="#64748b"/>
+          <polygon points="206,146 214,150 206,154" fill="#64748b"/>
+          <polygon points="206,218 214,222 206,226" fill="#64748b"/>
+          <!-- M boxes -->
+          <rect x="210" y="64"  width="44" height="28" rx="6" fill="#fb923c22" stroke="#fb923c" stroke-width="1.5"/>
+          <text x="232" y="82"  fill="#fb923c" font-size="11" font-weight="bold" text-anchor="middle">M₁</text>
+          <rect x="210" y="136" width="44" height="28" rx="6" fill="#fb923c22" stroke="#fb923c" stroke-width="1.5"/>
+          <text x="232" y="154" fill="#fb923c" font-size="11" font-weight="bold" text-anchor="middle">M₂</text>
+          <rect x="210" y="208" width="44" height="28" rx="6" fill="#fb923c22" stroke="#fb923c" stroke-width="1.5"/>
+          <text x="232" y="226" fill="#fb923c" font-size="11" font-weight="bold" text-anchor="middle">Mₖ</text>
+          <text x="232" y="180" fill="#64748b" font-size="14" text-anchor="middle">⋮</text>
+          <!-- arrows M→Vote -->
+          <line x1="254" y1="78"  x2="300" y2="136" stroke="#64748b" stroke-width="1.5"/>
+          <line x1="254" y1="150" x2="300" y2="150" stroke="#64748b" stroke-width="1.5"/>
+          <line x1="254" y1="222" x2="300" y2="164" stroke="#64748b" stroke-width="1.5"/>
+          <polygon points="296,132 304,136 298,142" fill="#64748b"/>
+          <polygon points="296,146 304,150 296,154" fill="#64748b"/>
+          <polygon points="296,160 304,164 298,170" fill="#64748b"/>
+          <!-- Vote ellipse -->
+          <ellipse cx="322" cy="150" rx="34" ry="24" fill="#34d39922" stroke="#34d399" stroke-width="1.5"/>
+          <text x="322" y="147" fill="#34d399" font-size="10" font-weight="bold" text-anchor="middle">Combine</text>
+          <text x="322" y="160" fill="#34d399" font-size="9" text-anchor="middle">Votes</text>
+          <!-- arrow Vote→Predict -->
+          <line x1="356" y1="150" x2="390" y2="150" stroke="#64748b" stroke-width="1.5"/>
+          <polygon points="386,146 394,150 386,154" fill="#64748b"/>
+          <!-- Predict ellipse -->
+          <ellipse cx="420" cy="150" rx="36" ry="24" fill="#38bdf822" stroke="#38bdf8" stroke-width="1.5"/>
+          <text x="420" y="147" fill="#38bdf8" font-size="10" font-weight="bold" text-anchor="middle">Predict</text>
+          <text x="420" y="160" fill="#38bdf8" font-size="9" text-anchor="middle">Output</text>
+          <!-- caption -->
+          <text x="230" y="286" fill="#34d399" font-size="10" font-weight="bold" text-anchor="middle">분류: 다수결(Majority Vote)  |  회귀: 평균(Averaging)</text>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ 09 ══ -->
+  <section class="section" id="s09">
+    <div class="section-header">
+      <div class="section-num">09</div>
+      <div class="section-title">Voting 메커니즘 & 앙상블이 효과적인 이유</div>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">🗳 투표 메커니즘</div>
+        <ul class="blist">
+          <li>각 분류기가 클래스 레이블을 출력 ("투표")</li>
+          <li><strong>분류:</strong> <span class="hl3">다수결 투표(Majority Voting)</span></li>
+          <li><strong>회귀:</strong> <span class="hl">평균(Averaging)</span></li>
+        </ul>
+        <div class="hbox hbox-green" style="margin-top:12px;margin-bottom:0;">
+          <strong>원칙</strong>
+          앙상블은 다수의 모델이 틀릴 때에만 오류가 발생한다. → 단일 모델보다 더 강건하고 안정적이다.
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">🔗 모델 간 낮은 상관관계의 중요성</div>
+        <ul class="blist">
+          <li>모든 모델이 <strong>매우 유사</strong>하면 같은 실수를 저지르는 경향이 있다</li>
+          <li>모델들이 <span class="hl3">덜 상관</span>될수록 오류가 겹칠 가능성이 낮다</li>
+          <li>따라서 다양한 훈련 세트나 알고리즘을 사용하여 <span class="hl2">다양성</span>을 확보해야 한다</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ 10 ══ -->
+  <section class="section" id="s10">
+    <div class="section-header">
+      <div class="section-num">10</div>
+      <div class="section-title">Bagging (Bootstrap Aggregating)</div>
+    </div>
+
+    <div class="hbox hbox-blue">
+      <strong>직관적 비유</strong>
+      의료 진단을 원할 때 한 명의 의사에게 묻는 대신, 여러 의사에게 상담하고 각자의 의견을 들은 후 <strong>다수결</strong>로 최종 결정을 내린다. 집단이 내린 결정이 단일 전문가의 결정보다 신뢰할 수 있다. (의사 → 분류기, 진단 → 예측)
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">📋 Bagging 기본 아이디어</div>
+        <ul class="blist">
+          <li>d개 샘플의 데이터셋 D가 주어질 때</li>
+          <li>여러 훈련 세트 D₁, D₂, …, Dₖ 생성</li>
+          <li>각 데이터셋은 <span class="hl">Bootstrap 샘플링(복원 추출)</span>으로 생성</li>
+          <li>일부 샘플은 여러 번 나타날 수 있고, 일부는 전혀 나타나지 않을 수 있다</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-title">⚙ 훈련 프로세스</div>
+        <ul class="blist">
+          <li>각 반복 i = 1, 2, …, k 에 대해:</li>
+          <ul class="sub">
+            <li>D에서 복원 추출로 Dᵢ 샘플링</li>
+            <li>Dᵢ를 사용하여 모델 Mᵢ 훈련</li>
+          </ul>
+          <li>결과: 여러 모델 M₁, M₂, …, Mₖ 획득</li>
+          <li><strong>최종 예측:</strong> 다수결(분류) 또는 평균(회귀)</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">✅ Bagging이 효과적인 이유</div>
+      <div class="three-col">
+        <div class="hbox hbox-blue" style="margin-bottom:0;">
+          <strong>1. 분산 감소</strong>
+          개별 모델은 크게 변동할 수 있지만, 여러 모델의 평균은 안정적이다.
+        </div>
+        <div class="hbox hbox-green" style="margin-bottom:0;">
+          <strong>2. 예측 안정화</strong>
+          여러 모델을 평균하면 예측의 변동이 줄어든다.
+        </div>
+        <div class="hbox hbox-purple" style="margin-bottom:0;">
+          <strong>3. 노이즈·과적합 처리</strong>
+          다양한 훈련 샘플이 다양한 모델을 만들고, 집계를 통해 노이즈 영향이 감소한다.
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📜 Bagging 알고리즘 (Pseudocode)</div>
+      <pre><span class="cm">// Algorithm: Bagging</span>
+<span class="cm">// Create an ensemble of classification models (equally weighted)</span>
+
+<span class="kw">Input:</span>  D (d training tuples), k (# models), learning scheme
+<span class="kw">Output:</span> Composite model M*
+
+<span class="kw">Method:</span>
+(<span class="num">1</span>) <span class="kw">for</span> i = <span class="num">1</span> to k <span class="kw">do</span>  <span class="cm">// create k models</span>
+(<span class="num">2</span>)     create bootstrap sample <span class="fn">D_i</span>, by sampling D <span class="kw">with replacement</span>
+(<span class="num">3</span>)     use D_i and learning scheme to derive model <span class="fn">M_i</span>
+(<span class="num">4</span>) <span class="kw">endfor</span>
+
+<span class="kw">To classify tuple X:</span>
+    let each of the k models classify X and return the <span class="fn">majority vote</span></pre>
+    </div>
+  </section>
+
+  <!-- ══ 11 ══ -->
+  <section class="section" id="s11">
+    <div class="section-header">
+      <div class="section-num">11</div>
+      <div class="section-title">Boosting & AdaBoost</div>
+    </div>
+
+    <div class="hbox hbox-orange">
+      <strong>직관적 비유</strong>
+      여러 의사에게 동등하게 묻는 Bagging과 달리, Boosting은 과거 성과를 기반으로 각 의사에게 다른 가중치를 부여한다. 더 신뢰할 수 있는 의사가 더 큰 영향력을 가진다. Boosting은 잘못 분류된(어려운) 샘플에 더 집중하면서 점진적으로 성능을 향상시킨다.
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title" style="color:var(--accent4);">⚡ Boosting 기본 메커니즘</div>
+        <ul class="blist">
+          <li>모델을 <strong>순차적(Sequential)</strong>으로 구축</li>
+          <li>각 새 모델은 이전 오류를 수정하는 데 집중</li>
+          <li>모든 훈련 샘플에 동일 가중치로 초기화</li>
+          <li>잘못 분류된 샘플의 가중치를 증가</li>
+          <li>k번 반복 → 모델이 점진적으로 어려운 예시에 집중</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-title" style="color:var(--accent2);">🧠 AdaBoost — 반복 학습</div>
+        <ul class="blist">
+          <li><strong>초기화:</strong> 각 훈련 샘플에 동일 가중치 wᵢ = 1/d</li>
+          <li>각 라운드에서: 가중치에 따라 데이터 샘플링 → Mᵢ 훈련 → 오류 계산</li>
+          <li><span class="hl5">잘못 분류:</span> 가중치 증가</li>
+          <li><span class="hl3">올바르게 분류:</span> 가중치 감소</li>
+          <li>낮은 오류의 모델이 더 높은 가중치를 받음</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📜 AdaBoost 알고리즘 (Pseudocode)</div>
+      <pre><span class="cm">// Algorithm: AdaBoost (Boosting)</span>
+<span class="cm">// Each classifier gives a weighted vote</span>
+
+<span class="kw">Input:</span>  D (d class-labeled tuples), k (# rounds), learning scheme
+<span class="kw">Output:</span> Composite model
+
+<span class="kw">Method:</span>
+(<span class="num">1</span>)  initialize weight of each tuple in D to <span class="num">1/d</span>
+(<span class="num">2</span>)  <span class="kw">for</span> i = <span class="num">1</span> to k <span class="kw">do</span>
+(<span class="num">3</span>)      sample D with replacement according to weights → D_i
+(<span class="num">4</span>)      use D_i to derive model <span class="fn">M_i</span>
+(<span class="num">5</span>)      compute <span class="fn">error(M_i)</span>
+(<span class="num">6</span>)      <span class="kw">if</span> error(M_i) > <span class="num">0.5</span> <span class="kw">then</span>
+(<span class="num">7</span>)          abort the loop
+(<span class="num">8</span>)      <span class="kw">endif</span>
+(<span class="num">9</span>)      <span class="kw">for</span> each correctly classified tuple in D <span class="kw">do</span>
+(<span class="num">10</span>)         multiply weight by error(M_i) / (1 - error(M_i))  <span class="cm">// update weights</span>
+(<span class="num">11</span>)     normalize weights
+(<span class="num">12</span>) <span class="kw">endfor</span>
+
+<span class="kw">To classify tuple X:</span>
+(<span class="num">1</span>)  initialize weight of each class to <span class="num">0</span>
+(<span class="num">2</span>)  <span class="kw">for</span> i = <span class="num">1</span> to k <span class="kw">do</span>
+(<span class="num">3</span>)      w_i = log( (<span class="num">1</span> - error(M_i)) / error(M_i) )  <span class="cm">// classifier vote weight</span>
+(<span class="num">4</span>)      c = M_i(X)  <span class="cm">// get class prediction</span>
+(<span class="num">5</span>)      add w_i to weight for class c
+(<span class="num">6</span>)  <span class="kw">endfor</span>
+(<span class="num">7</span>)  return class with <span class="fn">largest weight</span></pre>
+    </div>
+
+    <div class="card">
+      <div class="card-title">✅ Boosting이 효과적인 이유</div>
+      <div class="three-col">
+        <div class="hbox hbox-orange" style="margin-bottom:0;">
+          <strong>어려운 샘플 집중</strong>
+          잘못 분류된(어려운) 샘플에 더 많은 주의를 기울인다.
+        </div>
+        <div class="hbox hbox-blue" style="margin-bottom:0;">
+          <strong>상호 보완</strong>
+          각 모델이 서로 다른 실수를 수정하므로 모델들이 서로를 보완한다.
+        </div>
+        <div class="hbox hbox-green" style="margin-bottom:0;">
+          <strong>편향 감소</strong>
+          복잡한 패턴을 더 잘 포착할 수 있도록 모델의 편향이 감소한다.
+        </div>
+      </div>
+    </div>
+
+    <div class="tbl-wrap" style="margin-top:12px;">
+      <table>
+        <thead><tr><th>구분</th><th>Bagging</th><th>Boosting</th></tr></thead>
+        <tbody>
+          <tr><td>훈련 방식</td><td>병렬(Parallel)</td><td>순차(Sequential)</td></tr>
+          <tr><td>샘플 가중치</td><td>동일</td><td>오류에 따라 조정</td></tr>
+          <tr><td>모델 가중치</td><td>동일</td><td>오류에 따라 다름</td></tr>
+          <tr><td>주요 감소</td><td>분산(Variance)</td><td>편향(Bias)</td></tr>
+          <tr><td>대표 알고리즘</td><td>Random Forest</td><td>AdaBoost, XGBoost</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══ 12 ══ -->
+  <section class="section" id="s12">
+    <div class="section-header">
+      <div class="section-num">12</div>
+      <div class="section-title">Random Forest</div>
+    </div>
+
+    <div class="hbox hbox-green">
+      <strong>직관</strong>
+      단일 결정 트리는 불안정하고 높은 분산을 가지는 경향이 있다. Random Forest는 <strong>여러 결정 트리</strong>를 기반으로 한 앙상블 방법으로, 더 안정적이고 정확한 예측을 만들어낸다. 나무들의 집합이 "숲(Forest)"이 되는 것이다.
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">🔧 기본 메커니즘</div>
+        <div class="hbox hbox-blue" style="margin-bottom:8px;">
+          <strong>① Bagging (Bootstrap Sampling)</strong>
+          D₁, D₂, …, Dₖ를 복원 추출로 생성하여 각 트리를 서로 다른 데이터로 훈련
+        </div>
+        <div class="hbox hbox-purple" style="margin-bottom:0;">
+          <strong>② Random Feature Selection</strong>
+          각 분기(Split) 시 특성의 부분집합을 무작위로 선택 → 전체 특성이 매 노드에서 사용되지 않음
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">⚙ 훈련 & 예측 프로세스</div>
+        <p style="font-size:13px;color:var(--accent2);margin-bottom:6px;">훈련 (각 트리):</p>
+        <ul class="blist">
+          <li>Bootstrap 샘플 Dᵢ 생성</li>
+          <li>결정 트리 훈련(성장)</li>
+          <li>각 노드에서: 무작위로 F개 특성 선택 → 선택된 특성 중 최적 분기 선택</li>
+        </ul>
+        <p style="font-size:13px;color:var(--accent2);margin-top:8px;margin-bottom:6px;">예측 (새 샘플 X):</p>
+        <ul class="blist">
+          <li>각 트리가 예측 수행</li>
+          <li><strong>분류:</strong> 다수결 투표</li>
+          <li><strong>회귀:</strong> 평균</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>특성</th><th>단일 결정 트리</th><th>Random Forest</th></tr></thead>
+        <tbody>
+          <tr><td>안정성</td><td>낮음 (높은 분산)</td><td>높음</td></tr>
+          <tr><td>정확도</td><td>보통</td><td>우수</td></tr>
+          <tr><td>해석 가능성</td><td>높음</td><td>낮음</td></tr>
+          <tr><td>과적합 위험</td><td>높음</td><td>낮음</td></tr>
+          <tr><td>훈련 속도</td><td>빠름</td><td>느림</td></tr>
+          <tr><td>특성 선택</td><td>전체 특성 사용</td><td>무작위 부분집합 사용</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══ 13 ══ -->
+  <section class="section" id="s13">
+    <div class="section-header">
+      <div class="section-num">13</div>
+      <div class="section-title">핵심 요약</div>
+    </div>
+
+    <div class="summary-section">
+      <h2>📚 강의 핵심 정리</h2>
+      <div class="summary-grid">
+        <div class="sum-card">
+          <div class="sum-icon">✂</div>
+          <h4>Pruning (가지치기)</h4>
+          <p>완전 성장 트리의 과적합 문제를 해결. Pre-pruning(조기 중단)과 Post-pruning(사후 제거)의 두 방법이 있으며, 모델 복잡성과 일반화의 균형이 핵심이다.</p>
+        </div>
+        <div class="sum-card">
+          <div class="sum-icon">📊</div>
+          <h4>모델 평가</h4>
+          <p>훈련 정확도는 과적합으로 낙관적. Confusion Matrix 기반 지표(Precision, Recall, F1)를 사용하고, CV나 Bootstrap으로 신뢰할 수 있는 평가를 수행한다.</p>
+        </div>
+        <div class="sum-card">
+          <div class="sum-icon">⚖</div>
+          <h4>클래스 불균형</h4>
+          <p>불균형 데이터에서 Accuracy는 오해를 줄 수 있다. Precision, Recall, F1-score를 사용하여 소수(Minority) 클래스 탐지 능력을 정확히 평가해야 한다.</p>
+        </div>
+        <div class="sum-card">
+          <div class="sum-icon">🎭</div>
+          <h4>앙상블 학습</h4>
+          <p>여러 모델을 결합하여 단일 모델보다 강력한 예측기를 만든다. 분류는 다수결 투표, 회귀는 평균. 모델 간 낮은 상관관계가 핵심이다.</p>
+        </div>
+        <div class="sum-card">
+          <div class="sum-icon">🎒</div>
+          <h4>Bagging</h4>
+          <p>Bootstrap 샘플링으로 여러 훈련 세트를 생성하고, 병렬로 모델을 훈련한다. 주로 분산(Variance)을 감소시키며, Random Forest가 대표 알고리즘이다.</p>
+        </div>
+        <div class="sum-card">
+          <div class="sum-icon">⚡</div>
+          <h4>Boosting & Random Forest</h4>
+          <p>Boosting은 잘못 분류된 샘플에 가중치를 부여해 순차적으로 학습(편향 감소). Random Forest는 Bagging + 무작위 특성 선택으로 안정성과 정확도를 극대화한다.</p>
+        </div>
+      </div>
+
+      <div style="margin-top:24px;" class="tbl-wrap">
+        <table>
+          <thead><tr><th>방법</th><th>핵심 아이디어</th><th>주요 감소</th><th>예측 방법</th><th>대표 알고리즘</th></tr></thead>
+          <tbody>
+            <tr><td>Bagging</td><td>Bootstrap + 병렬 훈련</td><td>분산(Variance)</td><td>다수결 / 평균</td><td>Random Forest</td></tr>
+            <tr><td>Boosting</td><td>순차 훈련, 가중치 조정</td><td>편향(Bias)</td><td>가중 투표</td><td>AdaBoost, XGBoost</td></tr>
+            <tr><td>Random Forest</td><td>Bagging + 무작위 특성</td><td>분산 + 상관관계</td><td>다수결 / 평균</td><td>sklearn RandomForest</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script>
+// ── TOC active state ──
+function setActive(el){
+  document.querySelectorAll('.toc-item').forEach(i=>i.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// Intersection Observer for TOC
+const sections = document.querySelectorAll('.section');
+const tocLinks = document.querySelectorAll('.toc-item');
+const obs = new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      const id = e.target.id;
+      tocLinks.forEach(l=>{
+        l.classList.toggle('active', l.getAttribute('href')==='#'+id);
+      });
+    }
+  });
+},{threshold:0.25});
+sections.forEach(s=>obs.observe(s));
+
+</script>
+</body>
+</html>

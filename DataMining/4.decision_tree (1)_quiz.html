@@ -1,0 +1,1177 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Decision Tree (1) — Quiz</title>
+<style>
+:root {
+  --bg: #0a0e1a;
+  --surface: #111827;
+  --surface2: #1a2235;
+  --surface3: #1e2d45;
+  --border: #1f2d45;
+  --accent: #38bdf8;
+  --accent2: #a78bfa;
+  --accent3: #34d399;
+  --accent4: #fb923c;
+  --danger: #f87171;
+  --yellow: #fbbf24;
+  --text: #e2e8f0;
+  --text-muted: #94a3b8;
+  --text-dim: #64748b;
+  --correct: #34d399;
+  --wrong: #f87171;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', sans-serif;
+  line-height: 1.7;
+  min-height: 100vh;
+}
+
+/* ── HEADER ── */
+.header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 48px;
+  position: sticky; top: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+  height: 60px;
+}
+.header-left { display: flex; align-items: center; gap: 16px; }
+.header-badge {
+  font-family: 'Menlo','Courier New',monospace;
+  font-size: 10px; letter-spacing: 0.12em;
+  background: rgba(56,189,248,0.12);
+  color: var(--accent); border: 1px solid rgba(56,189,248,0.3);
+  padding: 3px 10px; border-radius: 4px;
+}
+.header-title {
+  font-family: 'Impact','Arial Narrow',sans-serif;
+  font-size: 18px; letter-spacing: 0.05em;
+  color: var(--text);
+}
+.score-pill {
+  font-family: 'Menlo','Courier New',monospace;
+  font-size: 12px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 5px 16px;
+  color: var(--text-muted);
+}
+.score-pill span { color: var(--accent); font-weight: 700; }
+
+/* ── MAIN ── */
+main { max-width: 860px; margin: 0 auto; padding: 48px 24px 100px; }
+
+/* ── HERO ── */
+.hero { text-align: center; margin-bottom: 56px; }
+.hero-title {
+  font-family: 'Impact','Arial Narrow',sans-serif;
+  font-size: 48px; letter-spacing: 0.04em;
+  color: var(--text); margin-bottom: 8px;
+}
+.hero-title span { color: var(--accent); }
+.hero-sub { font-size: 14px; color: var(--text-muted); margin-bottom: 28px; }
+.hero-stats {
+  display: flex; justify-content: center; gap: 24px; flex-wrap: wrap;
+  margin-bottom: 32px;
+}
+.stat-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 24px;
+  text-align: center;
+}
+.stat-num { font-size: 28px; font-weight: 700; font-family: 'Menlo','Courier New',monospace; }
+.stat-label { font-size: 11px; color: var(--text-dim); letter-spacing: 0.08em; text-transform: uppercase; margin-top: 2px; }
+
+/* ── FILTER TABS ── */
+.filter-bar {
+  display: flex; gap: 8px; flex-wrap: wrap;
+  margin-bottom: 40px; justify-content: center;
+}
+.filter-btn {
+  font-size: 12px; font-family: 'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+  padding: 6px 16px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-muted);
+  cursor: pointer; transition: all 0.2s;
+}
+.filter-btn:hover { color: var(--text); border-color: var(--text-muted); }
+.filter-btn.active { color: var(--bg); font-weight: 700; }
+.filter-btn.active.all { background: var(--accent); border-color: var(--accent); }
+.filter-btn.active.mc { background: var(--accent2); border-color: var(--accent2); }
+.filter-btn.active.ox { background: var(--accent3); border-color: var(--accent3); }
+.filter-btn.active.sa { background: var(--yellow); border-color: var(--yellow); }
+.filter-btn.active.cf { background: var(--accent4); border-color: var(--accent4); }
+.filter-btn.active.es { background: var(--danger); border-color: var(--danger); }
+
+/* ── QUESTION CARD ── */
+.q-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin-bottom: 20px;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+.q-card.answered-correct { border-color: var(--correct); }
+.q-card.answered-wrong { border-color: var(--wrong); }
+
+.q-header {
+  display: flex; align-items: center; gap: 12px;
+  padding: 20px 24px 16px;
+}
+.q-num {
+  font-family: 'Menlo','Courier New',monospace;
+  font-size: 11px; color: var(--text-dim);
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  padding: 3px 10px; border-radius: 4px;
+  flex-shrink: 0;
+}
+.q-type-badge {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 3px 10px; border-radius: 4px;
+  flex-shrink: 0;
+}
+.type-mc { background: rgba(167,139,250,0.12); color: var(--accent2); border: 1px solid rgba(167,139,250,0.3); }
+.type-ox { background: rgba(52,211,153,0.12); color: var(--accent3); border: 1px solid rgba(52,211,153,0.3); }
+.type-sa { background: rgba(251,191,36,0.12); color: var(--yellow); border: 1px solid rgba(251,191,36,0.3); }
+.type-cf { background: rgba(251,146,60,0.12); color: var(--accent4); border: 1px solid rgba(251,146,60,0.3); }
+.type-es { background: rgba(248,113,113,0.12); color: var(--danger); border: 1px solid rgba(248,113,113,0.3); }
+
+.q-diff { font-size: 13px; flex-shrink: 0; }
+.q-slide {
+  font-size: 10px; color: var(--text-dim);
+  font-family: 'Menlo','Courier New',monospace;
+  margin-left: auto; flex-shrink: 0;
+}
+
+.q-body { padding: 0 24px 20px; }
+.q-text {
+  font-size: 15px; color: var(--text);
+  margin-bottom: 18px; line-height: 1.65;
+}
+.q-text code {
+  font-family: 'Menlo','Courier New',monospace;
+  font-size: 13px;
+  background: #0d1117;
+  border: 1px solid var(--border);
+  padding: 1px 6px; border-radius: 4px;
+  color: #79c0ff;
+}
+
+/* MC options */
+.mc-options { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+.mc-option {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 12px 16px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer; transition: all 0.15s;
+  font-size: 14px; color: var(--text-muted);
+  user-select: none;
+}
+.mc-option:hover:not(.locked) { border-color: var(--accent2); color: var(--text); background: var(--surface3); }
+.mc-option.selected { border-color: var(--accent2); color: var(--text); background: rgba(167,139,250,0.08); }
+.mc-option.correct-ans { border-color: var(--correct) !important; background: rgba(52,211,153,0.08) !important; color: var(--correct) !important; }
+.mc-option.wrong-ans { border-color: var(--wrong) !important; background: rgba(248,113,113,0.08) !important; color: var(--wrong) !important; }
+.mc-label {
+  font-family: 'Menlo','Courier New',monospace;
+  font-size: 12px; font-weight: 700;
+  min-width: 20px; color: inherit;
+}
+
+/* OX options */
+.ox-options { display: flex; gap: 12px; margin-bottom: 16px; }
+.ox-btn {
+  flex: 1; padding: 16px;
+  border-radius: 8px;
+  border: 2px solid var(--border);
+  background: var(--surface2);
+  cursor: pointer; transition: all 0.15s;
+  font-size: 22px; text-align: center;
+  font-weight: 700;
+}
+.ox-btn:hover:not(.locked) { transform: scale(1.03); }
+.ox-btn.o-btn:hover:not(.locked) { border-color: var(--correct); background: rgba(52,211,153,0.1); }
+.ox-btn.x-btn:hover:not(.locked) { border-color: var(--wrong); background: rgba(248,113,113,0.1); }
+.ox-btn.selected.o-btn { border-color: var(--correct); background: rgba(52,211,153,0.15); }
+.ox-btn.selected.x-btn { border-color: var(--wrong); background: rgba(248,113,113,0.15); }
+.ox-btn.correct-ans { border-color: var(--correct) !important; background: rgba(52,211,153,0.15) !important; }
+.ox-btn.wrong-ans { border-color: var(--wrong) !important; background: rgba(248,113,113,0.15) !important; }
+
+/* Short answer */
+.sa-input-wrap { display: flex; gap: 10px; margin-bottom: 16px; }
+.sa-input {
+  flex: 1;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 14px;
+  color: var(--text);
+  font-family: 'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+  transition: border-color 0.2s;
+}
+.sa-input:focus { outline: none; border-color: var(--yellow); }
+.sa-input.correct-input { border-color: var(--correct) !important; background: rgba(52,211,153,0.06); }
+.sa-input.wrong-input { border-color: var(--wrong) !important; background: rgba(248,113,113,0.06); }
+.sa-submit {
+  padding: 12px 20px;
+  background: var(--surface3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-muted);
+  font-size: 13px; cursor: pointer; transition: all 0.15s;
+  font-family: 'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+}
+.sa-submit:hover:not(:disabled) { background: var(--accent); color: var(--bg); border-color: var(--accent); font-weight: 700; }
+.sa-submit:disabled { opacity: 0.4; cursor: default; }
+
+/* Code fill */
+.code-block {
+  background: #0d1117;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 18px 20px;
+  font-family: 'Menlo','Courier New',monospace;
+  font-size: 13px;
+  line-height: 2;
+  margin-bottom: 16px;
+  overflow-x: auto;
+}
+.blank-input {
+  display: inline-block;
+  background: var(--surface3);
+  border: 1px solid var(--accent4);
+  border-radius: 4px;
+  padding: 1px 8px;
+  min-width: 100px;
+  font-family: 'Menlo','Courier New',monospace;
+  font-size: 12px;
+  color: var(--text);
+  vertical-align: middle;
+}
+.blank-input:focus { outline: none; border-color: var(--yellow); }
+.blank-input.correct-input { border-color: var(--correct) !important; background: rgba(52,211,153,0.1); color: var(--correct); }
+.blank-input.wrong-input { border-color: var(--wrong) !important; background: rgba(248,113,113,0.1); color: var(--wrong); }
+.kw { color: #ff7b72; }
+.fn { color: #79c0ff; }
+.co { color: #8b949e; font-style: italic; }
+.st { color: #a5d6ff; }
+.nu { color: #fbbf24; }
+
+/* Essay */
+.essay-area {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 16px;
+  font-size: 14px;
+  color: var(--text);
+  font-family: 'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+  resize: vertical; min-height: 100px;
+  line-height: 1.7;
+  margin-bottom: 12px;
+  transition: border-color 0.2s;
+}
+.essay-area:focus { outline: none; border-color: var(--accent2); }
+
+/* Answer section */
+.ans-toggle {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 16px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer; transition: all 0.15s;
+  font-size: 13px; color: var(--text-muted);
+  user-select: none; margin-bottom: 0;
+}
+.ans-toggle:hover { border-color: var(--accent); color: var(--text); }
+.ans-toggle .arr { transition: transform 0.2s; font-size: 11px; }
+.ans-toggle.open .arr { transform: rotate(180deg); }
+
+.ans-box {
+  display: none;
+  margin-top: 12px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent3);
+  border-radius: 8px;
+  padding: 18px 20px;
+}
+.ans-box.visible { display: block; }
+.ans-label {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--accent3); margin-bottom: 10px;
+}
+.ans-text { font-size: 14px; color: var(--text-muted); line-height: 1.7; }
+.ans-text strong { color: var(--text); }
+.ans-text .hl { color: var(--accent); }
+.ans-text .hl2 { color: var(--accent2); }
+.ans-text .hl3 { color: var(--accent3); }
+.ans-text code {
+  font-family: 'Menlo','Courier New',monospace;
+  font-size: 12px;
+  background: #0d1117;
+  border: 1px solid var(--border);
+  padding: 1px 6px; border-radius: 4px;
+  color: #79c0ff;
+}
+.ans-formula {
+  background: #0d1117;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 14px;
+  font-family: 'Menlo','Courier New',monospace;
+  font-size: 12px;
+  color: #c9d1d9;
+  margin: 8px 0;
+  line-height: 1.8;
+}
+
+/* Result feedback per question */
+.q-result {
+  display: none;
+  margin-top: 10px;
+  padding: 10px 14px;
+  border-radius: 6px;
+  font-size: 13px; font-weight: 700;
+}
+.q-result.correct { display: flex; align-items: center; gap: 8px; background: rgba(52,211,153,0.1); color: var(--correct); border: 1px solid rgba(52,211,153,0.3); }
+.q-result.wrong { display: flex; align-items: center; gap: 8px; background: rgba(248,113,113,0.1); color: var(--wrong); border: 1px solid rgba(248,113,113,0.3); }
+
+/* ── FINAL SCORE ── */
+.final-score-section {
+  margin-top: 56px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 40px;
+  text-align: center;
+}
+.final-score-title {
+  font-family: 'Impact','Arial Narrow',sans-serif;
+  font-size: 28px; letter-spacing: 0.04em;
+  color: var(--text); margin-bottom: 24px;
+}
+.score-circle {
+  width: 140px; height: 140px;
+  border-radius: 50%;
+  background: var(--surface2);
+  border: 4px solid var(--accent);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  margin: 0 auto 28px;
+}
+.score-big { font-size: 42px; font-weight: 700; font-family: 'Menlo','Courier New',monospace; color: var(--accent); line-height: 1; }
+.score-denom { font-size: 14px; color: var(--text-muted); margin-top: 4px; }
+.score-msg { font-size: 16px; color: var(--text-muted); margin-bottom: 24px; }
+.score-breakdown {
+  display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; margin-bottom: 28px;
+}
+.score-breakdown-item {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 18px;
+  font-size: 13px; color: var(--text-muted);
+}
+.score-breakdown-item span { font-weight: 700; }
+.score-breakdown-item span.c { color: var(--correct); }
+.score-breakdown-item span.w { color: var(--wrong); }
+.score-breakdown-item span.s { color: var(--text-dim); }
+
+.reset-btn {
+  padding: 12px 32px;
+  background: var(--accent);
+  border: none; border-radius: 8px;
+  color: var(--bg); font-size: 14px; font-weight: 700;
+  cursor: pointer; transition: all 0.15s;
+  font-family: 'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+}
+.reset-btn:hover { background: #7dd3fc; }
+.check-all-btn {
+  padding: 12px 32px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-muted); font-size: 14px;
+  cursor: pointer; transition: all 0.15s;
+  font-family: 'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+  margin-right: 12px;
+}
+.check-all-btn:hover { border-color: var(--accent4); color: var(--accent4); }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="header-left">
+    <span class="header-badge">QUIZ</span>
+    <span class="header-title">Decision Tree (1)</span>
+  </div>
+  <div class="score-pill">채점 결과: <span id="live-score">0 / 0</span></div>
+</header>
+
+<main>
+
+<!-- HERO -->
+<div class="hero">
+  <h1 class="hero-title">Decision <span>Tree</span> Quiz</h1>
+  <p class="hero-sub">Data Mining (FE06064001) · CSE · Incheon National University · Jangho Lee</p>
+  <div class="hero-stats">
+    <div class="stat-box"><div class="stat-num" style="color:var(--accent2)">5</div><div class="stat-label">객관식</div></div>
+    <div class="stat-box"><div class="stat-num" style="color:var(--accent3)">5</div><div class="stat-label">OX 문제</div></div>
+    <div class="stat-box"><div class="stat-num" style="color:var(--yellow)">5</div><div class="stat-label">단답형</div></div>
+    <div class="stat-box"><div class="stat-num" style="color:var(--accent4)">3</div><div class="stat-label">코드 완성</div></div>
+    <div class="stat-box"><div class="stat-num" style="color:var(--danger)">2</div><div class="stat-label">서술형</div></div>
+    <div class="stat-box"><div class="stat-num" style="color:var(--accent)">20</div><div class="stat-label">총 문항</div></div>
+  </div>
+  <div class="filter-bar">
+    <button class="filter-btn active all" onclick="filterQuiz('all',this)">전체 (20)</button>
+    <button class="filter-btn mc" onclick="filterQuiz('mc',this)">객관식</button>
+    <button class="filter-btn ox" onclick="filterQuiz('ox',this)">OX</button>
+    <button class="filter-btn sa" onclick="filterQuiz('sa',this)">단답형</button>
+    <button class="filter-btn cf" onclick="filterQuiz('cf',this)">코드 완성</button>
+    <button class="filter-btn es" onclick="filterQuiz('es',this)">서술형</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     SECTION A: 객관식 (MC) × 5
+     ═══════════════════════════════════════════════ -->
+
+<!-- Q1 -->
+<div class="q-card" data-qtype="mc" data-qid="1" data-answer="b">
+  <div class="q-header">
+    <span class="q-num">Q01</span>
+    <span class="q-type-badge type-mc">객관식</span>
+    <span class="q-diff">⭐</span>
+    <span class="q-slide">Slide 2–3/16</span>
+  </div>
+  <div class="q-body">
+    <p class="q-text">다음 중 <strong>분류(Classification)</strong>에 대한 설명으로 올바른 것은?</p>
+    <div class="mc-options">
+      <div class="mc-option" onclick="selectMC(this,'1','a')"><span class="mc-label">A</span> 연속적인 수치 값을 출력한다.</div>
+      <div class="mc-option" onclick="selectMC(this,'1','b')"><span class="mc-label">B</span> 범주형(이산형) 클래스 레이블을 예측한다.</div>
+      <div class="mc-option" onclick="selectMC(this,'1','c')"><span class="mc-label">C</span> 비지도학습의 한 형태이다.</div>
+      <div class="mc-option" onclick="selectMC(this,'1','d')"><span class="mc-label">D</span> 레이블 없는 데이터로부터 패턴을 발견한다.</div>
+    </div>
+    <div class="q-result" id="result-1"></div>
+    <div class="ans-toggle" onclick="toggleAns('ans-1',this)"><span>📖 정답 및 해설 보기</span><span class="arr">▼</span></div>
+    <div class="ans-box" id="ans-1">
+      <div class="ans-label">정답: B</div>
+      <div class="ans-text">분류는 <strong class="hl">범주형(categorical) 클래스 레이블</strong>을 예측하는 데이터 분석 태스크입니다. 예: yes/no, spam/not spam, A/B/C. 연속 값 예측은 수치 예측(회귀)이며, 분류는 레이블된 데이터를 사용하는 <strong>지도학습</strong>입니다.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Q2 -->
+<div class="q-card" data-qtype="mc" data-qid="2" data-answer="c">
+  <div class="q-header">
+    <span class="q-num">Q02</span>
+    <span class="q-type-badge type-mc">객관식</span>
+    <span class="q-diff">⭐⭐</span>
+    <span class="q-slide">Slide 6/16</span>
+  </div>
+  <div class="q-body">
+    <p class="q-text">Decision Tree의 각 구성 요소에 대한 설명으로 <strong>올바르지 않은</strong> 것은?</p>
+    <div class="mc-options">
+      <div class="mc-option" onclick="selectMC(this,'2','a')"><span class="mc-label">A</span> Internal Node는 속성에 대한 테스트를 나타낸다.</div>
+      <div class="mc-option" onclick="selectMC(this,'2','b')"><span class="mc-label">B</span> Branch는 테스트 결과에 해당하는 경로이다.</div>
+      <div class="mc-option" onclick="selectMC(this,'2','c')"><span class="mc-label">C</span> Leaf Node는 속성 테스트 조건을 포함한다.</div>
+      <div class="mc-option" onclick="selectMC(this,'2','d')"><span class="mc-label">D</span> Root Node는 트리의 최상단 노드이다.</div>
+    </div>
+    <div class="q-result" id="result-2"></div>
+    <div class="ans-toggle" onclick="toggleAns('ans-2',this)"><span>📖 정답 및 해설 보기</span><span class="arr">▼</span></div>
+    <div class="ans-box" id="ans-2">
+      <div class="ans-label">정답: C</div>
+      <div class="ans-text"><strong class="hl">Leaf Node</strong>는 속성 테스트가 아니라 <strong>클래스 레이블(class label)</strong>을 포함합니다. 새로운 인스턴스를 분류할 때 Root Node에서 시작하여 각 Internal Node의 테스트 조건을 평가하고, Branch를 따라 이동하여 최종적으로 Leaf Node에 도달하면 그 레이블이 예측 클래스가 됩니다.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Q3 -->
+<div class="q-card" data-qtype="mc" data-qid="3" data-answer="b">
+  <div class="q-header">
+    <span class="q-num">Q03</span>
+    <span class="q-type-badge type-mc">객관식</span>
+    <span class="q-diff">⭐⭐</span>
+    <span class="q-slide">Slide 8/16</span>
+  </div>
+  <div class="q-body">
+    <p class="q-text">다음 중 <strong>CART 알고리즘</strong>의 특징으로 올바른 것은?</p>
+    <div class="mc-options">
+      <div class="mc-option" onclick="selectMC(this,'3','a')"><span class="mc-label">A</span> Information Gain을 분할 기준으로 사용한다.</div>
+      <div class="mc-option" onclick="selectMC(this,'3','b')"><span class="mc-label">B</span> 이진 트리(Binary Tree)만 생성하며 분류와 회귀를 모두 지원한다.</div>
+      <div class="mc-option" onclick="selectMC(this,'3','c')"><span class="mc-label">C</span> 범주형 속성만 처리할 수 있다.</div>
+      <div class="mc-option" onclick="selectMC(this,'3','d')"><span class="mc-label">D</span> 가지치기(pruning)를 수행하지 않는다.</div>
+    </div>
+    <div class="q-result" id="result-3"></div>
+    <div class="ans-toggle" onclick="toggleAns('ans-3',this)"><span>📖 정답 및 해설 보기</span><span class="arr">▼</span></div>
+    <div class="ans-box" id="ans-3">
+      <div class="ans-label">정답: B</div>
+      <div class="ans-text">CART(Classification And Regression Trees)는 <strong class="hl">이진 트리(Binary Tree)만</strong> 생성하며, 분류에는 Gini Index, 회귀에는 MSE/RSS를 사용합니다. ID3는 Information Gain만 사용하고 범주형 속성만 처리합니다. C4.5는 범주형+연속형 모두 지원합니다.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Q4 -->
+<div class="q-card" data-qtype="mc" data-qid="4" data-answer="a">
+  <div class="q-header">
+    <span class="q-num">Q04</span>
+    <span class="q-type-badge type-mc">객관식</span>
+    <span class="q-diff">⭐⭐⭐</span>
+    <span class="q-slide">Slide 13/16</span>
+  </div>
+  <div class="q-body">
+    <p class="q-text">14개 튜플로 구성된 데이터셋 D에서 yes=9, no=5일 때, <strong>Info(D)의 값</strong>으로 올바른 것은?</p>
+    <div class="mc-options">
+      <div class="mc-option" onclick="selectMC(this,'4','a')"><span class="mc-label">A</span> 0.940 bits</div>
+      <div class="mc-option" onclick="selectMC(this,'4','b')"><span class="mc-label">B</span> 0.694 bits</div>
+      <div class="mc-option" onclick="selectMC(this,'4','c')"><span class="mc-label">C</span> 0.246 bits</div>
+      <div class="mc-option" onclick="selectMC(this,'4','d')"><span class="mc-label">D</span> 0.459 bits</div>
+    </div>
+    <div class="q-result" id="result-4"></div>
+    <div class="ans-toggle" onclick="toggleAns('ans-4',this)"><span>📖 정답 및 해설 보기</span><span class="arr">▼</span></div>
+    <div class="ans-box" id="ans-4">
+      <div class="ans-label">정답: A — 0.940 bits</div>
+      <div class="ans-text">엔트로피 공식을 적용합니다:</div>
+      <div class="ans-formula">Info(D) = −(9/14)·log₂(9/14) − (5/14)·log₂(5/14)<br>= −0.6429·(−0.6375) − 0.3571·(−1.485)<br>= 0.4098 + 0.5302 = <strong>0.940 bits</strong></div>
+      <div class="ans-text">0.694는 age로 분할 후 조건부 엔트로피, 0.246은 Gain(age), 0.459는 Gini(D)입니다.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Q5 -->
+<div class="q-card" data-qtype="mc" data-qid="5" data-answer="d">
+  <div class="q-header">
+    <span class="q-num">Q05</span>
+    <span class="q-type-badge type-mc">객관식</span>
+    <span class="q-diff">⭐⭐⭐</span>
+    <span class="q-slide">Slide 15/16</span>
+  </div>
+  <div class="q-body">
+    <p class="q-text">Gain Ratio가 Information Gain보다 <strong>유리한 이유</strong>로 가장 올바른 것은?</p>
+    <div class="mc-options">
+      <div class="mc-option" onclick="selectMC(this,'5','a')"><span class="mc-label">A</span> 계산이 더 단순하여 속도가 빠르다.</div>
+      <div class="mc-option" onclick="selectMC(this,'5','b')"><span class="mc-label">B</span> 연속형 속성을 처리할 수 있다.</div>
+      <div class="mc-option" onclick="selectMC(this,'5','c')"><span class="mc-label">C</span> 이진 트리만 생성하여 단순하다.</div>
+      <div class="mc-option" onclick="selectMC(this,'5','d')"><span class="mc-label">D</span> 값이 많은 속성에 대한 편향을 줄여 더 나은 일반화를 제공한다.</div>
+    </div>
+    <div class="q-result" id="result-5"></div>
+    <div class="ans-toggle" onclick="toggleAns('ans-5',this)"><span>📖 정답 및 해설 보기</span><span class="arr">▼</span></div>
+    <div class="ans-box" id="ans-5">
+      <div class="ans-label">정답: D</div>
+      <div class="ans-text">Information Gain은 값이 많은 속성(예: product_ID)을 과도하게 선호합니다. Gain Ratio는 <strong class="hl">Split Information으로 정규화</strong>하여 이 편향을 줄입니다. Split Information은 데이터가 얼마나 고르게 분할되는지를 측정하며, 값이 너무 많으면 SplitInfo가 커져 GainRatio가 작아집니다.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     SECTION B: OX × 5
+     ═══════════════════════════════════════════════ -->
+
+<!-- Q6 -->
+<div class="q-card" data-qtype="ox" data-qid="6" data-answer="o">
+  <div class="q-header">
+    <span class="q-num">Q06</span>
+    <span class="q-type-badge type-ox">OX 문제</span>
+    <span class="q-diff">⭐</span>
+    <span class="q-slide">Slide 4/16</span>
+  </div>
+  <div class="q-body">
+    <p class="q-text">지도학습(Supervised Learning)에서 모델은 레이블된(labeled) 데이터로부터 학습하고, 학습 완료 후 미확인(unseen) 입력에 적용된다.</p>
+    <div class="ox-options">
+      <div class="ox-btn o-btn" onclick="selectOX(this,'6','o')">⭕ 참(O)</div>
+      <div class="ox-btn x-btn" onclick="selectOX(this,'6','x')">❌ 거짓(X)</div>
+    </div>
+    <div class="q-result" id="result-6"></div>
+    <div class="ans-toggle" onclick="toggleAns('ans-6',this)"><span>📖 정답 및 해설 보기</span><span class="arr">▼</span></div>
+    <div class="ans-box" id="ans-6">
+      <div class="ans-label">정답: O (참)</div>
+      <div class="ans-text">지도학습의 핵심 특성입니다. 훈련 데이터 <strong>D = {(x₁,y₁), (x₂,y₂), …, (xₙ,yₙ)}</strong>로 f: x → y 매핑을 학습하고, 학습된 모델을 훈련 세트에 없는 새로운 입력에 적용하여 예측합니다.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Q7 -->
+<div class="q-card" data-qtype="ox" data-qid="7" data-answer="x">
+  <div class="q-header">
+    <span class="q-num">Q07</span>
+    <span class="q-type-badge type-ox">OX 문제</span>
+    <span class="q-diff">⭐</span>
+    <span class="q-slide">Slide 6/16</span>
+  </div>
+  <div class="q-body">
+    <p class="q-text">Decision Tree는 회귀(Regression) 문제에는 사용할 수 없고, 분류(Classification) 문제에만 사용 가능하다.</p>
+    <div class="ox-options">
+      <div class="ox-btn o-btn" onclick="selectOX(this,'7','o')">⭕ 참(O)</div>
+      <div class="ox-btn x-btn" onclick="selectOX(this,'7','x')">❌ 거짓(X)</div>
+    </div>
+    <div class="q-result" id="result-7"></div>
+    <div class="ans-toggle" onclick="toggleAns('ans-7',this)"><span>📖 정답 및 해설 보기</span><span class="arr">▼</span></div>
+    <div class="ans-box" id="ans-7">
+      <div class="ans-label">정답: X (거짓)</div>
+      <div class="ans-text">Decision Tree는 <strong class="hl">분류와 회귀 모두</strong>에 사용 가능한 지도학습 방법입니다. 특히 CART(Classification And Regression Trees) 알고리즘은 이름에서도 알 수 있듯이 분류에는 Gini Index를, 회귀에는 MSE/RSS를 분할 기준으로 사용합니다.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Q8 -->
+<div class="q-card" data-qtype="ox" data-qid="8" data-answer="o">
+  <div class="q-header">
+    <span class="q-num">Q08</span>
+    <span class="q-type-badge type-ox">OX 문제</span>
+    <span class="q-diff">⭐⭐</span>
+    <span class="q-slide">Slide 9/16</span>
+  </div>
+  <div class="q-body">
+    <p class="q-text">Generate_decision_tree 알고리즘에서 파티션 D_j가 비어있을 경우(empty), 해당 노드를 D 전체의 다수결 클래스로 레이블된 Leaf Node로 처리한다.</p>
+    <div class="ox-options">
+      <div class="ox-btn o-btn" onclick="selectOX(this,'8','o')">⭕ 참(O)</div>
+      <div class="ox-btn x-btn" onclick="selectOX(this,'8','x')">❌ 거짓(X)</div>
+    </div>
+    <div class="q-result" id="result-8"></div>
+    <div class="ans-toggle" onclick="toggleAns('ans-8',this)"><span>📖 정답 및 해설 보기</span><span class="arr">▼</span></div>
+    <div class="ans-box" id="ans-8">
+      <div class="ans-label">정답: O (참)</div>
+      <div class="ans-text">알고리즘 12–13번 줄에 해당합니다: <strong>if D_j is empty then</strong> attach a leaf labeled with the <strong class="hl">majority class in D</strong>. 분할 결과 해당 브랜치에 데이터가 없을 때, 부모 노드 D 전체의 다수결 클래스를 사용하는 majority voting 방식입니다.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Q9 -->
+<div class="q-card" data-qtype="ox" data-qid="9" data-answer="x">
+  <div class="q-header">
+    <span class="q-num">Q09</span>
+    <span class="q-type-badge type-ox">OX 문제</span>
+    <span class="q-diff">⭐⭐</span>
+    <span class="q-slide">Slide 11/16</span>
+  </div>
+  <div class="q-body">
+    <p class="q-text">Gini Impurity가 0일 때, 데이터셋은 완전히 혼합된(mixed) 상태를 의미한다.</p>
+    <div class="ox-options">
+      <div class="ox-btn o-btn" onclick="selectOX(this,'9','o')">⭕ 참(O)</div>
+      <div class="ox-btn x-btn" onclick="selectOX(this,'9','x')">❌ 거짓(X)</div>
+    </div>
+    <div class="q-result" id="result-9"></div>
+    <div class="ans-toggle" onclick="toggleAns('ans-9',this)"><span>📖 정답 및 해설 보기</span><span class="arr">▼</span></div>
+    <div class="ans-box" id="ans-9">
+      <div class="ans-label">정답: X (거짓)</div>
+      <div class="ans-text">Gini Impurity가 <strong class="hl3">0</strong>일 때는 데이터셋이 <strong>완전히 순수(pure)</strong>한 상태, 즉 모든 튜플이 동일한 클래스에 속하는 상태를 의미합니다. Gini 값이 <strong>높을수록</strong> 클래스가 더 혼합된(mixed) 상태입니다.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Q10 -->
+<div class="q-card" data-qtype="ox" data-qid="10" data-answer="o">
+  <div class="q-header">
+    <span class="q-num">Q10</span>
+    <span class="q-type-badge type-ox">OX 문제</span>
+    <span class="q-diff">⭐⭐⭐</span>
+    <span class="q-slide">Slide 13/16</span>
+  </div>
+  <div class="q-body">
+    <p class="q-text">14-tuple 고객 데이터셋에서 age 속성으로 분할 시, middle_aged 파티션(4 yes, 0 no)은 엔트로피가 0이므로 즉시 Leaf Node가 된다.</p>
+    <div class="ox-options">
+      <div class="ox-btn o-btn" onclick="selectOX(this,'10','o')">⭕ 참(O)</div>
+      <div class="ox-btn x-btn" onclick="selectOX(this,'10','x')">❌ 거짓(X)</div>
+    </div>
+    <div class="q-result" id="result-10"></div>
+    <div class="ans-toggle" onclick="toggleAns('ans-10',this)"><span>📖 정답 및 해설 보기</span><span class="arr">▼</span></div>
+    <div class="ans-box" id="ans-10">
+      <div class="ans-label">정답: O (참)</div>
+      <div class="ans-text">Info(middle_aged) = −(4/4)·log₂(4/4) = <strong class="hl3">0</strong>. 모든 튜플이 동일한 클래스(yes)이므로 완전히 순수(pure)한 파티션입니다. 알고리즘 2–3번 줄: <strong>"if tuples are all of the same class C, then return N as a leaf node labeled C"</strong>에 의해 즉시 Leaf Node가 됩니다.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     SECTION C: 단답형 (SA) × 5
+     ═══════════════════════════════════════════════ -->
+
+<!-- Q11 -->
+<div class="q-card" data-qtype="sa" data-qid="11" data-answer="gainratio,gain ratio,이득비율">
+  <div class="q-header">
+    <span class="q-num">Q11</span>
+    <span class="q-type-badge type-sa">단답형</span>
+    <span class="q-diff">⭐</span>
+    <span class="q-slide">Slide 8/16</span>
+  </div>
+  <div class="q-body">
+    <p class="q-text">C4.5 알고리즘이 Information Gain의 편향 문제를 해결하기 위해 사용하는 속성 선택 측도는 무엇인가?</p>
+    <div class="sa-input-wrap">
+      <input class="sa-input" id="sa-11" type="text" placeholder="답을 입력하세요..." onkeydown="if(event.key==='Enter')checkSA('11')">
+      <button class="sa-submit" id="sa-submit-11" onclick="checkSA('11')">확인</button>
+    </div>
+    <div class="q-result" id="result-11"></div>
+    <div class="ans-toggle" onclick="toggleAns('ans-11',this)"><span>📖 정답 및 해설 보기</span><span class="arr">▼</span></div>
+    <div class="ans-box" id="ans-11">
+      <div class="ans-label">정답: Gain Ratio (이득 비율)</div>
+      <div class="ans-text"><strong class="hl">Gain Ratio</strong>는 Information Gain을 Split Information으로 나눈 값입니다:</div>
+      <div class="ans-formula">GainRatio(A) = Gain(A) / SplitInfo_A(D)</div>
+      <div class="ans-text">Split Information은 속성이 데이터를 얼마나 고르게 분할하는지 측정하여, 값이 많은 속성에 대한 편향을 완화합니다.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Q12 -->
+<div class="q-card" data-qtype="sa" data-qid="12" data-answer="0.246,0.246bits">
+  <div class="q-header">
+    <span class="q-num">Q12</span>
+    <span class="q-type-badge type-sa">단답형</span>
+    <span class="q-diff">⭐⭐</span>
+    <span class="q-slide">Slide 13/16</span>
+  </div>
+  <div class="q-body">
+    <p class="q-text">14-tuple 데이터셋에서 Info(D) = 0.940 bits, Info_age(D) = 0.694 bits일 때, <strong>Gain(age)</strong>의 값은? (단위 bits 생략 가능)</p>
+    <div class="sa-input-wrap">
+      <input class="sa-input" id="sa-12" type="text" placeholder="소수점 3자리까지 입력 (예: 0.246)" onkeydown="if(event.key==='Enter')checkSA('12')">
+      <button class="sa-submit" id="sa-submit-12" onclick="checkSA('12')">확인</button>
+    </div>
+    <div class="q-result" id="result-12"></div>
+    <div class="ans-toggle" onclick="toggleAns('ans-12',this)"><span>📖 정답 및 해설 보기</span><span class="arr">▼</span></div>
+    <div class="ans-box" id="ans-12">
+      <div class="ans-label">정답: 0.246 bits</div>
+      <div class="ans-formula">Gain(age) = Info(D) − Info_age(D) = 0.940 − 0.694 = <strong>0.246 bits</strong></div>
+      <div class="ans-text">4개 속성 중 Gain(age) = 0.246이 가장 높으므로 <strong class="hl">age가 루트 노드 분할 속성</strong>으로 선택됩니다.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Q13 -->
+<div class="q-card" data-qtype="sa" data-qid="13" data-answer="gini,giniindex,지니지수,지니 지수">
+  <div class="q-header">
+    <span class="q-num">Q13</span>
+    <span class="q-type-badge type-sa">단답형</span>
+    <span class="q-diff">⭐</span>
+    <span class="q-slide">Slide 8/16</span>
+  </div>
+  <div class="q-body">
+    <p class="q-text">CART 알고리즘이 분류 문제에서 사용하는 속성 선택 측도를 영문으로 쓰시오.</p>
+    <div class="sa-input-wrap">
+      <input class="sa-input" id="sa-13" type="text" placeholder="답을 입력하세요..." onkeydown="if(event.key==='Enter')checkSA('13')">
+      <button class="sa-submit" id="sa-submit-13" onclick="checkSA('13')">확인</button>
+    </div>
+    <div class="q-result" id="result-13"></div>
+    <div class="ans-toggle" onclick="toggleAns('ans-13',this)"><span>📖 정답 및 해설 보기</span><span class="arr">▼</span></div>
+    <div class="ans-box" id="ans-13">
+      <div class="ans-label">정답: Gini Index (Gini Impurity)</div>
+      <div class="ans-text">CART는 분류에 <strong class="hl">Gini Index</strong>, 회귀에 MSE/RSS를 사용합니다:</div>
+      <div class="ans-formula">Gini(D) = 1 − Σᵢ pᵢ²</div>
+    </div>
+  </div>
+</div>
+
+<!-- Q14 -->
+<div class="q-card" data-qtype="sa" data-qid="14" data-answer="0.459">
+  <div class="q-header">
+    <span class="q-num">Q14</span>
+    <span class="q-type-badge type-sa">단답형</span>
+    <span class="q-diff">⭐⭐⭐</span>
+    <span class="q-slide">Slide 16/16</span>
+  </div>
+  <div class="q-body">
+    <p class="q-text">14-tuple 데이터셋에서 yes=9, no=5일 때, <strong>Gini(D)</strong>의 값을 소수점 3자리로 쓰시오.</p>
+    <div class="sa-input-wrap">
+      <input class="sa-input" id="sa-14" type="text" placeholder="소수점 3자리까지 (예: 0.000)" onkeydown="if(event.key==='Enter')checkSA('14')">
+      <button class="sa-submit" id="sa-submit-14" onclick="checkSA('14')">확인</button>
+    </div>
+    <div class="q-result" id="result-14"></div>
+    <div class="ans-toggle" onclick="toggleAns('ans-14',this)"><span>📖 정답 및 해설 보기</span><span class="arr">▼</span></div>
+    <div class="ans-box" id="ans-14">
+      <div class="ans-label">정답: 0.459</div>
+      <div class="ans-formula">Gini(D) = 1 − (9/14)² − (5/14)²<br>= 1 − (0.6429)² − (0.3571)²<br>= 1 − 0.4133 − 0.1276<br>= 1 − 0.5408 = <strong>0.459</strong></div>
+    </div>
+  </div>
+</div>
+
+<!-- Q15 -->
+<div class="q-card" data-qtype="sa" data-qid="15" data-answer="id3,iterativedichotomizer,iterative dichotomizer">
+  <div class="q-header">
+    <span class="q-num">Q15</span>
+    <span class="q-type-badge type-sa">단답형</span>
+    <span class="q-diff">⭐</span>
+    <span class="q-slide">Slide 8/16</span>
+  </div>
+  <div class="q-body">
+    <p class="q-text">Information Gain을 분할 기준으로 사용하며, 범주형 속성만 처리하고 가지치기를 수행하지 않는 Decision Tree 알고리즘의 이름은?</p>
+    <div class="sa-input-wrap">
+      <input class="sa-input" id="sa-15" type="text" placeholder="알고리즘 이름 (약어 가능)" onkeydown="if(event.key==='Enter')checkSA('15')">
+      <button class="sa-submit" id="sa-submit-15" onclick="checkSA('15')">확인</button>
+    </div>
+    <div class="q-result" id="result-15"></div>
+    <div class="ans-toggle" onclick="toggleAns('ans-15',this)"><span>📖 정답 및 해설 보기</span><span class="arr">▼</span></div>
+    <div class="ans-box" id="ans-15">
+      <div class="ans-label">정답: ID3</div>
+      <div class="ans-text"><strong class="hl">ID3</strong>(Iterative Dichotomizer)는 Quinlan(1986)이 제안한 알고리즘입니다. Information Gain을 분할 기준으로 사용하며, 범주형 속성만 처리하고, 사후 가지치기(post-pruning)를 수행하지 않습니다. C4.5는 ID3의 확장 버전입니다.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     SECTION D: 코드 완성형 (CF) × 3
+     ═══════════════════════════════════════════════ -->
+
+<!-- Q16 -->
+<div class="q-card" data-qtype="cf" data-qid="16" data-answer="multi">
+  <div class="q-header">
+    <span class="q-num">Q16</span>
+    <span class="q-type-badge type-cf">코드 완성</span>
+    <span class="q-diff">⭐⭐</span>
+    <span class="q-slide">Slide 9/16</span>
+  </div>
+  <div class="q-body">
+    <p class="q-text">아래 Generate_decision_tree 알고리즘의 빈칸을 채우시오. 이산 속성에서 다지 분할을 허용하는 조건을 나타냅니다.</p>
+    <div class="code-block">
+<span class="kw">if</span> splitting_attribute <span class="kw">is</span> discrete-valued <span class="kw">and</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<input class="blank-input" id="cf-16" placeholder="???? splits" style="width:140px;"> allowed <span class="kw">then</span> <span class="co">// not restricted to binary trees</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;attribute_list ← attribute_list − splitting_attribute;
+    </div>
+    <button class="sa-submit" onclick="checkCF('16','multiway,multi-way,multi way')">확인</button>
+    <div class="q-result" id="result-16"></div>
+    <div class="ans-toggle" onclick="toggleAns('ans-16',this)"><span>📖 정답 및 해설 보기</span><span class="arr">▼</span></div>
+    <div class="ans-box" id="ans-16">
+      <div class="ans-label">정답: multiway</div>
+      <div class="ans-text"><code>multiway splits allowed</code> — 이 조건이 참이면 이산 속성의 각 값에 대해 별도의 브랜치를 생성하는 <strong class="hl">다지 분할(multiway split)</strong>을 허용합니다. 이 조건이 false이면 이진 분할(binary split)만 수행합니다.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Q17 -->
+<div class="q-card" data-qtype="cf" data-qid="17" data-answer="entropy">
+  <div class="q-header">
+    <span class="q-num">Q17</span>
+    <span class="q-type-badge type-cf">코드 완성</span>
+    <span class="q-diff">⭐⭐</span>
+    <span class="q-slide">Slide 11/16</span>
+  </div>
+  <div class="q-body">
+    <p class="q-text">아래 수식의 빈칸에 알맞은 개념 이름을 쓰시오. 이 값이 클수록 데이터셋이 불순함을 나타냅니다.</p>
+    <div class="code-block">
+<span class="co">// Attribute Selection Measure:</span> <input class="blank-input" id="cf-17" placeholder="????????" style="width:100px;"> <span class="kw">of D</span><br>
+<br>
+Info(D) = −Σᵢ pᵢ · <span class="fn">log</span>₂(pᵢ),  <span class="co">where pᵢ = |Cᵢ,D| / |D|</span>
+    </div>
+    <button class="sa-submit" onclick="checkCF('17','entropy,엔트로피')">확인</button>
+    <div class="q-result" id="result-17"></div>
+    <div class="ans-toggle" onclick="toggleAns('ans-17',this)"><span>📖 정답 및 해설 보기</span><span class="arr">▼</span></div>
+    <div class="ans-box" id="ans-17">
+      <div class="ans-label">정답: Entropy (엔트로피)</div>
+      <div class="ans-text"><strong class="hl">Entropy</strong>(엔트로피)는 데이터셋 D의 불순도(impurity)를 측정합니다. 모든 튜플이 같은 클래스이면 entropy = 0(완전 순수), 클래스가 균등하게 분포되면 entropy가 최대가 됩니다. ID3 알고리즘에서 Information Gain을 계산할 때 기반이 됩니다.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Q18 -->
+<div class="q-card" data-qtype="cf" data-qid="18" data-answer="leaf">
+  <div class="q-header">
+    <span class="q-num">Q18</span>
+    <span class="q-type-badge type-cf">코드 완성</span>
+    <span class="q-diff">⭐⭐⭐</span>
+    <span class="q-slide">Slide 9/16</span>
+  </div>
+  <div class="q-body">
+    <p class="q-text">아래 알고리즘에서 모든 튜플이 동일한 클래스 C일 때의 처리를 나타내는 코드입니다. 빈칸을 채우시오.</p>
+    <div class="code-block">
+<span class="kw">if</span> tuples in D <span class="kw">are all of the same class</span>, C, <span class="kw">then</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return</span> N <span class="kw">as a</span> <input class="blank-input" id="cf-18" placeholder="???? node" style="width:110px;"> labeled <span class="kw">with</span> class C;
+    </div>
+    <button class="sa-submit" onclick="checkCF('18','leaf,leaf node,리프,리프노드')">확인</button>
+    <div class="q-result" id="result-18"></div>
+    <div class="ans-toggle" onclick="toggleAns('ans-18',this)"><span>📖 정답 및 해설 보기</span><span class="arr">▼</span></div>
+    <div class="ans-box" id="ans-18">
+      <div class="ans-label">정답: leaf (Leaf Node)</div>
+      <div class="ans-text">파티션의 모든 튜플이 동일한 클래스 C에 속할 때, 더 이상 분할이 필요 없으므로 해당 노드를 클래스 C로 레이블된 <strong class="hl">Leaf Node</strong>로 반환합니다. 이것이 Decision Tree 귀납 알고리즘의 기저 조건(base case) 중 하나입니다.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     SECTION E: 서술형 (ES) × 2
+     ═══════════════════════════════════════════════ -->
+
+<!-- Q19 -->
+<div class="q-card" data-qtype="es" data-qid="19">
+  <div class="q-header">
+    <span class="q-num">Q19</span>
+    <span class="q-type-badge type-es">서술형</span>
+    <span class="q-diff">⭐⭐⭐</span>
+    <span class="q-slide">Slide 11/16</span>
+  </div>
+  <div class="q-body">
+    <p class="q-text">Information Gain, Gain Ratio, Gini Index 세 가지 속성 선택 측도를 <strong>공식, 사용 알고리즘, 특징/장단점</strong>을 중심으로 비교 서술하시오.</p>
+    <textarea class="essay-area" placeholder="여기에 답을 작성하세요..."></textarea>
+    <div class="ans-toggle" onclick="toggleAns('ans-19',this)"><span>📖 모범 답안 보기</span><span class="arr">▼</span></div>
+    <div class="ans-box" id="ans-19">
+      <div class="ans-label">모범 답안</div>
+      <div class="ans-text">
+        <strong>① Information Gain (ID3)</strong><br>
+        공식: Gain(A) = Info(D) − Info_A(D)<br>
+        Info(D) = −Σᵢ pᵢ·log₂(pᵢ)로 전체 엔트로피, Info_A(D) = Σⱼ (|Dⱼ|/|D|)·Info(Dⱼ)로 속성 A로 분할 후 조건부 엔트로피를 계산. 분할 후 불확실성이 가장 많이 감소하는 속성 선택.<br>
+        <strong class="hl">단점:</strong> 값이 많은 속성(예: product_ID)에 편향됨.
+        <br><br>
+        <strong>② Gain Ratio (C4.5)</strong><br>
+        공식: GainRatio(A) = Gain(A) / SplitInfo_A(D)<br>
+        SplitInfo_A(D) = −Σⱼ (|Dⱼ|/|D|)·log₂(|Dⱼ|/|D|)로 분할 방식 자체의 정보량 측정.<br>
+        <strong class="hl3">장점:</strong> 정규화를 통해 값이 많은 속성에 대한 편향 감소. ID3 개선.
+        <br><br>
+        <strong>③ Gini Index (CART)</strong><br>
+        공식: Gini(D) = 1 − Σᵢ pᵢ²<br>
+        무작위 레이블 선택 시 오분류 확률로 해석. 이진 분할(binary split)에 최적화.<br>
+        <strong class="hl3">특징:</strong> 이진 트리 생성, 분류+회귀 모두 지원.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Q20 -->
+<div class="q-card" data-qtype="es" data-qid="20">
+  <div class="q-header">
+    <span class="q-num">Q20</span>
+    <span class="q-type-badge type-es">서술형</span>
+    <span class="q-diff">⭐⭐⭐</span>
+    <span class="q-slide">Slide 6–7/16</span>
+  </div>
+  <div class="q-body">
+    <p class="q-text">Decision Tree의 <strong>장점(Advantages) 4가지</strong>와 <strong>한계(Limitations) 2가지</strong>를 각각 서술하고, 한계를 극복하기 위한 방법을 간략히 언급하시오.</p>
+    <textarea class="essay-area" placeholder="여기에 답을 작성하세요..."></textarea>
+    <div class="ans-toggle" onclick="toggleAns('ans-20',this)"><span>📖 모범 답안 보기</span><span class="arr">▼</span></div>
+    <div class="ans-box" id="ans-20">
+      <div class="ans-label">모범 답안</div>
+      <div class="ans-text">
+        <strong>장점(Advantages):</strong><br>
+        ① 도메인 지식이나 파라미터 튜닝 불필요<br>
+        ② 다차원 데이터(multidimensional data) 처리 가능<br>
+        ③ 인간이 직관적으로 이해하기 쉬운 if-then 규칙 형태<br>
+        ④ 계산 효율적이며 실제로 좋은 성능 달성 가능
+        <br><br>
+        <strong>한계(Limitations):</strong><br>
+        ① <strong class="hl">과적합(Overfitting)</strong>: 훈련 데이터에 너무 잘 맞는 복잡한 트리 생성 가능<br>
+        &nbsp;&nbsp;→ <strong class="hl3">극복 방법:</strong> 가지치기(Pruning) — 사전 가지치기(Pre-pruning) 또는 사후 가지치기(Post-pruning, C4.5)<br>
+        ② <strong class="hl">노이즈/이상값 반영</strong>: 일부 브랜치가 노이즈나 이상값에 의해 형성될 수 있음<br>
+        &nbsp;&nbsp;→ <strong class="hl3">극복 방법:</strong> 앙상블 기법(Random Forest, Boosting) 사용
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ FINAL SCORE ═══ -->
+<div class="final-score-section" id="final-section">
+  <div class="final-score-title">📊 최종 채점 결과</div>
+  <div class="score-circle">
+    <div class="score-big" id="final-num">0</div>
+    <div class="score-denom" id="final-denom">/ 18</div>
+  </div>
+  <p class="score-msg" id="score-msg">문제를 풀고 채점해보세요!</p>
+  <div class="score-breakdown">
+    <div class="score-breakdown-item">객관식 <span id="mc-score" class="c">0</span>/<span class="s">5</span></div>
+    <div class="score-breakdown-item">OX <span id="ox-score" class="c">0</span>/<span class="s">5</span></div>
+    <div class="score-breakdown-item">단답형 <span id="sa-score" class="c">0</span>/<span class="s">5</span></div>
+    <div class="score-breakdown-item">코드완성 <span id="cf-score" class="c">0</span>/<span class="s">3</span></div>
+    <div class="score-breakdown-item">오답 <span id="wrong-count" class="w">0</span>문항</div>
+  </div>
+  <button class="check-all-btn" onclick="checkAll()">📝 전체 채점하기</button>
+  <button class="reset-btn" onclick="resetAll()">🔄 다시 풀기</button>
+</div>
+
+</main>
+
+<script>
+// ── 상태 관리 ──
+const state = { answered: {}, correct: {}, type: {} };
+// type 등록
+document.querySelectorAll('.q-card').forEach(c => {
+  state.type[c.dataset.qid] = c.dataset.qtype;
+});
+
+// ── TOC active ──
+function updateLiveScore() {
+  const ids = Object.keys(state.correct);
+  const c = ids.filter(id => state.correct[id]).length;
+  const t = ids.length;
+  document.getElementById('live-score').textContent = `${c} / ${t}`;
+}
+
+// ── MC ──
+function selectMC(el, qid, choice) {
+  const card = el.closest('.q-card');
+  if (card.classList.contains('answered-correct') || card.classList.contains('answered-wrong')) return;
+  card.querySelectorAll('.mc-option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  const correct = card.dataset.answer;
+  const isCorrect = choice === correct;
+
+  // reveal
+  card.querySelectorAll('.mc-option').forEach(o => {
+    o.classList.add('locked');
+    const label = o.querySelector('.mc-label').textContent.toLowerCase();
+    if (label === correct) o.classList.add('correct-ans');
+    else if (label === choice && !isCorrect) o.classList.add('wrong-ans');
+  });
+
+  const result = document.getElementById(`result-${qid}`);
+  result.className = isCorrect ? 'q-result correct' : 'q-result wrong';
+  result.innerHTML = isCorrect ? '✅ 정답입니다!' : `❌ 오답입니다. 정답: ${correct.toUpperCase()}`;
+  card.classList.add(isCorrect ? 'answered-correct' : 'answered-wrong');
+
+  state.answered[qid] = true;
+  state.correct[qid] = isCorrect;
+  updateLiveScore();
+  updateBreakdown();
+}
+
+// ── OX ──
+function selectOX(el, qid, choice) {
+  const card = el.closest('.q-card');
+  if (card.classList.contains('answered-correct') || card.classList.contains('answered-wrong')) return;
+  const correct = card.dataset.answer;
+  const isCorrect = choice === correct;
+
+  card.querySelectorAll('.ox-btn').forEach(b => {
+    b.classList.add('locked');
+    if (b.classList.contains('o-btn') && correct === 'o') b.classList.add('correct-ans');
+    else if (b.classList.contains('x-btn') && correct === 'x') b.classList.add('correct-ans');
+    if (b === el && !isCorrect) b.classList.add('wrong-ans');
+  });
+
+  const result = document.getElementById(`result-${qid}`);
+  result.className = isCorrect ? 'q-result correct' : 'q-result wrong';
+  result.innerHTML = isCorrect ? '✅ 정답입니다!' : `❌ 오답입니다. 정답: ${correct === 'o' ? '⭕ 참(O)' : '❌ 거짓(X)'}`;
+  card.classList.add(isCorrect ? 'answered-correct' : 'answered-wrong');
+
+  state.answered[qid] = true;
+  state.correct[qid] = isCorrect;
+  updateLiveScore();
+  updateBreakdown();
+}
+
+// ── SA ──
+function checkSA(qid) {
+  const input = document.getElementById(`sa-${qid}`);
+  const card = input.closest('.q-card');
+  if (card.classList.contains('answered-correct') || card.classList.contains('answered-wrong')) return;
+  const answers = card.dataset.answer.split(',').map(a => a.trim().toLowerCase().replace(/\s/g,''));
+  const val = input.value.trim().toLowerCase().replace(/\s/g,'');
+  if (!val) return;
+
+  const isCorrect = answers.includes(val);
+  input.classList.add(isCorrect ? 'correct-input' : 'wrong-input');
+  input.disabled = true;
+  document.getElementById(`sa-submit-${qid}`).disabled = true;
+
+  const result = document.getElementById(`result-${qid}`);
+  result.className = isCorrect ? 'q-result correct' : 'q-result wrong';
+  result.innerHTML = isCorrect ? '✅ 정답입니다!' : `❌ 오답입니다. 정답 보기를 확인하세요.`;
+  card.classList.add(isCorrect ? 'answered-correct' : 'answered-wrong');
+
+  state.answered[qid] = true;
+  state.correct[qid] = isCorrect;
+  updateLiveScore();
+  updateBreakdown();
+}
+
+// ── CF ──
+function checkCF(qid, answerStr) {
+  const input = document.getElementById(`cf-${qid}`);
+  const card = input.closest('.q-card');
+  if (card.classList.contains('answered-correct') || card.classList.contains('answered-wrong')) return;
+  const answers = answerStr.split(',').map(a => a.trim().toLowerCase().replace(/\s/g,''));
+  const val = input.value.trim().toLowerCase().replace(/\s/g,'');
+  if (!val) return;
+
+  const isCorrect = answers.some(a => val.includes(a) || a.includes(val));
+  input.classList.add(isCorrect ? 'correct-input' : 'wrong-input');
+  input.disabled = true;
+
+  const result = document.getElementById(`result-${qid}`);
+  result.className = isCorrect ? 'q-result correct' : 'q-result wrong';
+  result.innerHTML = isCorrect ? '✅ 정답입니다!' : `❌ 오답입니다. 정답 보기를 확인하세요.`;
+  card.classList.add(isCorrect ? 'answered-correct' : 'answered-wrong');
+
+  state.answered[qid] = true;
+  state.correct[qid] = isCorrect;
+  updateLiveScore();
+  updateBreakdown();
+}
+
+// ── Answer toggle ──
+function toggleAns(id, btn) {
+  const box = document.getElementById(id);
+  const open = box.classList.toggle('visible');
+  btn.classList.toggle('open', open);
+  btn.querySelector('span:first-child').textContent = open ? '📖 정답 닫기' : '📖 정답 및 해설 보기';
+  btn.querySelector('span:first-child').textContent = btn.querySelector('span:first-child').textContent.replace('정답 닫기','정답 닫기').replace('정답 및 해설 보기','정답 및 해설 보기');
+}
+
+// ── Filter ──
+function filterQuiz(type, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.q-card').forEach(card => {
+    card.style.display = (type === 'all' || card.dataset.qtype === type) ? 'block' : 'none';
+  });
+}
+
+// ── Breakdown ──
+function updateBreakdown() {
+  const types = ['mc','ox','sa','cf'];
+  const max = { mc:5, ox:5, sa:5, cf:3 };
+  types.forEach(t => {
+    const correct = Object.keys(state.correct).filter(id => state.type[id] === t && state.correct[id]).length;
+    document.getElementById(`${t}-score`).textContent = correct;
+  });
+  const totalCorrect = Object.values(state.correct).filter(Boolean).length;
+  const totalAnswered = Object.keys(state.answered).length;
+  const totalScorable = 18; // excluding 2 essay
+  document.getElementById('final-num').textContent = totalCorrect;
+  document.getElementById('wrong-count').textContent = totalAnswered - totalCorrect;
+
+  // Score message
+  const pct = (totalCorrect / totalScorable) * 100;
+  const msgs = [
+    [90, '🏆 완벽합니다! Decision Tree 마스터!'],
+    [70, '🎯 훌륭해요! 조금 더 복습하면 완벽합니다.'],
+    [50, '📚 잘 하고 있어요! 틀린 문제를 다시 풀어보세요.'],
+    [0,  '💪 더 복습이 필요합니다. 강의 노트를 다시 확인해보세요!'],
+  ];
+  for (const [threshold, msg] of msgs) {
+    if (pct >= threshold) { document.getElementById('score-msg').textContent = msg; break; }
+  }
+}
+
+// ── Check All ──
+function checkAll() {
+  // For unanswered MC, pick a random wrong one to show answer
+  alert('모든 문제를 풀었습니다! 아직 제출하지 않은 주관식 문제는 정답 보기를 클릭하여 확인하세요.');
+  updateBreakdown();
+}
+
+// ── Reset ──
+function resetAll() {
+  if (!confirm('모든 답변을 초기화하시겠습니까?')) return;
+  location.reload();
+}
+
+// init
+updateLiveScore();
+</script>
+</body>
+</html>
