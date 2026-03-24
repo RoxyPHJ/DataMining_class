@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz — 3. Basic Information Theory</title>
+<style>
+:root {
+  --bg: #0a0e1a;
+  --surface: #111827;
+  --surface2: #1a2234;
+  --surface3: #1e2d42;
+  --border: #2a3a55;
+  --accent: #38bdf8;
+  --accent2: #a78bfa;
+  --accent3: #34d399;
+  --accent4: #fb923c;
+  --accent5: #f472b6;
+  --red: #f87171;
+  --yellow: #facc15;
+  --text: #e2e8f0;
+  --text-muted: #8899aa;
+  --text-dim: #4a6280;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.7;
+  font-size: 15px;
+}
+
+/* ── HEADER ── */
+.page-header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 28px 40px 24px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+.header-left .badge {
+  font-family: 'Menlo','Courier New',monospace;
+  font-size: 10px;
+  color: var(--accent);
+  background: rgba(56,189,248,0.1);
+  border: 1px solid rgba(56,189,248,0.25);
+  padding: 2px 9px;
+  border-radius: 4px;
+  display: inline-block;
+  margin-bottom: 6px;
+}
+.header-left h1 {
+  font-family: 'Impact','Arial Narrow',sans-serif;
+  font-size: 24px;
+  letter-spacing: 0.04em;
+  color: var(--text);
+}
+.score-board {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-shrink: 0;
+}
+.score-display {
+  font-family: 'Menlo','Courier New',monospace;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.score-display span { color: var(--accent3); font-size: 18px; font-weight: 700; }
+#btn-check-all {
+  background: var(--accent3);
+  color: #0a0e1a;
+  border: none;
+  padding: 8px 20px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: opacity 0.2s;
+}
+#btn-check-all:hover { opacity: 0.85; }
+#btn-reset {
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+#btn-reset:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ── MAIN ── */
+.main { max-width: 800px; margin: 0 auto; padding: 36px 24px 80px; }
+
+/* ── PROGRESS ── */
+.progress-bar-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 20px;
+  margin-bottom: 28px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.progress-track {
+  flex: 1;
+  height: 6px;
+  background: var(--surface3);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent3), var(--accent));
+  border-radius: 3px;
+  transition: width 0.4s ease;
+  width: 0%;
+}
+.progress-text {
+  font-family: 'Menlo','Courier New',monospace;
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.progress-text span { color: var(--accent3); }
+
+/* ── QUIZ CARD ── */
+.quiz-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin-bottom: 20px;
+  overflow: hidden;
+  transition: border-color 0.3s;
+}
+.quiz-card.correct { border-color: var(--accent3); }
+.quiz-card.wrong { border-color: var(--red); }
+
+.quiz-top {
+  padding: 20px 24px 16px;
+}
+.quiz-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.q-num {
+  font-family: 'Impact','Arial Narrow',sans-serif;
+  font-size: 13px;
+  color: var(--accent);
+  background: rgba(56,189,248,0.1);
+  border: 1px solid rgba(56,189,248,0.2);
+  padding: 3px 10px;
+  border-radius: 4px;
+}
+.q-type {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+.q-type.mc  { background: rgba(167,139,250,0.12); color: var(--accent2); border: 1px solid rgba(167,139,250,0.25); }
+.q-type.ox  { background: rgba(251,146,60,0.12);  color: var(--accent4); border: 1px solid rgba(251,146,60,0.25); }
+.q-type.sa  { background: rgba(56,189,248,0.12);  color: var(--accent);  border: 1px solid rgba(56,189,248,0.25); }
+.q-type.es  { background: rgba(52,211,153,0.12);  color: var(--accent3); border: 1px solid rgba(52,211,153,0.25); }
+.difficulty { font-size: 13px; margin-left: auto; }
+.slide-ref {
+  font-family: 'Menlo','Courier New',monospace;
+  font-size: 10px;
+  color: var(--text-dim);
+  background: var(--surface2);
+  padding: 2px 7px;
+  border-radius: 3px;
+}
+
+.question-text {
+  font-size: 15px;
+  color: var(--text);
+  line-height: 1.65;
+  margin-bottom: 2px;
+}
+.formula-inline {
+  font-family: 'Menlo','Courier New',monospace;
+  background: rgba(56,189,248,0.08);
+  color: var(--accent);
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 13.5px;
+}
+
+/* ── CHOICES (MC) ── */
+.choices { padding: 0 24px 16px; display: flex; flex-direction: column; gap: 8px; }
+.choice-btn {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--text-muted);
+  transition: all 0.18s;
+  width: 100%;
+}
+.choice-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--text); background: rgba(56,189,248,0.05); }
+.choice-btn.selected { border-color: var(--accent2); color: var(--text); background: rgba(167,139,250,0.08); }
+.choice-btn.correct-ans { border-color: var(--accent3) !important; color: var(--accent3) !important; background: rgba(52,211,153,0.08) !important; }
+.choice-btn.wrong-ans  { border-color: var(--red) !important; color: var(--red) !important; background: rgba(248,113,113,0.08) !important; }
+.choice-btn:disabled { cursor: default; }
+.choice-label {
+  font-family: 'Menlo','Courier New',monospace;
+  font-size: 11px;
+  background: var(--surface3);
+  border-radius: 3px;
+  padding: 2px 7px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* ── OX BUTTONS ── */
+.ox-wrap { padding: 0 24px 16px; display: flex; gap: 12px; }
+.ox-btn {
+  flex: 1;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  font-size: 22px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.18s;
+  color: var(--text-muted);
+}
+.ox-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--text); }
+.ox-btn.selected { border-color: var(--accent2); color: var(--text); background: rgba(167,139,250,0.08); }
+.ox-btn.correct-ans { border-color: var(--accent3) !important; color: var(--accent3) !important; background: rgba(52,211,153,0.08) !important; }
+.ox-btn.wrong-ans  { border-color: var(--red) !important; color: var(--red) !important; background: rgba(248,113,113,0.08) !important; }
+.ox-btn:disabled { cursor: default; }
+
+/* ── SHORT ANSWER ── */
+.sa-wrap { padding: 0 24px 16px; }
+.sa-input {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-family: 'Menlo','Courier New',monospace;
+  font-size: 14px;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.18s;
+}
+.sa-input:focus { border-color: var(--accent); }
+.sa-input.correct-ans { border-color: var(--accent3) !important; color: var(--accent3); }
+.sa-input.wrong-ans   { border-color: var(--red) !important; color: var(--red); }
+.sa-input:disabled { cursor: default; }
+
+/* ── ESSAY ── */
+.es-wrap { padding: 0 24px 16px; }
+.es-textarea {
+  width: 100%;
+  min-height: 90px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--text);
+  outline: none;
+  resize: vertical;
+  transition: border-color 0.18s;
+}
+.es-textarea:focus { border-color: var(--accent); }
+.es-textarea:disabled { cursor: default; }
+
+/* ── ANSWER TOGGLE ── */
+.answer-section {
+  border-top: 1px solid var(--border);
+  padding: 14px 24px;
+  display: none;
+}
+.answer-section.show { display: block; }
+.answer-toggle {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 7px 14px;
+  font-family: inherit;
+  font-size: 12.5px;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.18s;
+  margin: 0 24px 14px;
+}
+.answer-toggle:hover { border-color: var(--accent); color: var(--accent); }
+.answer-toggle .arrow { transition: transform 0.2s; display: inline-block; }
+.answer-toggle.open .arrow { transform: rotate(180deg); }
+
+.answer-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent3);
+  margin-bottom: 6px;
+}
+.answer-text {
+  font-size: 14px;
+  color: var(--text-muted);
+  line-height: 1.65;
+}
+.answer-text strong { color: var(--text); }
+.answer-formula {
+  font-family: 'Menlo','Courier New',monospace;
+  background: rgba(52,211,153,0.07);
+  border: 1px solid rgba(52,211,153,0.2);
+  border-left: 3px solid var(--accent3);
+  border-radius: 6px;
+  padding: 8px 14px;
+  font-size: 13px;
+  color: var(--accent3);
+  margin: 8px 0;
+}
+
+/* ── RESULT MODAL ── */
+.result-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+}
+.result-overlay.show { display: flex; }
+.result-modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 36px 44px;
+  text-align: center;
+  max-width: 400px;
+  width: 90%;
+}
+.result-emoji { font-size: 52px; margin-bottom: 12px; }
+.result-title { font-family: 'Impact','Arial Narrow',sans-serif; font-size: 28px; letter-spacing: 0.04em; margin-bottom: 8px; }
+.result-score { font-size: 48px; font-weight: 700; color: var(--accent3); margin: 12px 0; font-family: 'Menlo','Courier New',monospace; }
+.result-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; }
+.result-bar-wrap { background: var(--surface2); border-radius: 6px; height: 10px; overflow: hidden; margin: 12px 0 20px; }
+.result-bar { height: 100%; border-radius: 6px; background: linear-gradient(90deg, var(--accent3), var(--accent)); transition: width 0.8s ease; }
+.btn-close-result {
+  background: var(--accent3);
+  color: #0a0e1a;
+  border: none;
+  padding: 10px 28px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="page-header">
+  <div class="header-left">
+    <div class="badge">Data Mining · FE06064001</div>
+    <h1>3. Basic Information Theory — Quiz</h1>
+  </div>
+  <div class="score-board">
+    <div class="score-display">채점 결과: <span id="score-display">–</span></div>
+    <button id="btn-check-all" onclick="checkAll()">🎯 전체 채점</button>
+    <button id="btn-reset" onclick="resetAll()">↺ 초기화</button>
+  </div>
+</header>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- PROGRESS -->
+  <div class="progress-bar-wrap">
+    <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+    <div class="progress-text"><span id="answered-count">0</span> / 20 answered</div>
+  </div>
+
+  <!-- ===========================
+       Q1. 객관식 ★
+  ============================ -->
+  <div class="quiz-card" id="card-1">
+    <div class="quiz-top">
+      <div class="quiz-meta">
+        <span class="q-num">Q01</span>
+        <span class="q-type mc">객관식</span>
+        <span class="difficulty">⭐</span>
+        <span class="slide-ref">Slide 2</span>
+      </div>
+      <div class="question-text">정보 이론이 데이터 마이닝에서 중요한 이유로 가장 적절한 것은?</div>
+    </div>
+    <div class="choices">
+      <button class="choice-btn" onclick="selectMC(1,this,'A')" data-val="A"><span class="choice-label">A</span>데이터를 빠르게 정렬하기 위한 알고리즘을 제공하기 때문에</button>
+      <button class="choice-btn" onclick="selectMC(1,this,'B')" data-val="B"><span class="choice-label">B</span>확률 분포에서 불확실성을 수량화하는 수학적 프레임워크를 제공하기 때문에</button>
+      <button class="choice-btn" onclick="selectMC(1,this,'C')" data-val="C"><span class="choice-label">C</span>대용량 데이터베이스를 효율적으로 저장하는 방법을 제공하기 때문에</button>
+      <button class="choice-btn" onclick="selectMC(1,this,'D')" data-val="D"><span class="choice-label">D</span>신경망 모델의 학습 속도를 높이기 위한 기법을 제공하기 때문에</button>
+    </div>
+    <button class="answer-toggle" id="toggle-1" onclick="toggleAnswer(1)">정답 및 해설 보기 <span class="arrow">▼</span></button>
+    <div class="answer-section" id="answer-1">
+      <div class="answer-label">정답</div>
+      <div class="answer-formula">B — 확률 분포에서 불확실성을 수량화하는 수학적 프레임워크</div>
+      <div class="answer-text">정보 이론은 엔트로피, 조건부 엔트로피, 상호 정보 등의 개념을 통해 데이터의 불확실성을 수량화하는 프레임워크를 제공합니다. 데이터 마이닝의 많은 작업(분류, 피처 선택 등)은 불확실성 하에서의 예측을 수행하므로 정보 이론이 핵심 도구로 활용됩니다.</div>
+    </div>
+  </div>
+
+  <!-- Q2. OX ★ -->
+  <div class="quiz-card" id="card-2">
+    <div class="quiz-top">
+      <div class="quiz-meta">
+        <span class="q-num">Q02</span>
+        <span class="q-type ox">OX</span>
+        <span class="difficulty">⭐</span>
+        <span class="slide-ref">Slide 3</span>
+      </div>
+      <div class="question-text">정보 이론은 Claude Shannon이 1948년 논문 "A Mathematical Theory of Communication"에서 처음 소개했다.</div>
+    </div>
+    <div class="ox-wrap">
+      <button class="ox-btn" onclick="selectOX(2,this,'O')">⭕ 맞다</button>
+      <button class="ox-btn" onclick="selectOX(2,this,'X')">❌ 틀리다</button>
+    </div>
+    <button class="answer-toggle" id="toggle-2" onclick="toggleAnswer(2)">정답 및 해설 보기 <span class="arrow">▼</span></button>
+    <div class="answer-section" id="answer-2">
+      <div class="answer-label">정답</div>
+      <div class="answer-formula">⭕ 맞다</div>
+      <div class="answer-text">Claude Shannon이 1948년 "A Mathematical Theory of Communication" 논문에서 정보 이론을 창시했습니다. 원래 목적은 채널을 통한 효율적인 정보 전송 연구였으나, 이후 다양한 분야의 핵심 도구로 확장되었습니다.</div>
+    </div>
+  </div>
+
+  <!-- Q3. 단답형 ★ -->
+  <div class="quiz-card" id="card-3">
+    <div class="quiz-top">
+      <div class="quiz-meta">
+        <span class="q-num">Q03</span>
+        <span class="q-type sa">단답형</span>
+        <span class="difficulty">⭐</span>
+        <span class="slide-ref">Slide 4</span>
+      </div>
+      <div class="question-text">자기 정보(Self-Information)의 수식은 <span class="formula-inline">I(x) = ?</span> 이다. 빈칸을 채우시오. (log 밑은 2)</div>
+    </div>
+    <div class="sa-wrap">
+      <input class="sa-input" id="sa-3" type="text" placeholder="수식을 입력하세요 (예: -log2 P(x))">
+    </div>
+    <button class="answer-toggle" id="toggle-3" onclick="toggleAnswer(3)">정답 및 해설 보기 <span class="arrow">▼</span></button>
+    <div class="answer-section" id="answer-3">
+      <div class="answer-label">정답</div>
+      <div class="answer-formula">I(x) = −log₂ P(x)</div>
+      <div class="answer-text">자기 정보는 사건 x가 발생했을 때 얻는 정보량입니다. 확률 P(x)가 낮을수록 (희귀 사건일수록) 정보량이 크고, 확률이 높을수록 (흔한 사건일수록) 정보량이 작습니다.</div>
+    </div>
+  </div>
+
+  <!-- Q4. 객관식 ★★ -->
+  <div class="quiz-card" id="card-4">
+    <div class="quiz-top">
+      <div class="quiz-meta">
+        <span class="q-num">Q04</span>
+        <span class="q-type mc">객관식</span>
+        <span class="difficulty">⭐⭐</span>
+        <span class="slide-ref">Slide 4</span>
+      </div>
+      <div class="question-text">어떤 사건의 확률이 P(x) = 0.125 일 때 자기 정보 I(x)는 몇 bits인가?</div>
+    </div>
+    <div class="choices">
+      <button class="choice-btn" onclick="selectMC(4,this,'A')" data-val="A"><span class="choice-label">A</span>1 bit</button>
+      <button class="choice-btn" onclick="selectMC(4,this,'B')" data-val="B"><span class="choice-label">B</span>2 bits</button>
+      <button class="choice-btn" onclick="selectMC(4,this,'C')" data-val="C"><span class="choice-label">C</span>3 bits</button>
+      <button class="choice-btn" onclick="selectMC(4,this,'D')" data-val="D"><span class="choice-label">D</span>4 bits</button>
+    </div>
+    <button class="answer-toggle" id="toggle-4" onclick="toggleAnswer(4)">정답 및 해설 보기 <span class="arrow">▼</span></button>
+    <div class="answer-section" id="answer-4">
+      <div class="answer-label">정답</div>
+      <div class="answer-formula">C — 3 bits</div>
+      <div class="answer-text">I(x) = −log₂(0.125) = −log₂(1/8) = log₂(8) = 3 bits<br>0.125 = 2⁻³ 이므로 −log₂(2⁻³) = 3 bits입니다.</div>
+    </div>
+  </div>
+
+  <!-- Q5. OX ★★ -->
+  <div class="quiz-card" id="card-5">
+    <div class="quiz-top">
+      <div class="quiz-meta">
+        <span class="q-num">Q05</span>
+        <span class="q-type ox">OX</span>
+        <span class="difficulty">⭐⭐</span>
+        <span class="slide-ref">Slide 5</span>
+      </div>
+      <div class="question-text">자기 정보의 가산성(Additivity) 성질에 따르면, 두 독립 사건 x와 y에 대해 I(x, y) = I(x) × I(y) 이다.</div>
+    </div>
+    <div class="ox-wrap">
+      <button class="ox-btn" onclick="selectOX(5,this,'O')">⭕ 맞다</button>
+      <button class="ox-btn" onclick="selectOX(5,this,'X')">❌ 틀리다</button>
+    </div>
+    <button class="answer-toggle" id="toggle-5" onclick="toggleAnswer(5)">정답 및 해설 보기 <span class="arrow">▼</span></button>
+    <div class="answer-section" id="answer-5">
+      <div class="answer-label">정답</div>
+      <div class="answer-formula">❌ 틀리다</div>
+      <div class="answer-text">가산성은 곱셈(×)이 아닌 <strong>덧셈(+)</strong>입니다.<br>I(x, y) = I(x) + I(y)<br>이는 로그의 성질 −log P(x,y) = −log[P(x)·P(y)] = −log P(x) − log P(y) 에서 유도됩니다.</div>
+    </div>
+  </div>
+
+  <!-- Q6. 객관식 ★★ -->
+  <div class="quiz-card" id="card-6">
+    <div class="quiz-top">
+      <div class="quiz-meta">
+        <span class="q-num">Q06</span>
+        <span class="q-type mc">객관식</span>
+        <span class="difficulty">⭐⭐</span>
+        <span class="slide-ref">Slide 6</span>
+      </div>
+      <div class="question-text">엔트로피 H(X)에 대한 설명으로 옳지 않은 것은?</div>
+    </div>
+    <div class="choices">
+      <button class="choice-btn" onclick="selectMC(6,this,'A')" data-val="A"><span class="choice-label">A</span>자기 정보의 기댓값(Expected Value)으로 해석할 수 있다</button>
+      <button class="choice-btn" onclick="selectMC(6,this,'B')" data-val="B"><span class="choice-label">B</span>확률 분포 전체의 평균 불확실성을 측정한다</button>
+      <button class="choice-btn" onclick="selectMC(6,this,'C')" data-val="C"><span class="choice-label">C</span>엔트로피는 음수 값을 가질 수 있다</button>
+      <button class="choice-btn" onclick="selectMC(6,this,'D')" data-val="D"><span class="choice-label">D</span>단일 사건이 아닌 전체 분포의 불확실성을 나타낸다</button>
+    </div>
+    <button class="answer-toggle" id="toggle-6" onclick="toggleAnswer(6)">정답 및 해설 보기 <span class="arrow">▼</span></button>
+    <div class="answer-section" id="answer-6">
+      <div class="answer-label">정답</div>
+      <div class="answer-formula">C — 엔트로피는 음수 값을 가질 수 있다 (틀린 설명)</div>
+      <div class="answer-text">엔트로피는 항상 <strong>비음수(H(X) ≥ 0)</strong>입니다. 확률 p(x)는 0~1 사이의 값이므로 log p(x) ≤ 0, 따라서 −p(x)log p(x) ≥ 0 이고, 그 합인 엔트로피도 항상 0 이상입니다.</div>
+    </div>
+  </div>
+
+  <!-- Q7. 단답형 ★★ -->
+  <div class="quiz-card" id="card-7">
+    <div class="quiz-top">
+      <div class="quiz-meta">
+        <span class="q-num">Q07</span>
+        <span class="q-type sa">단답형</span>
+        <span class="difficulty">⭐⭐</span>
+        <span class="slide-ref">Slide 7</span>
+      </div>
+      <div class="question-text">버킷에 빨간 공 2개, 파란 공 2개가 있을 때 (P(R)=0.5, P(B)=0.5), 엔트로피 H(X)는 몇 bits인가?</div>
+    </div>
+    <div class="sa-wrap">
+      <input class="sa-input" id="sa-7" type="text" placeholder="숫자만 입력 (예: 1)">
+    </div>
+    <button class="answer-toggle" id="toggle-7" onclick="toggleAnswer(7)">정답 및 해설 보기 <span class="arrow">▼</span></button>
+    <div class="answer-section" id="answer-7">
+      <div class="answer-label">정답</div>
+      <div class="answer-formula">1 bit</div>
+      <div class="answer-text">H(X) = −(0.5 × log₂0.5 + 0.5 × log₂0.5)<br>= −(0.5 × (−1) + 0.5 × (−1))<br>= −(−0.5 − 0.5) = 1 bit<br>균등 분포일 때 엔트로피가 최대가 됩니다.</div>
+    </div>
+  </div>
+
+  <!-- Q8. 객관식 ★★ -->
+  <div class="quiz-card" id="card-8">
+    <div class="quiz-top">
+      <div class="quiz-meta">
+        <span class="q-num">Q08</span>
+        <span class="q-type mc">객관식</span>
+        <span class="difficulty">⭐⭐</span>
+        <span class="slide-ref">Slide 8</span>
+      </div>
+      <div class="question-text">n개의 결과를 가지는 확률 변수에서 엔트로피가 최대가 되는 조건은?</div>
+    </div>
+    <div class="choices">
+      <button class="choice-btn" onclick="selectMC(8,this,'A')" data-val="A"><span class="choice-label">A</span>한 결과의 확률이 1이고 나머지가 0일 때</button>
+      <button class="choice-btn" onclick="selectMC(8,this,'B')" data-val="B"><span class="choice-label">B</span>모든 결과의 확률이 동일하게 1/n 일 때</button>
+      <button class="choice-btn" onclick="selectMC(8,this,'C')" data-val="C"><span class="choice-label">C</span>결과가 2개이고 확률이 0.9, 0.1 일 때</button>
+      <button class="choice-btn" onclick="selectMC(8,this,'D')" data-val="D"><span class="choice-label">D</span>확률 변수의 결과 수가 2개일 때</button>
+    </div>
+    <button class="answer-toggle" id="toggle-8" onclick="toggleAnswer(8)">정답 및 해설 보기 <span class="arrow">▼</span></button>
+    <div class="answer-section" id="answer-8">
+      <div class="answer-label">정답</div>
+      <div class="answer-formula">B — 모든 결과가 균등 확률 1/n 일 때, H(X) = log n</div>
+      <div class="answer-text">모든 결과가 동일한 확률을 가질 때 불확실성이 최대가 됩니다. 이때 H(X) = log n입니다. 반대로 한 결과의 확률이 1이면 H(X) = 0 (최솟값)입니다.</div>
+    </div>
+  </div>
+
+  <!-- Q9. OX ★★ -->
+  <div class="quiz-card" id="card-9">
+    <div class="quiz-top">
+      <div class="quiz-meta">
+        <span class="q-num">Q09</span>
+        <span class="q-type ox">OX</span>
+        <span class="difficulty">⭐⭐</span>
+        <span class="slide-ref">Slide 9</span>
+      </div>
+      <div class="question-text">X가 Y를 강하게 예측할수록(X가 Y에 대한 정보를 많이 제공할수록) 조건부 엔트로피 H(Y|X)는 커진다.</div>
+    </div>
+    <div class="ox-wrap">
+      <button class="ox-btn" onclick="selectOX(9,this,'O')">⭕ 맞다</button>
+      <button class="ox-btn" onclick="selectOX(9,this,'X')">❌ 틀리다</button>
+    </div>
+    <button class="answer-toggle" id="toggle-9" onclick="toggleAnswer(9)">정답 및 해설 보기 <span class="arrow">▼</span></button>
+    <div class="answer-section" id="answer-9">
+      <div class="answer-label">정답</div>
+      <div class="answer-formula">❌ 틀리다</div>
+      <div class="answer-text">X가 Y를 강하게 예측할수록 조건부 엔트로피는 <strong>작아집니다</strong>. X가 Y에 대한 정보를 많이 제공할수록 Y의 나머지 불확실성(H(Y|X))이 감소합니다. 반대로 X가 Y에 대한 정보를 거의 제공하지 않으면 H(Y|X)는 H(Y)에 가까워집니다.</div>
+    </div>
+  </div>
+
+  <!-- Q10. 단답형 ★★ -->
+  <div class="quiz-card" id="card-10">
+    <div class="quiz-top">
+      <div class="quiz-meta">
+        <span class="q-num">Q10</span>
+        <span class="q-type sa">단답형</span>
+        <span class="difficulty">⭐⭐</span>
+        <span class="slide-ref">Slide 10</span>
+      </div>
+      <div class="question-text">엔트로피 연쇄 법칙(Chain Rule)을 수식으로 표현하면? H(X, Y) = ?</div>
+    </div>
+    <div class="sa-wrap">
+      <input class="sa-input" id="sa-10" type="text" placeholder="수식을 입력하세요">
+    </div>
+    <button class="answer-toggle" id="toggle-10" onclick="toggleAnswer(10)">정답 및 해설 보기 <span class="arrow">▼</span></button>
+    <div class="answer-section" id="answer-10">
+      <div class="answer-label">정답</div>
+      <div class="answer-formula">H(X, Y) = H(X) + H(Y|X)</div>
+      <div class="answer-text">결합 엔트로피 H(X,Y)는 X의 불확실성 H(X)와 X를 알고 난 후 Y의 나머지 불확실성 H(Y|X)의 합으로 분해됩니다. 대칭적으로 H(X,Y) = H(Y) + H(X|Y)도 성립합니다.</div>
+    </div>
+  </div>
+
+  <!-- Q11. 객관식 ★★ -->
+  <div class="quiz-card" id="card-11">
+    <div class="quiz-top">
+      <div class="quiz-meta">
+        <span class="q-num">Q11</span>
+        <span class="q-type mc">객관식</span>
+        <span class="difficulty">⭐⭐</span>
+        <span class="slide-ref">Slide 11</span>
+      </div>
+      <div class="question-text">상호 정보 I(X;Y)에 대한 설명으로 옳은 것은?</div>
+    </div>
+    <div class="choices">
+      <button class="choice-btn" onclick="selectMC(11,this,'A')" data-val="A"><span class="choice-label">A</span>I(X;Y)는 음수가 될 수 있다</button>
+      <button class="choice-btn" onclick="selectMC(11,this,'B')" data-val="B"><span class="choice-label">B</span>X와 Y가 독립이면 I(X;Y) = H(Y)</button>
+      <button class="choice-btn" onclick="selectMC(11,this,'C')" data-val="C"><span class="choice-label">C</span>I(X;Y) = H(Y) − H(Y|X)</button>
+      <button class="choice-btn" onclick="selectMC(11,this,'D')" data-val="D"><span class="choice-label">D</span>I(X;Y) ≠ I(Y;X) (비대칭적)</button>
+    </div>
+    <button class="answer-toggle" id="toggle-11" onclick="toggleAnswer(11)">정답 및 해설 보기 <span class="arrow">▼</span></button>
+    <div class="answer-section" id="answer-11">
+      <div class="answer-label">정답</div>
+      <div class="answer-formula">C — I(X;Y) = H(Y) − H(Y|X)</div>
+      <div class="answer-text">상호 정보는 항상 비음수(I(X;Y) ≥ 0)이며, X와 Y가 독립이면 I(X;Y) = 0입니다. 또한 I(X;Y) = I(Y;X)로 대칭적입니다. 정의: I(X;Y) = H(Y) − H(Y|X) = H(X) − H(X|Y) = H(X) + H(Y) − H(X,Y)</div>
+    </div>
+  </div>
+
+  <!-- Q12. OX ★★ -->
+  <div class="quiz-card" id="card-12">
+    <div class="quiz-top">
+      <div class="quiz-meta">
+        <span class="q-num">Q12</span>
+        <span class="q-type ox">OX</span>
+        <span class="difficulty">⭐⭐</span>
+        <span class="slide-ref">Slide 12</span>
+      </div>
+      <div class="question-text">X가 Y를 완전히 결정한다면 (X를 알면 Y를 완벽하게 예측 가능), 상호 정보 I(X;Y) = H(Y)가 된다.</div>
+    </div>
+    <div class="ox-wrap">
+      <button class="ox-btn" onclick="selectOX(12,this,'O')">⭕ 맞다</button>
+      <button class="ox-btn" onclick="selectOX(12,this,'X')">❌ 틀리다</button>
+    </div>
+    <button class="answer-toggle" id="toggle-12" onclick="toggleAnswer(12)">정답 및 해설 보기 <span class="arrow">▼</span></button>
+    <div class="answer-section" id="answer-12">
+      <div class="answer-label">정답</div>
+      <div class="answer-formula">⭕ 맞다</div>
+      <div class="answer-text">X가 Y를 완전히 결정하면 H(Y|X) = 0입니다.<br>따라서 I(X;Y) = H(Y) − H(Y|X) = H(Y) − 0 = H(Y)<br>이는 X를 알면 Y의 모든 불확실성이 사라짐을 의미합니다.</div>
+    </div>
+  </div>
+
+  <!-- Q13. 객관식 ★★ -->
+  <div class="quiz-card" id="card-13">
+    <div class="quiz-top">
+      <div class="quiz-meta">
+        <span class="q-num">Q13</span>
+        <span class="q-type mc">객관식</span>
+        <span class="difficulty">⭐⭐</span>
+        <span class="slide-ref">Slide 13</span>
+      </div>
+      <div class="question-text">피처 선택(Feature Selection)에서 상호 정보를 활용하는 방법으로 올바른 것은?</div>
+    </div>
+    <div class="choices">
+      <button class="choice-btn" onclick="selectMC(13,this,'A')" data-val="A"><span class="choice-label">A</span>타겟 레이블과의 상호 정보가 낮은 피처를 선택한다</button>
+      <button class="choice-btn" onclick="selectMC(13,this,'B')" data-val="B"><span class="choice-label">B</span>타겟 레이블과의 상호 정보가 높은 피처를 선택한다</button>
+      <button class="choice-btn" onclick="selectMC(13,this,'C')" data-val="C"><span class="choice-label">C</span>피처 간의 상호 정보가 높은 피처만 선택한다</button>
+      <button class="choice-btn" onclick="selectMC(13,this,'D')" data-val="D"><span class="choice-label">D</span>상호 정보가 0인 피처를 우선 선택한다</button>
+    </div>
+    <button class="answer-toggle" id="toggle-13" onclick="toggleAnswer(13)">정답 및 해설 보기 <span class="arrow">▼</span></button>
+    <div class="answer-section" id="answer-13">
+      <div class="answer-label">정답</div>
+      <div class="answer-formula">B — max I(X;Y): 타겟과의 상호 정보가 높은 피처 선택</div>
+      <div class="answer-text">유용한 피처는 타겟 변수 Y에 대한 정보를 많이 제공해야 합니다. 상호 정보가 높을수록 해당 피처가 타겟의 불확실성을 크게 줄여주므로, 피처 선택은 max I(X;Y)를 최대화하는 방향으로 수행됩니다.</div>
+    </div>
+  </div>
+
+  <!-- Q14. 단답형 ★★ -->
+  <div class="quiz-card" id="card-14">
+    <div class="quiz-top">
+      <div class="quiz-meta">
+        <span class="q-num">Q14</span>
+        <span class="q-type sa">단답형</span>
+        <span class="difficulty">⭐⭐</span>
+        <span class="slide-ref">Slide 14</span>
+      </div>
+      <div class="question-text">정보 이득(Information Gain)을 조건부 엔트로피를 사용하여 표현하면? IG = ?</div>
+    </div>
+    <div class="sa-wrap">
+      <input class="sa-input" id="sa-14" type="text" placeholder="수식을 입력하세요">
+    </div>
+    <button class="answer-toggle" id="toggle-14" onclick="toggleAnswer(14)">정답 및 해설 보기 <span class="arrow">▼</span></button>
+    <div class="answer-section" id="answer-14">
+      <div class="answer-label">정답</div>
+      <div class="answer-formula">IG = H(Y) − H(Y|X)</div>
+      <div class="answer-text">정보 이득은 피처 X로 데이터를 분할했을 때 타겟 Y의 엔트로피 감소량입니다.<br>H(Y): 분할 전 타겟의 엔트로피 (전체 불확실성)<br>H(Y|X): X를 관측한 후 남은 불확실성<br>따라서 IG = H(parent) − H(children) = H(Y) − H(Y|X)</div>
+    </div>
+  </div>
+
+  <!-- Q15. 객관식 ★★★ -->
+  <div class="quiz-card" id="card-15">
+    <div class="quiz-top">
+      <div class="quiz-meta">
+        <span class="q-num">Q15</span>
+        <span class="q-type mc">객관식</span>
+        <span class="difficulty">⭐⭐⭐</span>
+        <span class="slide-ref">Slide 9</span>
+      </div>
+      <div class="question-text">다음 조건에서 조건부 엔트로피 H(Y|X)를 계산하면? (Study=Yes: P=0.6, P(Pass|Yes)=0.9, P(Fail|Yes)=0.1 / Study=No: P=0.4, P(Pass|No)=0.2, P(Fail|No)=0.8)</div>
+    </div>
+    <div class="choices">
+      <button class="choice-btn" onclick="selectMC(15,this,'A')" data-val="A"><span class="choice-label">A</span>약 0.469 bits</button>
+      <button class="choice-btn" onclick="selectMC(15,this,'B')" data-val="B"><span class="choice-label">B</span>약 0.570 bits</button>
+      <button class="choice-btn" onclick="selectMC(15,this,'C')" data-val="C"><span class="choice-label">C</span>약 0.722 bits</button>
+      <button class="choice-btn" onclick="selectMC(15,this,'D')" data-val="D"><span class="choice-label">D</span>약 0.811 bits</button>
+    </div>
+    <button class="answer-toggle" id="toggle-15" onclick="toggleAnswer(15)">정답 및 해설 보기 <span class="arrow">▼</span></button>
+    <div class="answer-section" id="answer-15">
+      <div class="answer-label">정답</div>
+      <div class="answer-formula">B — 약 0.570 bits</div>
+      <div class="answer-text">
+        H(Y|X=Yes) = −(0.9log0.9 + 0.1log0.1) ≈ 0.469 bits<br>
+        H(Y|X=No) = −(0.2log0.2 + 0.8log0.8) ≈ 0.722 bits<br>
+        H(Y|X) = 0.6 × 0.469 + 0.4 × 0.722<br>
+        = 0.281 + 0.289 ≈ <strong>0.570 bits</strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- Q16. OX ★★★ -->
+  <div class="quiz-card" id="card-16">
+    <div class="quiz-top">
+      <div class="quiz-meta">
+        <span class="q-num">Q16</span>
+        <span class="q-type ox">OX</span>
+        <span class="difficulty">⭐⭐⭐</span>
+        <span class="slide-ref">Slide 11</span>
+      </div>
+      <div class="question-text">상호 정보의 또 다른 공식 I(X;Y) = H(X) + H(Y) − H(X,Y)에서, X와 Y가 독립이면 H(X,Y) = H(X) + H(Y)이고 따라서 I(X;Y) = 0이 된다.</div>
+    </div>
+    <div class="ox-wrap">
+      <button class="ox-btn" onclick="selectOX(16,this,'O')">⭕ 맞다</button>
+      <button class="ox-btn" onclick="selectOX(16,this,'X')">❌ 틀리다</button>
+    </div>
+    <button class="answer-toggle" id="toggle-16" onclick="toggleAnswer(16)">정답 및 해설 보기 <span class="arrow">▼</span></button>
+    <div class="answer-section" id="answer-16">
+      <div class="answer-label">정답</div>
+      <div class="answer-formula">⭕ 맞다</div>
+      <div class="answer-text">X와 Y가 독립이면 p(x,y) = p(x)p(y)이므로<br>H(X,Y) = H(X) + H(Y)가 됩니다.<br>따라서 I(X;Y) = H(X) + H(Y) − H(X,Y) = H(X) + H(Y) − (H(X)+H(Y)) = 0<br>이는 두 변수가 서로 어떤 정보도 공유하지 않음을 의미합니다.</div>
+    </div>
+  </div>
+
+  <!-- Q17. 객관식 ★★★ -->
+  <div class="quiz-card" id="card-17">
+    <div class="quiz-top">
+      <div class="quiz-meta">
+        <span class="q-num">Q17</span>
+        <span class="q-type mc">객관식</span>
+        <span class="difficulty">⭐⭐⭐</span>
+        <span class="slide-ref">Slide 15</span>
+      </div>
+      <div class="question-text">결정 트리(Decision Tree) 학습을 정보이론 관점에서 올바르게 설명한 것은?</div>
+    </div>
+    <div class="choices">
+      <button class="choice-btn" onclick="selectMC(17,this,'A')" data-val="A"><span class="choice-label">A</span>각 노드에서 조건부 엔트로피 H(Y|X)가 가장 큰 피처를 선택한다</button>
+      <button class="choice-btn" onclick="selectMC(17,this,'B')" data-val="B"><span class="choice-label">B</span>각 노드에서 상호 정보 I(X;Y)를 최대화하는 피처를 선택한다</button>
+      <button class="choice-btn" onclick="selectMC(17,this,'C')" data-val="C"><span class="choice-label">C</span>각 노드에서 자기 정보 I(x)가 가장 작은 피처를 선택한다</button>
+      <button class="choice-btn" onclick="selectMC(17,this,'D')" data-val="D"><span class="choice-label">D</span>각 노드에서 결합 엔트로피 H(X,Y)를 최대화하는 피처를 선택한다</button>
+    </div>
+    <button class="answer-toggle" id="toggle-17" onclick="toggleAnswer(17)">정답 및 해설 보기 <span class="arrow">▼</span></button>
+    <div class="answer-section" id="answer-17">
+      <div class="answer-label">정답</div>
+      <div class="answer-formula">B — max I(X;Y): 상호 정보를 최대화하는 피처 선택</div>
+      <div class="answer-text">정보 이득 최대화 (IG = H(Y) − H(Y|X))는 상호 정보 I(X;Y)를 최대화하는 것과 동치입니다. 즉, 결정 트리는 각 노드에서 클래스 레이블 Y와의 상호 정보가 가장 큰 피처 X*를 선택하는 과정으로 해석됩니다: X* = argmax I(X;Y)</div>
+    </div>
+  </div>
+
+  <!-- Q18. 서술형 ★★ -->
+  <div class="quiz-card" id="card-18">
+    <div class="quiz-top">
+      <div class="quiz-meta">
+        <span class="q-num">Q18</span>
+        <span class="q-type es">서술형</span>
+        <span class="difficulty">⭐⭐</span>
+        <span class="slide-ref">Slide 6–7</span>
+      </div>
+      <div class="question-text">엔트로피(Entropy)와 불확실성의 관계를 설명하고, 낮은 엔트로피와 높은 엔트로피가 각각 어떤 상황을 나타내는지 구체적인 예를 들어 서술하시오.</div>
+    </div>
+    <div class="es-wrap">
+      <textarea class="es-textarea" id="es-18" placeholder="답을 작성하세요..."></textarea>
+    </div>
+    <button class="answer-toggle" id="toggle-18" onclick="toggleAnswer(18)">모범 답안 보기 <span class="arrow">▼</span></button>
+    <div class="answer-section" id="answer-18">
+      <div class="answer-label">모범 답안</div>
+      <div class="answer-text">
+        <strong>엔트로피와 불확실성의 관계:</strong><br>
+        엔트로피 H(X) = −Σ p(x) log p(x)는 확률 변수 X의 평균 불확실성을 측정합니다. 엔트로피는 자기 정보의 기댓값으로, 확률 분포 전체의 무질서도(불확실성)를 나타냅니다.<br><br>
+        <strong>낮은 엔트로피 (High Certainty):</strong><br>
+        한 결과가 지배적인 확률을 가질 때 발생합니다. 예를 들어, 버킷에 빨간 공 4개만 있을 경우 P(R)=1, P(B)=0이므로 H=0입니다. 항상 빨간 공이 나올 것을 알기 때문에 불확실성이 전혀 없습니다.<br><br>
+        <strong>높은 엔트로피 (High Uncertainty):</strong><br>
+        모든 결과가 비슷한 확률을 가질 때 발생합니다. 예를 들어, 버킷에 빨간 공 2개, 파란 공 2개가 있을 경우 P(R)=P(B)=0.5이므로 H=1 bit (최대)입니다. 어떤 색이 나올지 전혀 예측할 수 없습니다.
+      </div>
+    </div>
+  </div>
+
+  <!-- Q19. 서술형 ★★★ -->
+  <div class="quiz-card" id="card-19">
+    <div class="quiz-top">
+      <div class="quiz-meta">
+        <span class="q-num">Q19</span>
+        <span class="q-type es">서술형</span>
+        <span class="difficulty">⭐⭐⭐</span>
+        <span class="slide-ref">Slide 11–14</span>
+      </div>
+      <div class="question-text">상호 정보(Mutual Information)와 정보 이득(Information Gain)의 관계를 수식을 포함하여 설명하고, 이 두 개념이 피처 선택과 결정 트리 학습에서 각각 어떻게 활용되는지 서술하시오.</div>
+    </div>
+    <div class="es-wrap">
+      <textarea class="es-textarea" id="es-19" placeholder="답을 작성하세요..."></textarea>
+    </div>
+    <button class="answer-toggle" id="toggle-19" onclick="toggleAnswer(19)">모범 답안 보기 <span class="arrow">▼</span></button>
+    <div class="answer-section" id="answer-19">
+      <div class="answer-label">모범 답안</div>
+      <div class="answer-text">
+        <strong>관계:</strong><br>
+        수식적으로 두 개념은 동일합니다.<br>
+        상호 정보: I(X;Y) = H(Y) − H(Y|X)<br>
+        정보 이득: IG(Y|X) = H(Y) − H(Y|X)<br>
+        즉, 정보 이득은 상호 정보와 수학적으로 동치입니다.<br><br>
+        <strong>피처 선택에서의 활용:</strong><br>
+        상호 정보 I(X;Y)는 피처 X가 타겟 Y에 대해 얼마나 유익한 정보를 제공하는지 측정합니다. I(X;Y)가 높은 피처일수록 타겟의 불확실성을 크게 줄여주므로, max I(X;Y)를 최대화하는 피처를 선택합니다. I(X;Y) ≈ 0인 피처는 예측에 거의 도움이 되지 않으므로 제거합니다.<br><br>
+        <strong>결정 트리 학습에서의 활용:</strong><br>
+        결정 트리는 각 노드에서 정보 이득(= 상호 정보)이 가장 높은 피처로 분기합니다. X* = argmax IG(Y|X) = argmax I(X;Y). 이는 분할 후 자식 노드들의 엔트로피 합이 가장 작아지는 분기를 선택하는 것과 동일합니다. 결국 결정 트리 학습은 데이터셋의 불확실성을 반복적으로 감소시키는 과정입니다.
+      </div>
+    </div>
+  </div>
+
+  <!-- Q20. 객관식 ★★★ -->
+  <div class="quiz-card" id="card-20">
+    <div class="quiz-top">
+      <div class="quiz-meta">
+        <span class="q-num">Q20</span>
+        <span class="q-type mc">객관식</span>
+        <span class="difficulty">⭐⭐⭐</span>
+        <span class="slide-ref">Slide 16</span>
+      </div>
+      <div class="question-text">다음 중 슬라이드 16에서 제시된 "Entropy → Mutual Information → Decision Tree Split"의 흐름을 올바르게 설명한 것은?</div>
+    </div>
+    <div class="choices">
+      <button class="choice-btn" onclick="selectMC(20,this,'A')" data-val="A"><span class="choice-label">A</span>엔트로피로 불확실성을 측정 → 상호 정보로 불확실성 감소량 계산 → 정보 이득 최대 피처로 분기</button>
+      <button class="choice-btn" onclick="selectMC(20,this,'B')" data-val="B"><span class="choice-label">B</span>정보 이득으로 분기 기준 설정 → 엔트로피로 검증 → 상호 정보로 최종 선택</button>
+      <button class="choice-btn" onclick="selectMC(20,this,'C')" data-val="C"><span class="choice-label">C</span>상호 정보 계산 → 엔트로피 최대화 → 결정 트리 분기</button>
+      <button class="choice-btn" onclick="selectMC(20,this,'D')" data-val="D"><span class="choice-label">D</span>자기 정보 계산 → 조건부 엔트로피 최대화 → 피처 선택</button>
+    </div>
+    <button class="answer-toggle" id="toggle-20" onclick="toggleAnswer(20)">정답 및 해설 보기 <span class="arrow">▼</span></button>
+    <div class="answer-section" id="answer-20">
+      <div class="answer-label">정답</div>
+      <div class="answer-formula">A</div>
+      <div class="answer-text">
+        1) <strong>Entropy (불확실성 측정)</strong>: 클래스 분포의 엔트로피 H(Y)로 현재 노드의 불확실성을 측정. 균등 분포일수록 H가 높음.<br>
+        2) <strong>Mutual Information (불확실성 감소)</strong>: I(X;Y) = H(Y) − H(Y|X)로 각 피처가 불확실성을 얼마나 줄이는지 계산.<br>
+        3) <strong>Decision Tree Split (최대 정보 이득 분기)</strong>: X* = argmax IG(Y|X)로 정보 이득이 가장 큰 피처를 선택하여 분기. 이 과정을 반복하며 불확실성을 점진적으로 감소시킴.
+      </div>
+    </div>
+  </div>
+
+</div><!-- end main -->
+
+<!-- RESULT MODAL -->
+<div class="result-overlay" id="result-overlay">
+  <div class="result-modal">
+    <div class="result-emoji" id="result-emoji">🎉</div>
+    <div class="result-title">채점 완료!</div>
+    <div class="result-score" id="result-score">0 / 20</div>
+    <div class="result-bar-wrap"><div class="result-bar" id="result-bar"></div></div>
+    <div class="result-sub" id="result-sub">수고하셨습니다!</div>
+    <button class="btn-close-result" onclick="closeResult()">확인</button>
+  </div>
+</div>
+
+<script>
+// State
+const answers = {
+  mc: { 1:'B', 4:'C', 6:'C', 8:'B', 11:'C', 13:'B', 15:'B', 17:'B', 20:'A' },
+  ox: { 2:'O', 5:'X', 9:'X', 12:'O', 16:'O' }
+};
+const userAnswers = {};
+let answeredCount = 0;
+
+function updateProgress() {
+  const filled = Object.keys(userAnswers).filter(k => userAnswers[k] !== null && userAnswers[k] !== '').length;
+  const pct = (filled / 20) * 100;
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('answered-count').textContent = filled;
+}
+
+// MC
+function selectMC(qNum, btn, val) {
+  const btns = btn.closest('.choices').querySelectorAll('.choice-btn');
+  btns.forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  const prev = userAnswers[qNum];
+  userAnswers[qNum] = val;
+  if (!prev) answeredCount++;
+  updateProgress();
+}
+
+// OX
+function selectOX(qNum, btn, val) {
+  const btns = btn.closest('.ox-wrap').querySelectorAll('.ox-btn');
+  btns.forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  const prev = userAnswers[qNum];
+  userAnswers[qNum] = val;
+  if (!prev) answeredCount++;
+  updateProgress();
+}
+
+// SA / ES input tracking
+document.querySelectorAll('.sa-input, .es-textarea').forEach(el => {
+  el.addEventListener('input', function() {
+    const id = parseInt(this.id.replace(/\D/g,''));
+    const prev = userAnswers[id];
+    userAnswers[id] = this.value;
+    if (!prev && this.value) updateProgress();
+    else if (prev && !this.value) updateProgress();
+  });
+});
+
+// Answer toggle
+function toggleAnswer(n) {
+  const sec = document.getElementById('answer-' + n);
+  const btn = document.getElementById('toggle-' + n);
+  const isOpen = sec.classList.contains('show');
+  sec.classList.toggle('show', !isOpen);
+  btn.classList.toggle('open', !isOpen);
+  btn.querySelector('.arrow').textContent = isOpen ? '▼' : '▲';
+}
+
+// Check All
+function checkAll() {
+  let correct = 0;
+  let scorable = 0;
+
+  // MC
+  Object.entries(answers.mc).forEach(([qNum, correct_ans]) => {
+    scorable++;
+    const card = document.getElementById('card-' + qNum);
+    const btns = card.querySelectorAll('.choice-btn');
+    const userVal = userAnswers[qNum];
+    btns.forEach(b => {
+      b.disabled = true;
+      b.classList.remove('correct-ans','wrong-ans');
+      if (b.dataset.val === correct_ans) b.classList.add('correct-ans');
+      else if (b.dataset.val === userVal && userVal !== correct_ans) b.classList.add('wrong-ans');
+    });
+    if (userVal === correct_ans) {
+      correct++;
+      card.classList.add('correct');
+    } else {
+      card.classList.add('wrong');
+    }
+    // show answer
+    document.getElementById('answer-' + qNum).classList.add('show');
+    const toggle = document.getElementById('toggle-' + qNum);
+    toggle.classList.add('open');
+    toggle.querySelector('.arrow').textContent = '▲';
+  });
+
+  // OX
+  Object.entries(answers.ox).forEach(([qNum, correct_ans]) => {
+    scorable++;
+    const card = document.getElementById('card-' + qNum);
+    const btns = card.querySelectorAll('.ox-btn');
+    const userVal = userAnswers[qNum];
+    btns.forEach(b => {
+      b.disabled = true;
+      b.classList.remove('correct-ans','wrong-ans');
+      const bVal = b.textContent.includes('맞다') ? 'O' : 'X';
+      if (bVal === correct_ans) b.classList.add('correct-ans');
+      else if (bVal === userVal && userVal !== correct_ans) b.classList.add('wrong-ans');
+    });
+    if (userVal === correct_ans) {
+      correct++;
+      card.classList.add('correct');
+    } else {
+      card.classList.add('wrong');
+    }
+    document.getElementById('answer-' + qNum).classList.add('show');
+    const toggle = document.getElementById('toggle-' + qNum);
+    toggle.classList.add('open');
+    toggle.querySelector('.arrow').textContent = '▲';
+  });
+
+  // SA — disable inputs, show answers
+  [3,7,10,14].forEach(n => {
+    const inp = document.getElementById('sa-' + n);
+    if (inp) {
+      inp.disabled = true;
+      document.getElementById('answer-' + n).classList.add('show');
+      const toggle = document.getElementById('toggle-' + n);
+      toggle.classList.add('open');
+      toggle.querySelector('.arrow').textContent = '▲';
+    }
+  });
+
+  // ES — disable, show answers
+  [18,19].forEach(n => {
+    const ta = document.getElementById('es-' + n);
+    if (ta) {
+      ta.disabled = true;
+      document.getElementById('answer-' + n).classList.add('show');
+      const toggle = document.getElementById('toggle-' + n);
+      toggle.classList.add('open');
+      toggle.querySelector('.arrow').textContent = '▲';
+    }
+  });
+
+  // Display score (채점 가능한 14문항 기준: MC 9 + OX 5)
+  document.getElementById('score-display').textContent = correct + ' / ' + scorable;
+  showResult(correct, scorable);
+}
+
+function showResult(correct, total) {
+  const pct = Math.round((correct / total) * 100);
+  let emoji = '😅', msg = '더 공부가 필요해요!';
+  if (pct >= 90) { emoji = '🏆'; msg = '완벽합니다! 훌륭해요!'; }
+  else if (pct >= 70) { emoji = '🎉'; msg = '잘 하셨어요! 조금만 더!'; }
+  else if (pct >= 50) { emoji = '📚'; msg = '기본은 잡혔어요, 복습해보세요.'; }
+
+  document.getElementById('result-emoji').textContent = emoji;
+  document.getElementById('result-score').textContent = correct + ' / ' + total;
+  document.getElementById('result-sub').textContent = '객관식+OX 정답률 ' + pct + '% · ' + msg + '\n(단답형/서술형은 직접 채점)';
+  document.getElementById('result-bar').style.width = pct + '%';
+  document.getElementById('result-overlay').classList.add('show');
+}
+
+function closeResult() {
+  document.getElementById('result-overlay').classList.remove('show');
+}
+
+function resetAll() {
+  // Reset state
+  Object.keys(userAnswers).forEach(k => delete userAnswers[k]);
+  answeredCount = 0;
+
+  // Reset UI
+  document.querySelectorAll('.choice-btn').forEach(b => {
+    b.classList.remove('selected','correct-ans','wrong-ans');
+    b.disabled = false;
+  });
+  document.querySelectorAll('.ox-btn').forEach(b => {
+    b.classList.remove('selected','correct-ans','wrong-ans');
+    b.disabled = false;
+  });
+  document.querySelectorAll('.sa-input').forEach(inp => {
+    inp.classList.remove('correct-ans','wrong-ans');
+    inp.value = '';
+    inp.disabled = false;
+  });
+  document.querySelectorAll('.es-textarea').forEach(ta => {
+    ta.value = '';
+    ta.disabled = false;
+  });
+  document.querySelectorAll('.quiz-card').forEach(c => c.classList.remove('correct','wrong'));
+  document.querySelectorAll('.answer-section').forEach(s => s.classList.remove('show'));
+  document.querySelectorAll('.answer-toggle').forEach(t => {
+    t.classList.remove('open');
+    t.querySelector('.arrow').textContent = '▼';
+  });
+  document.getElementById('score-display').textContent = '–';
+  updateProgress();
+}
+
+updateProgress();
+</script>
+</body>
+</html>
