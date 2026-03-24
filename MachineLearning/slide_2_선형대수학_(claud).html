@@ -1,0 +1,1621 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>기계학습 2. 선형대수학 — 강의 정리</title>
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --surface: #111827;
+    --surface2: #1a2235;
+    --surface3: #1e2d45;
+    --border: #1e3a5f;
+    --accent: #3b82f6;
+    --accent2: #f59e0b;
+    --accent3: #10b981;
+    --accent4: #8b5cf6;
+    --text: #e2e8f0;
+    --text-muted: #94a3b8;
+    --text-dim: #64748b;
+    --code-bg: #0d1117;
+    --code-border: #2d3748;
+    --tag-blue: rgba(59,130,246,0.15);
+    --tag-amber: rgba(245,158,11,0.15);
+    --tag-green: rgba(16,185,129,0.15);
+    --tag-purple: rgba(139,92,246,0.15);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.7;
+  }
+
+  /* ── Layout ── */
+  .layout {
+    display: flex;
+    min-height: 100vh;
+  }
+
+  /* ── TOC Sidebar ── */
+  .toc {
+    width: 260px;
+    min-width: 260px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    position: fixed;
+    top: 0; left: 0;
+    height: 100vh;
+    overflow-y: auto;
+    z-index: 100;
+    padding-bottom: 2rem;
+  }
+
+  .toc-header {
+    padding: 1.5rem 1.25rem 1rem;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: var(--surface);
+    z-index: 1;
+  }
+
+  .toc-header .course-label {
+    font-size: 0.65rem;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-weight: 700;
+    margin-bottom: 0.3rem;
+  }
+
+  .toc-header h2 {
+    font-family: 'Impact', 'Arial Narrow', 'Apple SD Gothic Neo', sans-serif;
+    font-size: 1.1rem;
+    color: var(--text);
+    line-height: 1.3;
+  }
+
+  .toc-group {
+    padding: 0.75rem 0;
+  }
+
+  .toc-group-label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-dim);
+    padding: 0 1.25rem 0.4rem;
+    font-weight: 700;
+  }
+
+  .toc-link {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.45rem 1.25rem;
+    text-decoration: none;
+    color: var(--text-muted);
+    font-size: 0.82rem;
+    transition: all 0.2s;
+    border-left: 2px solid transparent;
+    cursor: pointer;
+  }
+
+  .toc-link:hover {
+    background: rgba(59,130,246,0.08);
+    color: var(--text);
+  }
+
+  .toc-link.active {
+    color: var(--accent);
+    border-left-color: var(--accent);
+    background: rgba(59,130,246,0.1);
+    font-weight: 600;
+  }
+
+  .toc-num {
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    font-family: 'Menlo', 'Courier New', monospace;
+    min-width: 1.8rem;
+  }
+
+  /* ── Main Content ── */
+  .main {
+    margin-left: 260px;
+    flex: 1;
+    max-width: 960px;
+    padding: 2.5rem 2rem 4rem;
+  }
+
+  .page-hero {
+    margin-bottom: 3rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .page-hero .label {
+    display: inline-block;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+    padding: 0.2rem 0.6rem;
+    background: var(--tag-blue);
+    border-radius: 3px;
+    border: 1px solid rgba(59,130,246,0.3);
+  }
+
+  .page-hero h1 {
+    font-family: 'Impact', 'Arial Narrow', 'Apple SD Gothic Neo', sans-serif;
+    font-size: 2.8rem;
+    line-height: 1.1;
+    color: var(--text);
+    letter-spacing: -0.01em;
+    margin-bottom: 0.6rem;
+  }
+
+  .page-hero .meta {
+    font-size: 0.82rem;
+    color: var(--text-dim);
+  }
+
+  /* ── Section ── */
+  .section {
+    margin-bottom: 4rem;
+    scroll-margin-top: 2rem;
+  }
+
+  .section-heading {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section-num {
+    font-family: 'Impact', 'Arial Narrow', 'Menlo', monospace;
+    font-size: 0.8rem;
+    color: var(--accent);
+    background: var(--tag-blue);
+    border: 1px solid rgba(59,130,246,0.3);
+    padding: 0.15rem 0.5rem;
+    border-radius: 3px;
+    letter-spacing: 0.08em;
+    min-width: 2.6rem;
+    text-align: center;
+  }
+
+  .section-heading h2 {
+    font-family: 'Impact', 'Arial Narrow', 'Apple SD Gothic Neo', sans-serif;
+    font-size: 1.7rem;
+    letter-spacing: -0.01em;
+    color: var(--text);
+  }
+
+  /* ── Sub Section ── */
+  .subsection {
+    margin-bottom: 2.5rem;
+    scroll-margin-top: 2rem;
+  }
+
+  .subsection-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--accent2);
+    margin-bottom: 1rem;
+    padding-left: 0.75rem;
+    border-left: 3px solid var(--accent2);
+    letter-spacing: 0.01em;
+  }
+
+  /* ── Card ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .card-split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    align-items: start;
+  }
+
+  .card h3 {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .card h3::before {
+    content: '';
+    display: inline-block;
+    width: 6px; height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .card p, .card li {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    margin-bottom: 0.35rem;
+  }
+
+  .card ul { padding-left: 1.25rem; }
+  .card li { list-style: disc; }
+
+  .formula-block {
+    background: var(--code-bg);
+    border: 1px solid var(--code-border);
+    border-radius: 6px;
+    padding: 0.9rem 1.2rem;
+    font-family: 'Menlo', 'Courier New', monospace;
+    font-size: 0.83rem;
+    color: #a78bfa;
+    margin: 0.6rem 0;
+    line-height: 1.8;
+  }
+
+  .formula-block .comment {
+    color: var(--text-dim);
+    font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+    font-size: 0.78rem;
+  }
+
+  .highlight {
+    color: #fbbf24;
+  }
+
+  .hl-green { color: #34d399; }
+  .hl-blue  { color: #60a5fa; }
+  .hl-pink  { color: #f472b6; }
+
+  /* ── Tags ── */
+  .tag {
+    display: inline-block;
+    font-size: 0.68rem;
+    padding: 0.1rem 0.45rem;
+    border-radius: 3px;
+    font-weight: 600;
+    margin-right: 0.3rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .tag-blue   { background: var(--tag-blue);   color: #60a5fa; border: 1px solid rgba(59,130,246,0.25); }
+  .tag-amber  { background: var(--tag-amber);  color: #fbbf24; border: 1px solid rgba(245,158,11,0.25); }
+  .tag-green  { background: var(--tag-green);  color: #34d399; border: 1px solid rgba(16,185,129,0.25); }
+  .tag-purple { background: var(--tag-purple); color: #a78bfa; border: 1px solid rgba(139,92,246,0.25); }
+
+  /* ── Comparison Table ── */
+  .comp-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.84rem;
+    margin-top: 0.5rem;
+  }
+
+  .comp-table th {
+    background: var(--surface3);
+    color: var(--text);
+    font-weight: 700;
+    padding: 0.7rem 1rem;
+    text-align: left;
+    border-bottom: 2px solid var(--accent);
+    font-size: 0.82rem;
+  }
+
+  .comp-table th:first-child {
+    color: var(--text-muted);
+  }
+
+  .comp-table td {
+    padding: 0.65rem 1rem;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-muted);
+    vertical-align: top;
+  }
+
+  .comp-table tr:last-child td {
+    border-bottom: none;
+  }
+
+  .comp-table tr:hover td {
+    background: rgba(255,255,255,0.02);
+  }
+
+  .comp-table td:first-child {
+    color: var(--text);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  /* ── Property List ── */
+  .prop-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 0.75rem;
+  }
+
+  .prop-item {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.75rem 1rem;
+  }
+
+  .prop-item .prop-label {
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.25rem;
+    font-weight: 700;
+  }
+
+  .prop-item .prop-value {
+    font-family: 'Menlo', 'Courier New', monospace;
+    font-size: 0.85rem;
+    color: #a78bfa;
+  }
+
+  /* ── SVG Container ── */
+  .svg-wrap {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .svg-wrap svg {
+    width: 100%;
+    display: block;
+  }
+
+  /* ── Info Box ── */
+  .info-box {
+    background: rgba(59,130,246,0.07);
+    border: 1px solid rgba(59,130,246,0.25);
+    border-left: 3px solid var(--accent);
+    border-radius: 6px;
+    padding: 0.85rem 1.1rem;
+    margin: 0.75rem 0;
+    font-size: 0.84rem;
+    color: var(--text-muted);
+  }
+
+  .info-box.amber {
+    background: rgba(245,158,11,0.07);
+    border-color: rgba(245,158,11,0.25);
+    border-left-color: var(--accent2);
+  }
+
+  .info-box.green {
+    background: rgba(16,185,129,0.07);
+    border-color: rgba(16,185,129,0.25);
+    border-left-color: var(--accent3);
+  }
+
+  .info-box .label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+    margin-bottom: 0.25rem;
+    display: block;
+  }
+
+  .info-box.amber .label { color: var(--accent2); }
+  .info-box.green  .label { color: var(--accent3); }
+
+  /* ── Summary Table ── */
+  .summary-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.84rem;
+  }
+
+  .summary-table th {
+    background: var(--accent);
+    color: #fff;
+    padding: 0.7rem 1rem;
+    text-align: left;
+    font-size: 0.8rem;
+    letter-spacing: 0.04em;
+  }
+
+  .summary-table td {
+    padding: 0.65rem 1rem;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-muted);
+    vertical-align: top;
+  }
+
+  .summary-table tr:last-child td { border-bottom: none; }
+  .summary-table tr:hover td { background: rgba(255,255,255,0.02); }
+  .summary-table td:first-child { color: var(--text); font-weight: 600; }
+  .summary-table td:nth-child(3) { color: var(--accent3); font-size: 0.8rem; }
+
+  /* ── Scrollbar ── */
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+  /* ── Responsive ── */
+  @media (max-width: 768px) {
+    .toc { display: none; }
+    .main { margin-left: 0; padding: 1.5rem 1rem; }
+    .card-split { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════ TOC ══════════════ -->
+<nav class="toc" id="toc">
+  <div class="toc-header">
+    <div class="course-label">기계학습 | 2026 1학기</div>
+    <h2>2. 선형대수학</h2>
+  </div>
+
+  <div class="toc-group">
+    <div class="toc-group-label">1. 벡터 이론</div>
+    <a class="toc-link" onclick="scrollTo('s01')"><span class="toc-num">01</span>벡터의 표현·전치·크기</a>
+    <a class="toc-link" onclick="scrollTo('s02')"><span class="toc-num">02</span>내적 (Inner Product)</a>
+    <a class="toc-link" onclick="scrollTo('s03')"><span class="toc-num">03</span>외적 (Cross Product)</a>
+    <a class="toc-link" onclick="scrollTo('s04')"><span class="toc-num">04</span>선형 결합·종속·독립</a>
+    <a class="toc-link" onclick="scrollTo('s05')"><span class="toc-num">05</span>기저 집합</a>
+    <a class="toc-link" onclick="scrollTo('s06')"><span class="toc-num">06</span>Span과 차원 변환</a>
+    <a class="toc-link" onclick="scrollTo('s07')"><span class="toc-num">07</span>벡터의 투영</a>
+    <a class="toc-link" onclick="scrollTo('s08')"><span class="toc-num">08</span>Latent Representation</a>
+  </div>
+
+  <div class="toc-group">
+    <div class="toc-group-label">2. 행렬 대수</div>
+    <a class="toc-link" onclick="scrollTo('s09')"><span class="toc-num">09</span>특수 행렬 종류</a>
+    <a class="toc-link" onclick="scrollTo('s10')"><span class="toc-num">10</span>행렬의 곱셈</a>
+    <a class="toc-link" onclick="scrollTo('s11')"><span class="toc-num">11</span>Rank (계수)</a>
+    <a class="toc-link" onclick="scrollTo('s12')"><span class="toc-num">12</span>역행렬</a>
+    <a class="toc-link" onclick="scrollTo('s13')"><span class="toc-num">13</span>선형 변환</a>
+    <a class="toc-link" onclick="scrollTo('s14')"><span class="toc-num">14</span>핵심 개념 정리</a>
+  </div>
+</nav>
+
+<!-- ══════════════ MAIN ══════════════ -->
+<main class="main">
+
+  <div class="page-hero">
+    <div class="label">기계학습 — Slide 2</div>
+    <h1>선형대수학</h1>
+    <p class="meta">컴퓨터공학부 · 김인수 · 2026 1학기 &nbsp;|&nbsp; 슬라이드 1–21</p>
+  </div>
+
+  <!-- ━━━━━━━━━━ PART 1 ━━━━━━━━━━ -->
+  <div class="section" id="part1">
+    <div class="section-heading">
+      <span class="section-num">PART 1</span>
+      <h2>벡터 이론</h2>
+    </div>
+
+    <!-- 01 벡터 표현 -->
+    <div class="subsection" id="s01">
+      <div class="subsection-title">01 &nbsp;벡터의 표현 · 전치 · 크기 · 단위벡터</div>
+
+      <div class="card">
+        <h3>벡터의 표현 (슬라이드 3)</h3>
+        <ul>
+          <li>벡터: <strong>크기와 방향</strong>을 가지는 임의의 물리량</li>
+          <li>패턴 인식에서 인식 대상 객체는 <strong>특징 벡터(feature vector)</strong>로 표현</li>
+          <li>d차원 공간상의 한 점으로 표현됨</li>
+        </ul>
+        <div class="formula-block">
+          <span class="comment">// 열벡터 표현 (d×1 행렬)</span><br>
+          x = [x₁, x₂, ..., x<sub>d</sub>]<sup>T</sup> &nbsp;∈&nbsp; ℝ<sup>d</sup><br>
+          <span class="comment">// 예) 키·몸무게·나이 → 3차원 특징 벡터</span><br>
+          x = [x₁, x₂, x₃]<sup>T</sup>
+        </div>
+      </div>
+
+      <div class="card card-split">
+        <div>
+          <h3>전치 (Transpose, 슬라이드 4)</h3>
+          <ul>
+            <li>N×1 열벡터 → 1×N 행벡터 (행과 열을 바꿈)</li>
+          </ul>
+          <div class="formula-block">
+            x<sup>T</sup> = [x₁, x₂, ..., x<sub>N</sub>]  <span class="comment">(열→행)</span><br>
+            (AB)<sup>T</sup> = B<sup>T</sup>A<sup>T</sup><br>
+            (A<sup>T</sup>)<sup>T</sup> = A
+          </div>
+
+          <h3 style="margin-top:1rem;">크기 (Norm)</h3>
+          <ul>
+            <li>원점에서 벡터 공간상의 한 점까지의 <strong>거리</strong></li>
+          </ul>
+          <div class="formula-block">
+            ‖x‖ = √(x₁² + x₂² + ... + x<sub>N</sub>²)<br>
+               &nbsp;&nbsp;&nbsp;&nbsp; = √(x<sup>T</sup>x)
+          </div>
+        </div>
+        <div>
+          <h3>단위 벡터 (Unit Vector)</h3>
+          <ul>
+            <li>크기가 1인 벡터: <strong>‖u‖ = 1</strong></li>
+            <li>벡터 v ≠ 0 이면 v 방향의 단위벡터: <code>u = v / ‖v‖</code></li>
+            <li>벡터를 단위벡터로 만드는 과정 = <strong>정규화(normalization)</strong></li>
+          </ul>
+
+          <!-- SVG: 벡터 크기 시각화 -->
+          <div class="svg-wrap" style="margin-top:0.75rem;">
+            <svg viewBox="0 0 240 200" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <marker id="ah1" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+                  <path d="M0,0 L0,6 L8,3 z" fill="#60a5fa"/>
+                </marker>
+                <marker id="ah2" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+                  <path d="M0,0 L0,6 L8,3 z" fill="#34d399"/>
+                </marker>
+              </defs>
+              <!-- axes -->
+              <line x1="30" y1="170" x2="220" y2="170" stroke="#2d3748" stroke-width="1"/>
+              <line x1="30" y1="170" x2="30" y2="20" stroke="#2d3748" stroke-width="1"/>
+              <!-- axis labels -->
+              <text x="215" y="183" fill="#64748b" font-size="11" font-family="Menlo,monospace">x₁</text>
+              <text x="18" y="25" fill="#64748b" font-size="11" font-family="Menlo,monospace">x₂</text>
+              <!-- tick labels x -->
+              <text x="73" y="183" fill="#475569" font-size="9" text-anchor="middle">1</text>
+              <text x="118" y="183" fill="#475569" font-size="9" text-anchor="middle">2</text>
+              <text x="163" y="183" fill="#475569" font-size="9" text-anchor="middle">3</text>
+              <!-- tick labels y -->
+              <text x="22" y="127" fill="#475569" font-size="9" text-anchor="middle">1</text>
+              <text x="22" y="82" fill="#475569" font-size="9" text-anchor="middle">2</text>
+              <text x="22" y="37" fill="#475569" font-size="9" text-anchor="middle">3</text>
+              <!-- tick marks -->
+              <line x1="73" y1="167" x2="73" y2="173" stroke="#2d3748"/>
+              <line x1="118" y1="167" x2="118" y2="173" stroke="#2d3748"/>
+              <line x1="163" y1="167" x2="163" y2="173" stroke="#2d3748"/>
+              <line x1="27" y1="127" x2="33" y2="127" stroke="#2d3748"/>
+              <line x1="27" y1="82" x2="33" y2="82" stroke="#2d3748"/>
+              <line x1="27" y1="37" x2="33" y2="37" stroke="#2d3748"/>
+
+              <!-- vector v -->
+              <line x1="30" y1="170" x2="160" y2="50" stroke="#60a5fa" stroke-width="2" marker-end="url(#ah1)"/>
+              <text x="100" y="95" fill="#60a5fa" font-size="10" font-weight="bold">v</text>
+              <!-- ‖v‖ label -->
+              <text x="85" y="120" fill="#94a3b8" font-size="9" transform="rotate(-42,85,120)">‖v‖</text>
+              <!-- unit vector u -->
+              <line x1="30" y1="170" x2="68" y2="135" stroke="#34d399" stroke-width="2" marker-end="url(#ah2)"/>
+              <text x="42" y="145" fill="#34d399" font-size="10" font-weight="bold">u = v/‖v‖</text>
+              <!-- dot at origin -->
+              <circle cx="30" cy="170" r="3" fill="#94a3b8"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 02 내적 -->
+    <div class="subsection" id="s02">
+      <div class="subsection-title">02 &nbsp;내적 (Inner Product / Dot Product)</div>
+
+      <div class="card">
+        <h3>내적의 정의 (슬라이드 5)</h3>
+        <ul>
+          <li>같은 차원의 두 벡터 A, B에 대해 <strong>대응 성분끼리 곱하여 합산</strong></li>
+          <li>결과: <strong>실수 스칼라</strong></li>
+        </ul>
+        <div class="formula-block">
+          A · B = A₁B₁ + A₂B₂ + ... + A<sub>n</sub>B<sub>n</sub> = <span class="highlight">A<sup>T</sup>B</span><br><br>
+          <span class="comment">// 기하학적 해석 (각도 θ)</span><br>
+          A · B = ‖A‖ ‖B‖ <span class="hl-green">cosθ</span><br>
+          <span class="comment">// θ = 90° → 내적 = 0 → 두 벡터 직교(orthogonal)</span>
+        </div>
+
+        <div class="info-box">
+          <span class="label">핵심 의미</span>
+          내적은 한 벡터가 다른 벡터 방향으로 얼마나 <strong>'투영'</strong>되는지를 측정합니다.
+          유사도(similarity)·Attention 메커니즘의 수학적 기반입니다.
+        </div>
+
+        <div class="prop-grid" style="margin-top:0.75rem;">
+          <div class="prop-item">
+            <div class="prop-label">교환법칙 ✓</div>
+            <div class="prop-value">A · B = B · A</div>
+          </div>
+          <div class="prop-item">
+            <div class="prop-label">분배법칙 ✓</div>
+            <div class="prop-value">A · (B+C) = A·B + A·C</div>
+          </div>
+          <div class="prop-item">
+            <div class="prop-label">스칼라 ✓</div>
+            <div class="prop-value">(αA) · B = α(A · B)</div>
+          </div>
+          <div class="prop-item">
+            <div class="prop-label">자기 내적</div>
+            <div class="prop-value">A · A = ‖A‖²</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SVG: 내적 시각화 -->
+      <div class="card card-split">
+        <div>
+          <h3>내적의 기하학적 의미</h3>
+          <ul>
+            <li>벡터 A, B 사이 각도 θ일 때: <code>A · B = ‖A‖‖B‖cosθ</code></li>
+            <li>θ = 0°: 최대 (같은 방향)</li>
+            <li>θ = 90°: 0 (수직)</li>
+            <li>θ = 180°: 최소 (반대 방향)</li>
+          </ul>
+        </div>
+        <div class="svg-wrap">
+          <svg viewBox="0 0 260 200" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <marker id="ahA" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+                <path d="M0,0 L0,6 L8,3 z" fill="#60a5fa"/>
+              </marker>
+              <marker id="ahB" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+                <path d="M0,0 L0,6 L8,3 z" fill="#f59e0b"/>
+              </marker>
+              <marker id="ahP" markerWidth="6" markerHeight="6" refX="4" refY="3" orient="auto">
+                <path d="M0,0 L0,6 L6,3 z" fill="#10b981"/>
+              </marker>
+            </defs>
+            <!-- origin -->
+            <circle cx="60" cy="150" r="3" fill="#94a3b8"/>
+            <!-- vector A -->
+            <line x1="60" y1="150" x2="210" y2="150" stroke="#60a5fa" stroke-width="2.5" marker-end="url(#ahA)"/>
+            <text x="200" y="143" fill="#60a5fa" font-size="13" font-weight="bold">A</text>
+            <!-- vector B -->
+            <line x1="60" y1="150" x2="155" y2="55" stroke="#f59e0b" stroke-width="2.5" marker-end="url(#ahB)"/>
+            <text x="155" y="47" fill="#f59e0b" font-size="13" font-weight="bold">B</text>
+            <!-- angle arc -->
+            <path d="M 95,150 A 35,35 0 0,0 81.5,120" stroke="#8b5cf6" stroke-width="1.5" fill="none"/>
+            <text x="96" y="128" fill="#a78bfa" font-size="11">θ</text>
+            <!-- projection line (dashed) -->
+            <line x1="155" y1="55" x2="155" y2="150" stroke="#10b981" stroke-width="1.5" stroke-dasharray="4,3"/>
+            <!-- projection on A -->
+            <line x1="60" y1="150" x2="155" y2="150" stroke="#10b981" stroke-width="2.5" marker-end="url(#ahP)"/>
+            <text x="100" y="168" fill="#34d399" font-size="10">‖B‖cosθ (투영)</text>
+            <!-- label A·B -->
+            <text x="100" y="30" fill="#94a3b8" font-size="10">A·B = ‖A‖‖B‖cosθ</text>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- 03 외적 -->
+    <div class="subsection" id="s03">
+      <div class="subsection-title">03 &nbsp;외적 (Cross Product)</div>
+
+      <div class="card">
+        <h3>외적의 정의 (슬라이드 6)</h3>
+        <ul>
+          <li>A, B ∈ ℝ³ 인 <strong>3차원 벡터</strong>에 대해 정의</li>
+          <li>결과: 스칼라가 아닌 <strong>벡터</strong> (내적과 구별)</li>
+        </ul>
+        <div class="formula-block">
+          <span class="comment">// 크기: 평행사변형 면적과 동일</span><br>
+          ‖A × B‖ = ‖A‖ ‖B‖ <span class="hl-green">sinθ</span><br><br>
+          <span class="comment">// 방향: A와 B에 동시에 수직 (오른손 법칙)</span><br>
+          <span class="comment">// 성분 계산:</span><br>
+          A×B = [A₂B₃−A₃B₂, &nbsp;A₃B₁−A₁B₃, &nbsp;A₁B₂−A₂B₁]<sup>T</sup>
+        </div>
+
+        <div class="prop-grid" style="margin-top:0.75rem;">
+          <div class="prop-item">
+            <div class="prop-label">반교환법칙 ✗</div>
+            <div class="prop-value">A×B = −(B×A)</div>
+          </div>
+          <div class="prop-item">
+            <div class="prop-label">자기 외적</div>
+            <div class="prop-value">A×A = 0</div>
+          </div>
+          <div class="prop-item">
+            <div class="prop-label">분배법칙 ✓</div>
+            <div class="prop-value">A×(B+C) = A×B + A×C</div>
+          </div>
+          <div class="prop-item">
+            <div class="prop-label">기계학습 활용</div>
+            <div class="prop-value">법선벡터, 3D 회전</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 내적 vs 외적 비교 표 -->
+      <div class="card">
+        <h3>벡터 내적 · 외적 성질 비교 (슬라이드 7)</h3>
+        <table class="comp-table">
+          <thead>
+            <tr>
+              <th>성질</th>
+              <th><span class="tag tag-blue">내적 (Dot Product)</span></th>
+              <th><span class="tag tag-amber">외적 (Cross Product)</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>결과 형태</td><td>스칼라</td><td>벡터 (3D 전용)</td></tr>
+            <tr><td>교환법칙</td><td>A·B = B·A &nbsp;✓</td><td>A×B = −B×A &nbsp;✗</td></tr>
+            <tr><td>분배법칙</td><td>A·(B+C) = A·B + A·C &nbsp;✓</td><td>A×(B+C) = A×B + A×C &nbsp;✓</td></tr>
+            <tr><td>자기 곱</td><td>A·A = ‖A‖²</td><td>A×A = 0</td></tr>
+            <tr><td>기하학적 의미</td><td>cosθ 투영 / 유사도 측정</td><td>sinθ 면적 / 수직 방향 탐색</td></tr>
+            <tr><td>기계학습 활용</td><td>유사도, 투영, Attention</td><td>법선벡터, 3D 회전</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 04 선형 결합·종속·독립 -->
+    <div class="subsection" id="s04">
+      <div class="subsection-title">04 &nbsp;선형 결합 · 선형 종속 · 선형 독립</div>
+
+      <div class="card card-split">
+        <div>
+          <h3>선형 결합 (Linear Combination, 슬라이드 8)</h3>
+          <ul>
+            <li>벡터 집합 {x₁, x₂, ..., xₘ}을 스칼라 계수 {α₁, ..., αₘ}으로 곱하여 합산</li>
+          </ul>
+          <div class="formula-block">
+            y = α₁x₁ + α₂x₂ + ... + αₘxₘ
+          </div>
+
+          <h3 style="margin-top:1rem;">선형 종속 (Linearly Dependent)</h3>
+          <ul>
+            <li>벡터 집합 중 <strong>적어도 하나</strong>가 나머지의 선형 결합으로 표현 가능</li>
+            <li>모두 0이 아닌 계수 α₁,...,αₘ 가 존재하여 합 = 0</li>
+          </ul>
+          <div class="info-box amber" style="margin-top:0.5rem;">
+            <span class="label">의미</span>집합 내에 <strong>'중복 정보'</strong>가 존재함
+          </div>
+        </div>
+        <div>
+          <h3>선형 독립 (Linearly Independent)</h3>
+          <ul>
+            <li>α₁x₁+...+αₘxₘ = 0 을 만족하는 유일한 해가 <strong>α₁=α₂=...=αₘ=0</strong> 뿐</li>
+            <li>어떤 벡터도 다른 벡터들의 선형 결합으로 표현 불가</li>
+          </ul>
+          <div class="info-box green" style="margin-top:0.5rem;">
+            <span class="label">의미</span>집합 내 모든 벡터가 서로 <strong>'독립적인 정보'</strong>를 담고 있음
+          </div>
+
+          <!-- SVG: 선형 종속 vs 독립 -->
+          <div class="svg-wrap" style="margin-top:0.75rem;">
+            <svg viewBox="0 0 260 160" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <marker id="ahLI1" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
+                  <path d="M0,0 L0,6 L7,3 z" fill="#60a5fa"/>
+                </marker>
+                <marker id="ahLI2" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
+                  <path d="M0,0 L0,6 L7,3 z" fill="#f59e0b"/>
+                </marker>
+                <marker id="ahLD1" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
+                  <path d="M0,0 L0,6 L7,3 z" fill="#60a5fa"/>
+                </marker>
+                <marker id="ahLD2" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
+                  <path d="M0,0 L0,6 L7,3 z" fill="#f59e0b"/>
+                </marker>
+              </defs>
+              <!-- Left: Independent -->
+              <text x="55" y="15" fill="#94a3b8" font-size="9" text-anchor="middle">선형 독립</text>
+              <circle cx="55" cy="115" r="2.5" fill="#94a3b8"/>
+              <line x1="55" y1="115" x2="100" y2="115" stroke="#60a5fa" stroke-width="2" marker-end="url(#ahLI1)"/>
+              <text x="104" y="119" fill="#60a5fa" font-size="10">v₁</text>
+              <line x1="55" y1="115" x2="55" y2="45" stroke="#f59e0b" stroke-width="2" marker-end="url(#ahLI2)"/>
+              <text x="58" y="42" fill="#f59e0b" font-size="10">v₂</text>
+              <text x="55" y="140" fill="#34d399" font-size="8" text-anchor="middle">✓ 독립 정보</text>
+
+              <!-- divider -->
+              <line x1="130" y1="10" x2="130" y2="155" stroke="#1e3a5f" stroke-width="1" stroke-dasharray="4,3"/>
+
+              <!-- Right: Dependent -->
+              <text x="195" y="15" fill="#94a3b8" font-size="9" text-anchor="middle">선형 종속</text>
+              <circle cx="160" cy="115" r="2.5" fill="#94a3b8"/>
+              <line x1="160" y1="115" x2="210" y2="115" stroke="#60a5fa" stroke-width="2" marker-end="url(#ahLD1)"/>
+              <text x="214" y="119" fill="#60a5fa" font-size="10">v₁</text>
+              <line x1="160" y1="115" x2="227" y2="115" stroke="#f59e0b" stroke-width="2" marker-end="url(#ahLD2)"/>
+              <text x="230" y="100" fill="#f59e0b" font-size="10">v₂=2v₁</text>
+              <text x="195" y="140" fill="#f87171" font-size="8" text-anchor="middle">✗ 중복 정보</text>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 05 기저 집합 -->
+    <div class="subsection" id="s05">
+      <div class="subsection-title">05 &nbsp;기저 집합 (Basis Set)</div>
+
+      <div class="card card-split">
+        <div>
+          <h3>기저 집합 (슬라이드 9~10)</h3>
+          <ul>
+            <li>N×1로 표현되는 <strong>모든 벡터를 나타낼 수 있는</strong> 벡터의 집합</li>
+            <li>임의의 N×1 벡터 x를 기저 {u₁,...,uₙ}로 표현:</li>
+          </ul>
+          <div class="formula-block">
+            x = a₁u₁ + ... + aₙuₙ<br>
+            <span class="comment">// {a₁,...,aₙ}: 기저 {uᵢ}에 따른 x의 성분</span>
+          </div>
+          <div class="info-box">
+            <span class="label">필요충분조건</span>
+            {u₁,...,uₙ}가 <strong>선형 독립</strong>
+          </div>
+
+          <h3 style="margin-top:0.75rem;">표준 기저 예시</h3>
+          <div class="formula-block">
+            <span class="comment">// ℝ²</span><br>
+            e₁=[1,0]<sup>T</sup>, &nbsp;e₂=[0,1]<sup>T</sup><br><br>
+            <span class="comment">// ℝ³</span><br>
+            e₁=[1,0,0]<sup>T</sup>, e₂=[0,1,0]<sup>T</sup>, e₃=[0,0,1]<sup>T</sup>
+          </div>
+        </div>
+        <div>
+          <h3>직교 기저 / 정규직교 기저</h3>
+          <div class="prop-grid">
+            <div class="prop-item">
+              <div class="prop-label">직교 기저 (Orthogonal)</div>
+              <div class="prop-value">uᵢ · uⱼ = 0 (i ≠ j)</div>
+            </div>
+            <div class="prop-item">
+              <div class="prop-label">정규직교 기저 (Orthonormal)</div>
+              <div class="prop-value">uᵢ · uⱼ = δᵢⱼ</div>
+            </div>
+          </div>
+          <div class="info-box green" style="margin-top:0.75rem;">
+            <span class="label">정규직교 기저의 장점</span>
+            투영 계산이 단순해짐: aᵢ = x · uᵢ
+          </div>
+
+          <h3 style="margin-top:0.75rem;">Gram-Schmidt 정규직교화</h3>
+          <ul>
+            <li>임의의 선형 독립 집합 → 정규직교 기저로 변환</li>
+            <li>① u₁ = v₁ / ‖v₁‖</li>
+            <li>② 각 vₖ에서 이전 기저들의 투영 성분 제거 후 정규화</li>
+          </ul>
+
+          <div class="info-box amber" style="margin-top:0.75rem;">
+            <span class="label">기계학습에서의 의미</span>
+            신경망: 각 층이 데이터를 새로운 기저로 표현 (representation learning).<br>
+            좋은 기저(특징)를 찾는 것이 딥러닝의 핵심 목표 중 하나.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 06 Span -->
+    <div class="subsection" id="s06">
+      <div class="subsection-title">06 &nbsp;Span과 차원의 확대 · 축소</div>
+
+      <div class="card card-split">
+        <div>
+          <h3>Span (생성 공간, 슬라이드 11)</h3>
+          <ul>
+            <li>벡터 집합 {v₁,...,vₖ}의 <strong>모든 가능한 선형 결합들의 집합</strong></li>
+          </ul>
+          <div class="formula-block">
+            span({v₁,...,vₖ}) = { α₁v₁ + ... + αₖvₖ | αᵢ ∈ ℝ }<br><br>
+            <span class="comment">// 예1) v₁=[1,0]ᵀ, v₂=[0,1]ᵀ → span = ℝ² (2D 평면 전체)</span><br>
+            <span class="comment">// 예2) v₁=[1,0]ᵀ 만 있으면 span = x축 방향 직선</span>
+          </div>
+
+          <h3 style="margin-top:1rem;">차원의 확대 (Embedding)</h3>
+          <ul>
+            <li>저차원 x ∈ ℝᵈ → 고차원 ℝᴰ의 부분공간을 새로 span</li>
+            <li>→ 선형 분리 가능성 증가</li>
+          </ul>
+          <div class="info-box">
+            <span class="label">예시</span>
+            SVM 커널 트릭: 원래 공간에서 비선형 경계 → 고차원에서 선형 분리<br>
+            신경망 은닉층: 각 층이 데이터를 새로운 벡터 공간으로 선형 변환 후 비선형 활성화
+          </div>
+        </div>
+        <div>
+          <h3>차원의 축소 (Dimensionality Reduction)</h3>
+          <ul>
+            <li>고차원에서 핵심 정보가 span하는 저차원 부분공간으로 투영</li>
+            <li>데이터가 실제로 span하는 공간의 유효 차원(rank)을 찾는 것이 핵심</li>
+            <li>노이즈·중복 특징 제거 → 계산 효율화 및 일반화 성능 향상</li>
+          </ul>
+
+          <!-- SVG: Embedding vs Reduction -->
+          <div class="svg-wrap" style="margin-top:0.75rem;">
+            <svg viewBox="0 0 260 140" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <marker id="ahEmb" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
+                  <path d="M0,0 L0,6 L7,3 z" fill="#8b5cf6"/>
+                </marker>
+                <marker id="ahRed" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
+                  <path d="M0,0 L0,6 L7,3 z" fill="#10b981"/>
+                </marker>
+              </defs>
+              <!-- Embedding -->
+              <rect x="10" y="25" width="55" height="90" rx="4" fill="none" stroke="#1e3a5f" stroke-width="1.5"/>
+              <text x="37" y="15" fill="#94a3b8" font-size="9" text-anchor="middle">저차원 ℝᵈ</text>
+              <circle cx="37" cy="55" r="4" fill="#60a5fa"/>
+              <circle cx="25" cy="75" r="4" fill="#60a5fa"/>
+              <circle cx="48" cy="90" r="4" fill="#60a5fa"/>
+              <!-- arrow embed -->
+              <line x1="70" y1="70" x2="105" y2="70" stroke="#8b5cf6" stroke-width="2" marker-end="url(#ahEmb)"/>
+              <text x="87" y="63" fill="#a78bfa" font-size="8" text-anchor="middle">Embedding</text>
+              <!-- High dim box -->
+              <rect x="110" y="10" width="70" height="120" rx="4" fill="none" stroke="#1e3a5f" stroke-width="1.5"/>
+              <text x="145" y="7" fill="#94a3b8" font-size="9" text-anchor="middle">고차원 ℝᴰ</text>
+              <circle cx="130" cy="35" r="4" fill="#a78bfa"/>
+              <circle cx="155" cy="55" r="4" fill="#a78bfa"/>
+              <circle cx="140" cy="80" r="4" fill="#a78bfa"/>
+              <circle cx="168" cy="100" r="4" fill="#a78bfa"/>
+              <circle cx="125" cy="110" r="4" fill="#a78bfa"/>
+              <!-- arrow reduce -->
+              <line x1="185" y1="70" x2="218" y2="70" stroke="#10b981" stroke-width="2" marker-end="url(#ahRed)"/>
+              <text x="201" y="63" fill="#34d399" font-size="8" text-anchor="middle">Reduction</text>
+              <!-- Low dim output -->
+              <rect x="222" y="45" width="32" height="50" rx="4" fill="none" stroke="#1e3a5f" stroke-width="1.5"/>
+              <text x="238" y="40" fill="#94a3b8" font-size="9" text-anchor="middle">저차원</text>
+              <circle cx="238" cy="62" r="4" fill="#34d399"/>
+              <circle cx="238" cy="82" r="4" fill="#34d399"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 07 투영 -->
+    <div class="subsection" id="s07">
+      <div class="subsection-title">07 &nbsp;벡터의 투영 (Projection)</div>
+
+      <div class="card card-split">
+        <div>
+          <h3>투영의 정의 (슬라이드 12)</h3>
+          <ul>
+            <li>벡터 x를 단위벡터 u 방향으로 투영</li>
+            <li>성분 크기 = <strong>x·u</strong></li>
+            <li>투영 벡터 = <strong>(x·u)·u</strong></li>
+          </ul>
+          <div class="formula-block">
+            <span class="comment">// 부분공간 S = span({u₁,...,uₖ})로의 투영</span><br>
+            proj(x) = UU<sup>T</sup>x &nbsp;&nbsp; <span class="comment">(U=[u₁...uₖ])</span><br><br>
+            <span class="comment">// 잔차 (residual)</span><br>
+            r = x − proj(x) &nbsp;&nbsp; <span class="comment">(⊥ S)</span>
+          </div>
+
+          <h3 style="margin-top:0.75rem;">투영과 선형 종속의 관계</h3>
+          <ul>
+            <li>v가 S에 선형 종속이면: 잔차 = 0 → 새 차원 추가 없음</li>
+            <li>v가 S에 선형 독립이면: 잔차 ≠ 0 → 새로운 방향을 span</li>
+          </ul>
+          <div class="info-box green" style="margin-top:0.5rem;">
+            <span class="label">기저 구성 원리</span>
+            잔차 ≠ 0인 벡터들만 순차 추가 → Gram-Schmidt 정규직교화
+          </div>
+        </div>
+        <div>
+          <h3>선형 변환 = 새로운 벡터 공간으로의 투영</h3>
+          <ul>
+            <li>행렬 W: x → Wx</li>
+            <li>x의 각 성분이 W의 행벡터 방향으로 투영된 크기들의 새 벡터</li>
+            <li>Deep Learning: 각 층의 가중치 행렬 W가 데이터를 새로운 부분공간으로 반복 투영 및 재구성</li>
+          </ul>
+
+          <!-- SVG: Projection visualization -->
+          <div class="svg-wrap" style="margin-top:0.75rem;">
+            <svg viewBox="0 0 260 180" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <marker id="ahX" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
+                  <path d="M0,0 L0,6 L7,3 z" fill="#60a5fa"/>
+                </marker>
+                <marker id="ahPrj" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
+                  <path d="M0,0 L0,6 L7,3 z" fill="#34d399"/>
+                </marker>
+                <marker id="ahRes" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
+                  <path d="M0,0 L0,6 L7,3 z" fill="#f472b6"/>
+                </marker>
+                <marker id="ahU" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
+                  <path d="M0,0 L0,6 L7,3 z" fill="#f59e0b"/>
+                </marker>
+              </defs>
+              <!-- subspace line S -->
+              <line x1="20" y1="160" x2="230" y2="160" stroke="#1e3a5f" stroke-width="2"/>
+              <text x="232" y="163" fill="#64748b" font-size="10">S (부분공간)</text>
+              <!-- unit vector u on S -->
+              <line x1="50" y1="160" x2="130" y2="160" stroke="#f59e0b" stroke-width="2.5" marker-end="url(#ahU)"/>
+              <text x="133" y="157" fill="#f59e0b" font-size="10" font-weight="bold">u</text>
+              <!-- vector x -->
+              <line x1="50" y1="160" x2="130" y2="60" stroke="#60a5fa" stroke-width="2.5" marker-end="url(#ahX)"/>
+              <text x="133" y="58" fill="#60a5fa" font-size="11" font-weight="bold">x</text>
+              <!-- projection -->
+              <line x1="50" y1="160" x2="130" y2="160" stroke="#34d399" stroke-width="3" marker-end="url(#ahPrj)"/>
+              <text x="80" y="178" fill="#34d399" font-size="10">(x·u)u = proj(x)</text>
+              <!-- residual -->
+              <line x1="130" y1="160" x2="130" y2="60" stroke="#f472b6" stroke-width="2" stroke-dasharray="5,3" marker-end="url(#ahRes)"/>
+              <text x="135" y="110" fill="#f472b6" font-size="10">r (잔차)</text>
+              <!-- right angle mark -->
+              <rect x="121" y="151" width="9" height="9" fill="none" stroke="#f472b6" stroke-width="1"/>
+              <!-- origin dot -->
+              <circle cx="50" cy="160" r="3" fill="#94a3b8"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 08 Latent Representation -->
+    <div class="subsection" id="s08">
+      <div class="subsection-title">08 &nbsp;선형 종속과 표현의 축소 / Latent Representation</div>
+
+      <div class="card">
+        <h3>선형 종속과 표현의 축소 (슬라이드 13)</h3>
+        <ul>
+          <li>선형 종속 벡터 집합: rank &lt; 벡터 수 → 실제 span 차원이 더 낮음 → 중복 정보 존재</li>
+          <li>d차원 특징 벡터가 실제로는 k차원 부분공간에 집중 (k &lt;&lt; d) → k개의 기저로 표현 가능</li>
+        </ul>
+        <div class="formula-block">
+          <span class="comment">// 선형 독립인 k개의 기저 {u₁,...,uₖ}로 x 투영</span><br>
+          [x·u₁, ..., x·uₖ] = <span class="highlight">k차원 압축 표현</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Deep Learning의 Latent Representation</h3>
+        <div class="prop-grid">
+          <div class="prop-item">
+            <div class="prop-label">Latent Vector z</div>
+            <div class="prop-value">은닉층 출력 = x의 새로운 벡터 공간 좌표</div>
+          </div>
+          <div class="prop-item">
+            <div class="prop-label">Latent Space</div>
+            <div class="prop-value">z가 span하는 공간; 유사 데이터는 가까이 위치</div>
+          </div>
+          <div class="prop-item">
+            <div class="prop-label">Autoencoder</div>
+            <div class="prop-value">Encoder x→z (차원 축소) / Decoder z→x' (차원 복원)</div>
+          </div>
+          <div class="prop-item">
+            <div class="prop-label">Transformer</div>
+            <div class="prop-value">Attention이 입력 벡터들의 가중 선형 결합 → 새로운 부분공간으로 투영하여 context 표현</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /part1 -->
+
+
+  <!-- ━━━━━━━━━━ PART 2 ━━━━━━━━━━ -->
+  <div class="section" id="part2">
+    <div class="section-heading">
+      <span class="section-num">PART 2</span>
+      <h2>행렬 대수</h2>
+    </div>
+
+    <!-- 09 특수 행렬 -->
+    <div class="subsection" id="s09">
+      <div class="subsection-title">09 &nbsp;특수 행렬 종류</div>
+
+      <div class="card">
+        <h3>전치 행렬 (Transpose, 슬라이드 14)</h3>
+        <ul>
+          <li>행렬 A의 행과 열을 바꾼 행렬: <code>(Aᵀ)ᵢⱼ = Aⱼᵢ</code></li>
+        </ul>
+        <div class="formula-block">
+          (AB)<sup>T</sup> = B<sup>T</sup>A<sup>T</sup> &nbsp;&nbsp;|&nbsp;&nbsp; (A<sup>T</sup>)<sup>T</sup> = A
+        </div>
+      </div>
+
+      <div class="card">
+        <table class="comp-table">
+          <thead>
+            <tr>
+              <th>행렬 종류</th>
+              <th>정의</th>
+              <th>예 / 활용</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>정방 행렬 (Square)</td>
+              <td>행 수 = 열 수 (n×n)</td>
+              <td>역행렬, Rank 정의의 기본</td>
+            </tr>
+            <tr>
+              <td>대각 행렬 (Diagonal)</td>
+              <td>D = diag(d₁, d₂, ..., dₙ)</td>
+              <td>스케일 변환, SVD의 Σ 행렬</td>
+            </tr>
+            <tr>
+              <td>항등 행렬 (Identity)</td>
+              <td>대각=1, 비대각=0: AI = IA = A</td>
+              <td>역행렬 정의 기준</td>
+            </tr>
+            <tr>
+              <td>대칭 행렬 (Symmetric)</td>
+              <td>A = Aᵀ (대각선 기준 대칭)</td>
+              <td>공분산 행렬, 그람 행렬(GᵀG)</td>
+            </tr>
+            <tr>
+              <td>영 행렬 (Zero)</td>
+              <td>모든 성분 = 0</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td>직교 행렬 (Orthogonal)</td>
+              <td>AᵀA = AAᵀ = I (→ A⁻¹ = Aᵀ)</td>
+              <td>회전 행렬, Householder, QR 분해</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <h3>직교 행렬 (Orthogonal Matrix, 슬라이드 15)</h3>
+        <ul>
+          <li>정방행렬 A가 <strong>AᵀA = AAᵀ = I</strong>를 만족할 때</li>
+          <li>→ A⁻¹ = Aᵀ (역행렬 = 전치행렬 → 계산이 간단해짐)</li>
+          <li>열벡터(행벡터)들이 서로 직교하는 단위벡터들로 구성</li>
+          <li><strong>직교 변환은 벡터의 길이와 내적을 보존</strong> (거리·각도 불변)</li>
+        </ul>
+        <div class="info-box green">
+          <span class="label">기계학습 응용</span>
+          QR 분해, SVD: 정규직교 행렬을 이용한 행렬 분해 → 수치 안정성 높음<br>
+          정규직교 가중치 초기화: 그래디언트 소실/폭발 방지에 도움
+        </div>
+      </div>
+    </div>
+
+    <!-- 10 행렬 곱셈 -->
+    <div class="subsection" id="s10">
+      <div class="subsection-title">10 &nbsp;행렬의 곱셈</div>
+
+      <div class="card card-split">
+        <div>
+          <h3>행렬 곱셈 규칙 (슬라이드 16)</h3>
+          <ul>
+            <li>A (m×k), B (k×n) 일 때 C = AB 는 <strong>m×n 행렬</strong></li>
+            <li>Cᵢⱼ = A의 i번째 행벡터와 B의 j번째 열벡터의 내적</li>
+          </ul>
+          <div class="formula-block">
+            C<sub>ij</sub> = Σ<sub>l=1..d</sub> A<sub>il</sub>B<sub>lj</sub><br><br>
+            <span class="comment">// 결합법칙 ✓</span><br>
+            (AB)C = A(BC)<br><br>
+            <span class="comment">// 교환법칙 ✗ (일반적으로)</span><br>
+            AB ≠ BA<br><br>
+            <span class="comment">// 전치</span><br>
+            (AB)<sup>T</sup> = B<sup>T</sup>A<sup>T</sup>
+          </div>
+        </div>
+        <div>
+          <!-- SVG: Matrix multiplication -->
+          <div class="svg-wrap">
+            <svg viewBox="0 0 260 180" xmlns="http://www.w3.org/2000/svg">
+              <!-- A matrix -->
+              <rect x="10" y="30" width="70" height="120" rx="4" fill="#111827" stroke="#1e3a5f" stroke-width="1.5"/>
+              <text x="45" y="18" fill="#60a5fa" font-size="10" text-anchor="middle" font-weight="bold">A (m×k)</text>
+              <!-- rows of A highlighted -->
+              <rect x="12" y="55" width="66" height="22" rx="2" fill="rgba(59,130,246,0.2)"/>
+              <text x="45" y="70" fill="#60a5fa" font-size="9" text-anchor="middle">행 i →</text>
+              <text x="45" y="45" fill="#475569" font-size="8" text-anchor="middle">⋮</text>
+              <text x="45" y="100" fill="#475569" font-size="8" text-anchor="middle">⋮</text>
+              <text x="45" y="130" fill="#475569" font-size="8" text-anchor="middle">⋮</text>
+
+              <!-- × sign -->
+              <text x="87" y="95" fill="#94a3b8" font-size="18" font-weight="bold">×</text>
+
+              <!-- B matrix -->
+              <rect x="100" y="10" width="110" height="70" rx="4" fill="#111827" stroke="#1e3a5f" stroke-width="1.5"/>
+              <text x="155" y="8" fill="#f59e0b" font-size="10" text-anchor="middle" font-weight="bold">B (k×n)</text>
+              <!-- col j of B highlighted -->
+              <rect x="156" y="12" width="22" height="66" rx="2" fill="rgba(245,158,11,0.2)"/>
+              <text x="167" y="45" fill="#f59e0b" font-size="9" text-anchor="middle">↓</text>
+              <text x="167" y="56" fill="#f59e0b" font-size="9" text-anchor="middle">열 j</text>
+              <text x="125" y="50" fill="#475569" font-size="8" text-anchor="middle">...</text>
+              <text x="200" y="50" fill="#475569" font-size="8" text-anchor="middle">...</text>
+
+              <!-- = sign -->
+              <text x="87" y="135" fill="#94a3b8" font-size="18" font-weight="bold">=</text>
+
+              <!-- C matrix -->
+              <rect x="100" y="100" width="110" height="70" rx="4" fill="#111827" stroke="#1e3a5f" stroke-width="1.5"/>
+              <text x="155" y="98" fill="#34d399" font-size="10" text-anchor="middle" font-weight="bold">C (m×n)</text>
+              <rect x="156" y="110" width="22" height="22" rx="2" fill="rgba(16,185,129,0.25)"/>
+              <text x="167" y="125" fill="#34d399" font-size="9" text-anchor="middle">Cᵢⱼ</text>
+              <text x="155" y="155" fill="#475569" font-size="8" text-anchor="middle">내적 결과</text>
+
+              <!-- arrow -->
+              <path d="M 45,79 Q 45,88 100,115" stroke="#60a5fa" stroke-width="1" fill="none" stroke-dasharray="3,2"/>
+              <path d="M 167,82 Q 167,90 167,108" stroke="#f59e0b" stroke-width="1" fill="none" stroke-dasharray="3,2"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 11 Rank -->
+    <div class="subsection" id="s11">
+      <div class="subsection-title">11 &nbsp;행렬의 계수 (Rank)</div>
+
+      <div class="card card-split">
+        <div>
+          <h3>Rank의 정의 (슬라이드 17)</h3>
+          <ul>
+            <li>행렬 A에서 <strong>선형 독립인 열벡터(또는 행벡터)의 최대 수</strong></li>
+            <li>r(A) = rank(A) ≤ min(m, n) &nbsp;(m×n 행렬)</li>
+          </ul>
+          <div class="formula-block">
+            <span class="comment">// 예) 단위행렬 I₃의 세 열벡터 모두 선형 독립</span><br>
+            rank(I₃) = 3
+          </div>
+
+          <h3 style="margin-top:0.75rem;">비특이 vs 특이 행렬</h3>
+          <div class="prop-grid">
+            <div class="prop-item">
+              <div class="prop-label">비특이 (Non-singular) ✓</div>
+              <div class="prop-value">rank(Aₙₓₙ) = n → 역행렬 존재</div>
+            </div>
+            <div class="prop-item">
+              <div class="prop-label">특이 (Singular) ✗</div>
+              <div class="prop-value">rank(Aₙₓₙ) &lt; n → 역행렬 없음</div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <h3>기계학습에서의 의미</h3>
+          <ul>
+            <li>데이터 행렬 X의 rank = 데이터가 실제로 span하는 공간의 차원</li>
+            <li>rank가 낮으면 선형 종속 특징이 많아 중복 정보 존재 → 차원 축소 여지</li>
+            <li>가중치 행렬의 rank = 신경망 층이 실제로 활용하는 독립 방향의 수</li>
+          </ul>
+
+          <!-- SVG: Rank visualization -->
+          <div class="svg-wrap" style="margin-top:0.75rem;">
+            <svg viewBox="0 0 260 140" xmlns="http://www.w3.org/2000/svg">
+              <!-- Full rank -->
+              <text x="65" y="12" fill="#94a3b8" font-size="9" text-anchor="middle">Full Rank (rank=2)</text>
+              <defs>
+                <marker id="ahR1" markerWidth="6" markerHeight="6" refX="4" refY="3" orient="auto">
+                  <path d="M0,0 L0,6 L6,3 z" fill="#60a5fa"/>
+                </marker>
+                <marker id="ahR2" markerWidth="6" markerHeight="6" refX="4" refY="3" orient="auto">
+                  <path d="M0,0 L0,6 L6,3 z" fill="#f59e0b"/>
+                </marker>
+                <marker id="ahRD1" markerWidth="6" markerHeight="6" refX="4" refY="3" orient="auto">
+                  <path d="M0,0 L0,6 L6,3 z" fill="#60a5fa"/>
+                </marker>
+                <marker id="ahRD2" markerWidth="6" markerHeight="6" refX="4" refY="3" orient="auto">
+                  <path d="M0,0 L0,6 L6,3 z" fill="#f87171"/>
+                </marker>
+              </defs>
+              <circle cx="45" cy="90" r="2.5" fill="#94a3b8"/>
+              <line x1="45" y1="90" x2="100" y2="90" stroke="#60a5fa" stroke-width="2" marker-end="url(#ahR1)"/>
+              <line x1="45" y1="90" x2="45" y2="25" stroke="#f59e0b" stroke-width="2" marker-end="url(#ahR2)"/>
+              <text x="103" y="94" fill="#60a5fa" font-size="9">c₁</text>
+              <text x="47" y="22" fill="#f59e0b" font-size="9">c₂</text>
+              <text x="65" y="128" fill="#34d399" font-size="8" text-anchor="middle">✓ span = ℝ²</text>
+
+              <!-- divider -->
+              <line x1="130" y1="5" x2="130" y2="135" stroke="#1e3a5f" stroke-dasharray="4,3" stroke-width="1"/>
+
+              <!-- Rank deficient -->
+              <text x="195" y="12" fill="#94a3b8" font-size="9" text-anchor="middle">Rank Deficient (rank=1)</text>
+              <circle cx="160" cy="90" r="2.5" fill="#94a3b8"/>
+              <line x1="160" y1="90" x2="220" y2="90" stroke="#60a5fa" stroke-width="2" marker-end="url(#ahRD1)"/>
+              <line x1="160" y1="90" x2="220" y2="90" stroke="#f87171" stroke-width="2" stroke-dasharray="5,3" marker-end="url(#ahRD2)"/>
+              <text x="223" y="94" fill="#60a5fa" font-size="9">c₁</text>
+              <text x="223" y="80" fill="#f87171" font-size="9">c₂=2c₁</text>
+              <text x="195" y="128" fill="#f87171" font-size="8" text-anchor="middle">✗ span = 1D 직선</text>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 12 역행렬 -->
+    <div class="subsection" id="s12">
+      <div class="subsection-title">12 &nbsp;역행렬 (Inverse Matrix)</div>
+
+      <div class="card card-split">
+        <div>
+          <h3>역행렬의 정의 (슬라이드 18)</h3>
+          <ul>
+            <li>정방행렬 A에 대해 <strong>AX = XA = I</strong>를 만족하는 X</li>
+            <li>A⁻¹ 로 표기; 역행렬이 존재하려면 <strong>det(A) ≠ 0</strong> (비특이 행렬)</li>
+          </ul>
+          <div class="formula-block">
+            (A⁻¹)⁻¹ = A<br>
+            (AB)⁻¹ = B⁻¹A⁻¹<br>
+            (A<sup>T</sup>)⁻¹ = (A⁻¹)<sup>T</sup><br>
+            (αA)⁻¹ = (1/α)A⁻¹ &nbsp;<span class="comment">(α ≠ 0)</span>
+          </div>
+        </div>
+        <div>
+          <h3>기계학습에서의 활용</h3>
+          <ul>
+            <li><strong>선형 회귀 정규방정식:</strong></li>
+          </ul>
+          <div class="formula-block">
+            θ = (X<sup>T</sup>X)⁻¹X<sup>T</sup>y &nbsp;<span class="comment">(최소제곱해)</span><br>
+            <span class="comment">// XᵀX가 특이행렬이면 → pseudo-inverse 사용</span>
+          </div>
+          <div class="info-box green">
+            <span class="label">직교 행렬의 이점</span>
+            A⁻¹ = Aᵀ → 역행렬 계산 불필요 (계산 효율 매우 높음)
+          </div>
+          <div class="info-box amber" style="margin-top:0.5rem;">
+            <span class="label">의사역행렬 (Pseudo-inverse)</span>
+            XᵀX가 rank 부족으로 역행렬이 존재하지 않을 때 대안으로 사용
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 13 선형 변환 -->
+    <div class="subsection" id="s13">
+      <div class="subsection-title">13 &nbsp;선형 변환 (Linear Transformation)</div>
+
+      <div class="card card-split">
+        <div>
+          <h3>선형 변환의 정의 (슬라이드 19~20)</h3>
+          <ul>
+            <li>벡터 공간 Xᴺ 에서 벡터 공간 Yᴹ 으로 매핑: <strong>y = Wx</strong> (W: M×N 행렬)</li>
+            <li>M &lt; N: 차원 축소 (압축 표현)</li>
+            <li>M &gt; N: 차원 확대 (임베딩)</li>
+          </ul>
+
+          <div class="formula-block">
+            <span class="comment">// 정규직교 변환: Aᵀ = A⁻¹이면</span><br>
+            ‖Ax‖ = ‖x‖ &nbsp;&nbsp;<span class="comment">(크기 보존)</span><br>
+            (Ax)·(Ay) = x·y &nbsp;<span class="comment">(내적/각도 보존)</span><br>
+            <span class="comment">// → '회전 변환'에 해당</span>
+          </div>
+        </div>
+        <div>
+          <!-- SVG: Linear Transformation Flow (Deep Learning) -->
+          <div class="svg-wrap">
+            <svg viewBox="0 0 260 180" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <marker id="ahLT" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
+                  <path d="M0,0 L0,6 L7,3 z" fill="#60a5fa"/>
+                </marker>
+              </defs>
+              <!-- Input layer -->
+              <rect x="5" y="30" width="40" height="120" rx="4" fill="#111827" stroke="#1e3a5f" stroke-width="1.5"/>
+              <text x="25" y="22" fill="#94a3b8" font-size="8" text-anchor="middle">입력 x</text>
+              <circle cx="25" cy="55" r="5" fill="#60a5fa"/>
+              <circle cx="25" cy="75" r="5" fill="#60a5fa"/>
+              <circle cx="25" cy="95" r="5" fill="#60a5fa"/>
+              <circle cx="25" cy="115" r="5" fill="#60a5fa"/>
+              <circle cx="25" cy="135" r="5" fill="#60a5fa"/>
+
+              <!-- W1 arrow -->
+              <line x1="47" y1="90" x2="72" y2="90" stroke="#60a5fa" stroke-width="1.5" marker-end="url(#ahLT)"/>
+              <text x="59" y="84" fill="#94a3b8" font-size="8" text-anchor="middle">W₁</text>
+
+              <!-- Hidden 1 -->
+              <rect x="75" y="45" width="35" height="90" rx="4" fill="#111827" stroke="#1e3a5f" stroke-width="1.5"/>
+              <text x="92" y="38" fill="#94a3b8" font-size="8" text-anchor="middle">h₁</text>
+              <circle cx="92" cy="65" r="5" fill="#8b5cf6"/>
+              <circle cx="92" cy="85" r="5" fill="#8b5cf6"/>
+              <circle cx="92" cy="105" r="5" fill="#8b5cf6"/>
+              <circle cx="92" cy="125" r="5" fill="#8b5cf6"/>
+              <text x="92" y="148" fill="#64748b" font-size="7" text-anchor="middle">σ(W₁x+b₁)</text>
+
+              <!-- W2 arrow -->
+              <line x1="113" y1="90" x2="138" y2="90" stroke="#60a5fa" stroke-width="1.5" marker-end="url(#ahLT)"/>
+              <text x="125" y="84" fill="#94a3b8" font-size="8" text-anchor="middle">W₂</text>
+
+              <!-- Hidden 2 -->
+              <rect x="141" y="55" width="35" height="70" rx="4" fill="#111827" stroke="#1e3a5f" stroke-width="1.5"/>
+              <text x="158" y="48" fill="#94a3b8" font-size="8" text-anchor="middle">h₂</text>
+              <circle cx="158" cy="72" r="5" fill="#10b981"/>
+              <circle cx="158" cy="92" r="5" fill="#10b981"/>
+              <circle cx="158" cy="112" r="5" fill="#10b981"/>
+              <text x="158" y="140" fill="#64748b" font-size="7" text-anchor="middle">σ(W₂h₁+b₂)</text>
+
+              <!-- W3 arrow -->
+              <line x1="179" y1="90" x2="204" y2="90" stroke="#60a5fa" stroke-width="1.5" marker-end="url(#ahLT)"/>
+              <text x="191" y="84" fill="#94a3b8" font-size="8" text-anchor="middle">W₃</text>
+
+              <!-- Output -->
+              <rect x="207" y="68" width="35" height="44" rx="4" fill="#111827" stroke="#1e3a5f" stroke-width="1.5"/>
+              <text x="224" y="62" fill="#94a3b8" font-size="8" text-anchor="middle">출력</text>
+              <circle cx="224" cy="82" r="5" fill="#f59e0b"/>
+              <circle cx="224" cy="100" r="5" fill="#f59e0b"/>
+
+              <!-- Labels -->
+              <text x="130" y="175" fill="#64748b" font-size="8" text-anchor="middle">각 층: y = σ(Wx + b) — W가 선형 변환, σ가 비선형 활성화</text>
+            </svg>
+          </div>
+
+          <div class="info-box" style="margin-top:0.5rem;">
+            <span class="label">정규직교 변환의 기계학습 응용</span>
+            QR 분해, SVD — 수치 안정성 확보<br>
+            정규직교 가중치 초기화 — 그래디언트 소실/폭발 방지
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 14 핵심 개념 정리 -->
+    <div class="subsection" id="s14">
+      <div class="subsection-title">14 &nbsp;핵심 개념 정리 (슬라이드 21)</div>
+
+      <div class="card">
+        <h3>전체 핵심 개념 — 딥러닝 연결</h3>
+        <table class="summary-table">
+          <thead>
+            <tr>
+              <th>개념</th>
+              <th>핵심 내용</th>
+              <th>딥러닝 연결</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Span</td>
+              <td>벡터들로 도달 가능한 공간 전체</td>
+              <td>Latent Space의 구조 정의</td>
+            </tr>
+            <tr>
+              <td>선형 독립</td>
+              <td>어떤 벡터도 나머지의 선형 결합으로 표현 불가</td>
+              <td>중복 없는 정보 방향</td>
+            </tr>
+            <tr>
+              <td>투영</td>
+              <td>부분공간으로의 최근접 표현 (UUᵀx)</td>
+              <td>각 층의 선형 변환 (Wx)</td>
+            </tr>
+            <tr>
+              <td>Rank</td>
+              <td>선형 독립 벡터의 최대 수 = span 차원</td>
+              <td>가중치 행렬의 유효 차원</td>
+            </tr>
+            <tr>
+              <td>차원 확대/축소</td>
+              <td>Embedding / Dimensionality Reduction</td>
+              <td>Encoder-Decoder, Attention</td>
+            </tr>
+            <tr>
+              <td>Latent Vector z</td>
+              <td>x의 새로운 벡터 공간 좌표 (선형 종속 제거)</td>
+              <td>Autoencoder, Transformer</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Final summary SVG: concept map -->
+      <div class="card">
+        <h3>개념 관계도</h3>
+        <div class="svg-wrap">
+          <svg viewBox="0 0 700 300" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <marker id="ahMap" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
+                <path d="M0,0 L0,6 L7,3 z" fill="#60a5fa"/>
+              </marker>
+              <marker id="ahMapG" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
+                <path d="M0,0 L0,6 L7,3 z" fill="#34d399"/>
+              </marker>
+              <marker id="ahMapA" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
+                <path d="M0,0 L0,6 L7,3 z" fill="#f59e0b"/>
+              </marker>
+            </defs>
+
+            <!-- 벡터 -->
+            <rect x="10" y="120" width="90" height="40" rx="5" fill="#1a2235" stroke="#3b82f6" stroke-width="1.5"/>
+            <text x="55" y="144" fill="#60a5fa" font-size="12" font-weight="bold" text-anchor="middle">벡터</text>
+
+            <!-- 내적/외적 -->
+            <rect x="140" y="50" width="100" height="40" rx="5" fill="#1a2235" stroke="#8b5cf6" stroke-width="1.5"/>
+            <text x="190" y="75" fill="#a78bfa" font-size="11" text-anchor="middle">내적 / 외적</text>
+
+            <!-- 선형 결합 -->
+            <rect x="140" y="120" width="100" height="40" rx="5" fill="#1a2235" stroke="#3b82f6" stroke-width="1.5"/>
+            <text x="190" y="145" fill="#60a5fa" font-size="11" text-anchor="middle">선형 결합</text>
+
+            <!-- 선형 종속/독립 -->
+            <rect x="140" y="190" width="100" height="40" rx="5" fill="#1a2235" stroke="#f59e0b" stroke-width="1.5"/>
+            <text x="190" y="208" fill="#fbbf24" font-size="10" text-anchor="middle">선형 종속</text>
+            <text x="190" y="223" fill="#fbbf24" font-size="10" text-anchor="middle">/ 독립</text>
+
+            <!-- arrows from 벡터 -->
+            <line x1="100" y1="130" x2="138" y2="80" stroke="#60a5fa" stroke-width="1.5" marker-end="url(#ahMap)"/>
+            <line x1="100" y1="140" x2="138" y2="140" stroke="#60a5fa" stroke-width="1.5" marker-end="url(#ahMap)"/>
+            <line x1="100" y1="152" x2="138" y2="202" stroke="#60a5fa" stroke-width="1.5" marker-end="url(#ahMap)"/>
+
+            <!-- 기저(Basis) -->
+            <rect x="280" y="120" width="100" height="40" rx="5" fill="#1a2235" stroke="#10b981" stroke-width="1.5"/>
+            <text x="330" y="145" fill="#34d399" font-size="11" text-anchor="middle">기저 (Basis)</text>
+
+            <!-- Span -->
+            <rect x="280" y="190" width="100" height="40" rx="5" fill="#1a2235" stroke="#f59e0b" stroke-width="1.5"/>
+            <text x="330" y="215" fill="#fbbf24" font-size="11" text-anchor="middle">Span</text>
+
+            <!-- 투영 -->
+            <rect x="280" y="50" width="100" height="40" rx="5" fill="#1a2235" stroke="#8b5cf6" stroke-width="1.5"/>
+            <text x="330" y="75" fill="#a78bfa" font-size="11" text-anchor="middle">투영 (Projection)</text>
+
+            <!-- arrows to basis, span, projection -->
+            <line x1="240" y1="210" x2="278" y2="210" stroke="#f59e0b" stroke-width="1.5" marker-end="url(#ahMapA)"/>
+            <line x1="240" y1="140" x2="278" y2="140" stroke="#60a5fa" stroke-width="1.5" marker-end="url(#ahMap)"/>
+            <line x1="240" y1="70" x2="278" y2="70" stroke="#8b5cf6" stroke-width="1.5" marker-end="url(#ahMap)"/>
+
+            <!-- 행렬 -->
+            <rect x="420" y="120" width="100" height="40" rx="5" fill="#1a2235" stroke="#3b82f6" stroke-width="1.5"/>
+            <text x="470" y="145" fill="#60a5fa" font-size="11" text-anchor="middle">행렬 / Rank</text>
+
+            <!-- arrows to matrix -->
+            <line x1="380" y1="140" x2="418" y2="140" stroke="#34d399" stroke-width="1.5" marker-end="url(#ahMapG)"/>
+            <line x1="380" y1="210" x2="470" y2="162" stroke="#f59e0b" stroke-width="1.5" marker-end="url(#ahMapA)"/>
+            <line x1="380" y1="70" x2="470" y2="118" stroke="#8b5cf6" stroke-width="1.5" marker-end="url(#ahMap)"/>
+
+            <!-- 선형 변환 -->
+            <rect x="560" y="80" width="120" height="40" rx="5" fill="#1a2235" stroke="#10b981" stroke-width="1.5"/>
+            <text x="620" y="105" fill="#34d399" font-size="11" text-anchor="middle">선형 변환 (Wx)</text>
+
+            <!-- Latent Representation -->
+            <rect x="560" y="160" width="120" height="40" rx="5" fill="#1a2235" stroke="#f59e0b" stroke-width="1.5"/>
+            <text x="620" y="178" fill="#fbbf24" font-size="10" text-anchor="middle">Latent</text>
+            <text x="620" y="193" fill="#fbbf24" font-size="10" text-anchor="middle">Representation</text>
+
+            <!-- arrows to LT, Latent -->
+            <line x1="520" y1="130" x2="558" y2="100" stroke="#60a5fa" stroke-width="1.5" marker-end="url(#ahMap)"/>
+            <line x1="520" y1="150" x2="558" y2="170" stroke="#60a5fa" stroke-width="1.5" marker-end="url(#ahMap)"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /part2 -->
+
+</main><!-- /main -->
+
+<script>
+  // Smooth scroll
+  function scrollTo(id) {
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
+  }
+
+  // Active TOC highlighting
+  const sections = document.querySelectorAll('.subsection[id]');
+  const links = document.querySelectorAll('.toc-link');
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const activeLink = document.querySelector(`.toc-link[onclick="scrollTo('${entry.target.id}')"]`);
+        if (activeLink) activeLink.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px', threshold: 0 });
+
+  sections.forEach(s => observer.observe(s));
+</script>
+
+</body>
+</html>
