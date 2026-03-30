@@ -1,0 +1,1655 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>기계학습 5. 선형 회귀와 이진 분류</title>
+<style>
+:root {
+  --bg: #0a0e1a;
+  --surface: #111827;
+  --surface2: #1a2235;
+  --surface3: #1e2d42;
+  --border: #2a3a55;
+  --accent: #3b82f6;
+  --accent2: #60a5fa;
+  --accent3: #93c5fd;
+  --green: #22c55e;
+  --green2: #4ade80;
+  --yellow: #f59e0b;
+  --yellow2: #fbbf24;
+  --red: #ef4444;
+  --red2: #f87171;
+  --purple: #a855f7;
+  --purple2: #c084fc;
+  --cyan: #06b6d4;
+  --text: #e2e8f0;
+  --text-sub: #94a3b8;
+  --text-dim: #64748b;
+  --code-bg: #0d1117;
+  --shadow: 0 4px 24px rgba(0,0,0,0.5);
+  --radius: 12px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', sans-serif;
+  line-height: 1.7;
+  display: flex;
+  min-height: 100vh;
+}
+
+/* ─── TOC ─── */
+#toc {
+  width: 260px;
+  min-width: 260px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  padding: 28px 0 28px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  z-index: 100;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+#toc::-webkit-scrollbar { width: 4px; }
+#toc::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+.toc-title {
+  font-family: 'Impact', 'Arial Narrow', 'Arial Black', sans-serif;
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  padding: 0 20px 16px 20px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 8px;
+}
+
+.toc-course {
+  font-size: 12px;
+  color: var(--accent2);
+  font-weight: 600;
+  padding: 0 20px 16px 20px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+.toc-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 9px 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-left: 3px solid transparent;
+  text-decoration: none;
+  color: var(--text-sub);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.toc-item:hover { background: var(--surface2); color: var(--text); border-left-color: var(--border); }
+.toc-item.active { background: rgba(59,130,246,0.12); color: var(--accent2); border-left-color: var(--accent); font-weight: 600; }
+
+.toc-num {
+  font-family: 'Menlo', 'Courier New', monospace;
+  font-size: 10px;
+  color: var(--text-dim);
+  background: var(--surface2);
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-top: 1px;
+  flex-shrink: 0;
+}
+
+.toc-item.active .toc-num { background: rgba(59,130,246,0.2); color: var(--accent2); }
+
+/* ─── Main ─── */
+#main {
+  flex: 1;
+  overflow-y: auto;
+  padding: 40px 48px 80px 48px;
+  max-width: 1100px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+#main::-webkit-scrollbar { width: 6px; }
+#main::-webkit-scrollbar-thumb { background: var(--border); border-radius: 6px; }
+
+/* ─── Hero ─── */
+.hero {
+  background: linear-gradient(135deg, #0f1e35 0%, #0a1628 40%, #0d1a2e 100%);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 48px 52px;
+  margin-bottom: 48px;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -60px; right: -60px;
+  width: 300px; height: 300px;
+  background: radial-gradient(circle, rgba(59,130,246,0.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.hero-label {
+  font-family: 'Menlo', 'Courier New', monospace;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 12px;
+}
+
+.hero h1 {
+  font-family: 'Impact', 'Arial Narrow', 'Arial Black', sans-serif;
+  font-size: 42px;
+  line-height: 1.15;
+  color: #fff;
+  margin-bottom: 16px;
+  letter-spacing: 0.5px;
+}
+
+.hero h1 span { color: var(--accent2); }
+
+.hero-sub {
+  color: var(--text-sub);
+  font-size: 15px;
+}
+
+.hero-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.hero-tag {
+  background: rgba(59,130,246,0.1);
+  border: 1px solid rgba(59,130,246,0.25);
+  color: var(--accent3);
+  font-size: 12px;
+  padding: 4px 12px;
+  border-radius: 100px;
+  font-family: 'Menlo', 'Courier New', monospace;
+}
+
+/* ─── Section ─── */
+.section {
+  margin-bottom: 56px;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 28px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.section-num {
+  font-family: 'Impact', 'Arial Narrow', 'Arial Black', sans-serif;
+  font-size: 13px;
+  letter-spacing: 2px;
+  color: var(--accent);
+  background: rgba(59,130,246,0.1);
+  border: 1px solid rgba(59,130,246,0.25);
+  padding: 4px 12px;
+  border-radius: 6px;
+}
+
+.section-title {
+  font-family: 'Impact', 'Arial Narrow', 'Arial Black', sans-serif;
+  font-size: 28px;
+  color: #fff;
+  letter-spacing: 0.3px;
+}
+
+/* ─── Cards ─── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px 28px;
+  margin-bottom: 20px;
+}
+
+.card-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent2);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-title::before {
+  content: '';
+  width: 3px;
+  height: 16px;
+  background: var(--accent);
+  border-radius: 2px;
+  display: inline-block;
+}
+
+.subsection-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+  margin: 28px 0 16px 0;
+  padding-left: 12px;
+  border-left: 3px solid var(--accent);
+}
+
+.formula-box {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: 8px;
+  padding: 16px 20px;
+  font-family: 'Menlo', 'Courier New', monospace;
+  font-size: 14px;
+  color: var(--yellow2);
+  line-height: 2;
+  margin: 12px 0;
+  overflow-x: auto;
+}
+
+.formula-box .comment {
+  color: var(--text-dim);
+  font-size: 12px;
+}
+
+/* ─── Grid Cards ─── */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+
+.info-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px;
+}
+
+.info-card.green { border-top: 3px solid var(--green); }
+.info-card.yellow { border-top: 3px solid var(--yellow); }
+.info-card.red { border-top: 3px solid var(--red); }
+.info-card.blue { border-top: 3px solid var(--accent); }
+.info-card.purple { border-top: 3px solid var(--purple); }
+.info-card.cyan { border-top: 3px solid var(--cyan); }
+
+.info-card h4 {
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: var(--text);
+}
+
+.info-card.green h4 { color: var(--green2); }
+.info-card.yellow h4 { color: var(--yellow2); }
+.info-card.red h4 { color: var(--red2); }
+.info-card.blue h4 { color: var(--accent2); }
+.info-card.purple h4 { color: var(--purple2); }
+.info-card.cyan h4 { color: var(--cyan); }
+
+.info-card p, .info-card li {
+  font-size: 13.5px;
+  color: var(--text-sub);
+  line-height: 1.65;
+}
+
+.info-card ul { padding-left: 16px; }
+
+/* ─── Steps ─── */
+.steps { display: flex; flex-direction: column; gap: 12px; }
+
+.step {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 20px;
+}
+
+.step-num {
+  background: var(--accent);
+  color: #fff;
+  font-family: 'Menlo', 'Courier New', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 4px;
+  white-space: nowrap;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.step-content { font-size: 14px; color: var(--text-sub); line-height: 1.6; }
+.step-content code {
+  font-family: 'Menlo', 'Courier New', monospace;
+  font-size: 13px;
+  color: var(--yellow2);
+  background: var(--code-bg);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+/* ─── Comparison Table ─── */
+.cmp-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.cmp-table th {
+  background: var(--surface3);
+  color: var(--accent2);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 14px 18px;
+  text-align: left;
+  border-bottom: 2px solid var(--accent);
+}
+
+.cmp-table th:first-child { color: var(--text-dim); border-bottom-color: var(--border); }
+
+.cmp-table td {
+  padding: 13px 18px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-sub);
+  vertical-align: top;
+}
+
+.cmp-table td:first-child {
+  color: var(--text);
+  font-weight: 600;
+  font-size: 13px;
+  background: rgba(255,255,255,0.02);
+  white-space: nowrap;
+}
+
+.cmp-table tr:hover td { background: rgba(59,130,246,0.04); }
+
+.badge {
+  display: inline-block;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-family: 'Menlo', 'Courier New', monospace;
+}
+
+.badge-green { background: rgba(34,197,94,0.15); color: var(--green2); }
+.badge-red { background: rgba(239,68,68,0.15); color: var(--red2); }
+.badge-blue { background: rgba(59,130,246,0.15); color: var(--accent2); }
+.badge-yellow { background: rgba(245,158,11,0.15); color: var(--yellow2); }
+
+/* ─── Alert / Note boxes ─── */
+.alert {
+  border-radius: 8px;
+  padding: 14px 18px;
+  font-size: 13.5px;
+  line-height: 1.65;
+  margin: 14px 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.alert-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+.alert-content { color: var(--text-sub); }
+.alert-content strong { color: var(--text); }
+
+.alert-blue { background: rgba(59,130,246,0.08); border: 1px solid rgba(59,130,246,0.2); }
+.alert-green { background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.2); }
+.alert-yellow { background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.2); }
+.alert-red { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); }
+
+/* ─── SVG Graph containers ─── */
+.graph-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px 28px;
+  margin-bottom: 20px;
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 28px;
+  align-items: center;
+}
+
+.graph-desc h4 {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 10px;
+}
+
+.graph-desc p { font-size: 13.5px; color: var(--text-sub); line-height: 1.65; margin-bottom: 8px; }
+.graph-area svg { width: 100%; display: block; }
+
+/* ─── Code block ─── */
+pre {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px 18px;
+  font-family: 'Menlo', 'Courier New', monospace;
+  font-size: 12.5px;
+  line-height: 1.75;
+  overflow-x: auto;
+  color: #e2e8f0;
+}
+
+.kw { color: #c792ea; }
+.fn { color: #82aaff; }
+.str { color: #c3e88d; }
+.num { color: #f78c6c; }
+.cm { color: var(--text-dim); }
+.op { color: var(--yellow2); }
+
+/* ─── Tags / Pills ─── */
+.pill-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.pill {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text-sub);
+  font-size: 12px;
+  padding: 4px 12px;
+  border-radius: 100px;
+}
+
+/* ─── Summary section ─── */
+.summary-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+
+.summary-card {
+  background: linear-gradient(135deg, var(--surface2) 0%, var(--surface3) 100%);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 22px;
+  position: relative;
+  overflow: hidden;
+}
+
+.summary-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+}
+
+.summary-card.s-blue::before { background: linear-gradient(90deg, var(--accent), var(--accent2)); }
+.summary-card.s-green::before { background: linear-gradient(90deg, var(--green), var(--green2)); }
+.summary-card.s-yellow::before { background: linear-gradient(90deg, var(--yellow), var(--yellow2)); }
+.summary-card.s-purple::before { background: linear-gradient(90deg, var(--purple), var(--purple2)); }
+
+.summary-card h4 { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 10px; }
+.summary-card ul { padding-left: 18px; }
+.summary-card li { font-size: 13px; color: var(--text-sub); margin-bottom: 5px; line-height: 1.5; }
+
+/* ─── Scrollbar ─── */
+html { scroll-behavior: smooth; }
+
+/* ─── Responsive ─── */
+@media (max-width: 900px) {
+  #toc { display: none; }
+  #main { padding: 24px 20px 60px; }
+  .grid-2, .grid-3 { grid-template-columns: 1fr; }
+  .graph-card { grid-template-columns: 1fr; }
+  .summary-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════ TOC ════════════════════ -->
+<nav id="toc">
+  <div class="toc-title">목차</div>
+  <div class="toc-course">기계학습<br>5. 선형 회귀와 이진 분류</div>
+
+  <a class="toc-item active" href="#sec01" onclick="setActive(this)">
+    <span class="toc-num">01</span>선형 회귀 (Linear Regression)
+  </a>
+  <a class="toc-item" href="#sec01a" onclick="setActive(this)">
+    <span class="toc-num">01a</span>MSE 비용 함수
+  </a>
+  <a class="toc-item" href="#sec01b" onclick="setActive(this)">
+    <span class="toc-num">01b</span>정규방정식
+  </a>
+  <a class="toc-item" href="#sec01c" onclick="setActive(this)">
+    <span class="toc-num">01c</span>경사하강법
+  </a>
+  <a class="toc-item" href="#sec01d" onclick="setActive(this)">
+    <span class="toc-num">01d</span>다항 회귀 & 과적합
+  </a>
+  <a class="toc-item" href="#sec02" onclick="setActive(this)">
+    <span class="toc-num">02</span>이진 분류 & 시그모이드
+  </a>
+  <a class="toc-item" href="#sec02a" onclick="setActive(this)">
+    <span class="toc-num">02a</span>Sigmoid 함수
+  </a>
+  <a class="toc-item" href="#sec03" onclick="setActive(this)">
+    <span class="toc-num">03</span>Cross-Entropy & 경사하강법
+  </a>
+  <a class="toc-item" href="#sec03a" onclick="setActive(this)">
+    <span class="toc-num">03a</span>결정 경계
+  </a>
+  <a class="toc-item" href="#sec04" onclick="setActive(this)">
+    <span class="toc-num">04</span>다중 클래스 확장 & 정규화
+  </a>
+  <a class="toc-item" href="#sec05" onclick="setActive(this)">
+    <span class="toc-num">05</span>비교 & 핵심 요약
+  </a>
+</nav>
+
+<!-- ════════════════════ MAIN ════════════════════ -->
+<main id="main">
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-label">기계학습 · Lecture 5</div>
+    <h1>선형 회귀와<br><span>이진 분류</span></h1>
+    <div class="hero-sub">인천대학교 컴퓨터공학부 · 김인수 교수 · 2026 1학기</div>
+    <div class="hero-tags">
+      <span class="hero-tag">Linear Regression</span>
+      <span class="hero-tag">MSE / Normal Eq.</span>
+      <span class="hero-tag">Gradient Descent</span>
+      <span class="hero-tag">Sigmoid</span>
+      <span class="hero-tag">Cross-Entropy</span>
+      <span class="hero-tag">Softmax</span>
+      <span class="hero-tag">Regularization</span>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       SECTION 01 — 선형 회귀
+  ══════════════════════════════════════ -->
+  <section class="section" id="sec01">
+    <div class="section-header">
+      <span class="section-num">01</span>
+      <h2 class="section-title">선형 회귀 (Linear Regression)</h2>
+    </div>
+
+    <div class="card">
+      <div class="card-title">회귀(Regression)란?</div>
+      <p style="color:var(--text-sub); font-size:14px; margin-bottom:16px;">
+        <strong style="color:var(--accent2)">연속적인 수치(실수)를 예측</strong>하는 지도 학습 문제. 입력 특징 벡터 x로부터 실수값 y를 예측한다.
+      </p>
+      <div class="grid-2">
+        <div class="info-card blue">
+          <h4>주택 가격 예측</h4>
+          <p>입력 x: 면적 · 위치 · 방 수<br>출력 y: 가격 (만원)</p>
+        </div>
+        <div class="info-card cyan">
+          <h4>주가 예측</h4>
+          <p>입력 x: 전일 종가 · 거래량<br>출력 y: 다음 날 종가</p>
+        </div>
+        <div class="info-card green">
+          <h4>기온 예측</h4>
+          <p>입력 x: 습도 · 기압 · 계절<br>출력 y: 최고 기온 (°C)</p>
+        </div>
+        <div class="info-card yellow">
+          <h4>전력 수요 예측</h4>
+          <p>입력 x: 요일 · 시간대 · 온도<br>출력 y: 전력 소비 (MW)</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 선형 회귀 모델 수식 -->
+    <div class="card">
+      <div class="card-title">선형 회귀 모델</div>
+      <div class="formula-box">
+        <div>ŷ = θ₀ + θ₁x  <span class="comment">← 단순 선형 (입력 1개)</span></div>
+        <div style="margin-top:8px;">ŷ = θᵀx  <span class="comment">← 벡터 표현 (bias 항 x₀=1 포함)</span></div>
+        <div style="margin-top:8px; color:var(--accent3);">또는 ŷ = Wx + b</div>
+      </div>
+      <div class="alert alert-blue" style="margin-top:14px;">
+        <span class="alert-icon">🎯</span>
+        <div class="alert-content">
+          <strong>학습 목표:</strong> 데이터 (x₁, y₁), …, (xₙ, yₙ)가 주어졌을 때,
+          예측값 ŷ와 실제값 y의 차이를 가장 작게 만드는 <strong>θ</strong>를 찾는 것.
+        </div>
+      </div>
+    </div>
+
+    <!-- 그래프: 선형 회귀 직선 -->
+    <div class="graph-card">
+      <div class="graph-desc">
+        <h4>선형 회귀의 기하학적 의미</h4>
+        <p>산점도의 데이터 포인트들에 <strong style="color:var(--accent2)">가장 잘 맞는 직선</strong>을 찾는 과정.</p>
+        <p>각 데이터 포인트에서 회귀 직선까지의 <strong style="color:var(--red2)">수직 거리(잔차)</strong>의 제곱합을 최소화 = 최소제곱법(Least Squares).</p>
+        <div class="formula-box" style="font-size:12px;">
+          잔차 eᵢ = yᵢ − ŷᵢ = yᵢ − θᵀxᵢ
+        </div>
+      </div>
+      <div class="graph-area">
+        <svg viewBox="0 0 380 280" xmlns="http://www.w3.org/2000/svg">
+          <!-- 배경 -->
+          <rect width="380" height="280" fill="#0d1117" rx="8"/>
+          <!-- 그리드 -->
+          <line x1="55" y1="220" x2="340" y2="220" stroke="#2a3a55" stroke-width="1"/>
+          <line x1="55" y1="180" x2="340" y2="180" stroke="#2a3a55" stroke-width="0.5" stroke-dasharray="3,4"/>
+          <line x1="55" y1="140" x2="340" y2="140" stroke="#2a3a55" stroke-width="0.5" stroke-dasharray="3,4"/>
+          <line x1="55" y1="100" x2="340" y2="100" stroke="#2a3a55" stroke-width="0.5" stroke-dasharray="3,4"/>
+          <line x1="55" y1="60" x2="340" y2="60" stroke="#2a3a55" stroke-width="0.5" stroke-dasharray="3,4"/>
+          <!-- 축 -->
+          <line x1="55" y1="220" x2="55" y2="40" stroke="#4a5a75" stroke-width="1.5"/>
+          <line x1="55" y1="220" x2="350" y2="220" stroke="#4a5a75" stroke-width="1.5"/>
+          <!-- 화살표 -->
+          <polygon points="55,38 49,50 61,50" fill="#4a5a75"/>
+          <polygon points="352,220 340,214 340,226" fill="#4a5a75"/>
+          <!-- y축 눈금 -->
+          <text x="48" y="224" fill="#64748b" font-size="10" text-anchor="end" font-family="Menlo,monospace">0</text>
+          <text x="48" y="184" fill="#64748b" font-size="10" text-anchor="end" font-family="Menlo,monospace">2</text>
+          <text x="48" y="144" fill="#64748b" font-size="10" text-anchor="end" font-family="Menlo,monospace">4</text>
+          <text x="48" y="104" fill="#64748b" font-size="10" text-anchor="end" font-family="Menlo,monospace">6</text>
+          <text x="48" y="64" fill="#64748b" font-size="10" text-anchor="end" font-family="Menlo,monospace">8</text>
+          <!-- x축 눈금 -->
+          <text x="80" y="234" fill="#64748b" font-size="10" text-anchor="middle" font-family="Menlo,monospace">1</text>
+          <text x="136" y="234" fill="#64748b" font-size="10" text-anchor="middle" font-family="Menlo,monospace">2</text>
+          <text x="192" y="234" fill="#64748b" font-size="10" text-anchor="middle" font-family="Menlo,monospace">3</text>
+          <text x="248" y="234" fill="#64748b" font-size="10" text-anchor="middle" font-family="Menlo,monospace">4</text>
+          <text x="304" y="234" fill="#64748b" font-size="10" text-anchor="middle" font-family="Menlo,monospace">5</text>
+          <!-- x축 레이블 -->
+          <text x="356" y="225" fill="#94a3b8" font-size="11" font-family="Menlo,monospace">x</text>
+          <text x="40" y="36" fill="#94a3b8" font-size="11" font-family="Menlo,monospace">y</text>
+          <!-- 회귀선: y = 1.5x + 0.3  →  화면 좌표: y_screen = 220 - (y_val * 40) -->
+          <!-- x=0.5: y=1.05 → y_s=177.6 | x=5.5: y=8.55 → y_s=161.8 안맞음, 다시 계산 -->
+          <!-- scale: x_screen = 55 + (x_val-0)*56, y_screen = 220 - y_val*40 -->
+          <!-- regression y ≈ 1.5x + 0.4 -->
+          <!-- x=0.5 → screen(83, 220-20*1.4=192.4) / x=5.5 → screen(363, 220-20*8.65=-53 too big) -->
+          <!-- use: x_s = 55 + (x-1)*56, y_s = 220 - y*40.  x in [0.5,5.5] -->
+          <!-- reg line: at x_s=55 y_val=0.4 y_s=204 / at x_s=340 y_val=1.5*(340-55)/56+1+0.4=7.64+0.4=8.04 y_s=220-8.04*20=59 too tight -->
+          <!-- simplify: map x [1..5] → screen [80..304], y [0..8] → screen [220..60] (step 40 per 2) -->
+          <!-- regression: ŷ = 0.4 + 1.5x -->
+          <!-- x=1: ŷ=1.9 → (80, 220-1.9*20=182) | x=5: ŷ=7.9 → (304, 220-7.9*20=62) -->
+          <line x1="68" y1="186" x2="316" y2="56" stroke="#3b82f6" stroke-width="2" opacity="0.9"/>
+          <!-- 데이터 포인트 (x, y): (1,2)(2,3)(3,5)(4,6)(5,8) 연습문제 데이터 -->
+          <!-- (1,2): x_s=80, y_s=220-40=180 / (2,3): 136, 160 / (3,5): 192, 120 / (4,6): 248, 100 / (5,8): 304, 60 -->
+          <!-- 잔차선 (point → line) -->
+          <!-- (1,2) line_y = 186+(316-68)/(316-68)*(80-68) = 186+12*0.048 ... 간단히 내삽 -->
+          <!-- line: from (68,186) to (316,56), at x_s=80: y_l = 186 + (56-186)*(80-68)/(316-68) = 186 -130*12/248 = 186-6.3=179.7 -->
+          <line x1="80" y1="180" x2="80" y2="180" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="3,3"/>
+          <!-- (2,3) line_y: 186-130*(136-68)/248=186-130*68/248=186-35.6=150.4 -->
+          <line x1="136" y1="160" x2="136" y2="150" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="3,3"/>
+          <!-- (3,5) line_y: 186-130*124/248=186-65=121 -->
+          <line x1="192" y1="120" x2="192" y2="121" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="3,3"/>
+          <!-- (4,6) line_y: 186-130*180/248=186-93.5=92.5 -->
+          <line x1="248" y1="100" x2="248" y2="93" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="3,3"/>
+          <!-- (5,8) line_y: 186-130*236/248=186-123.7=62.3 -->
+          <line x1="304" y1="60" x2="304" y2="62" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="3,3"/>
+          <!-- 데이터 포인트 원 -->
+          <circle cx="80" cy="180" r="5" fill="#60a5fa" stroke="#1e2d42" stroke-width="1.5"/>
+          <circle cx="136" cy="160" r="5" fill="#60a5fa" stroke="#1e2d42" stroke-width="1.5"/>
+          <circle cx="192" cy="120" r="5" fill="#60a5fa" stroke="#1e2d42" stroke-width="1.5"/>
+          <circle cx="248" cy="100" r="5" fill="#60a5fa" stroke="#1e2d42" stroke-width="1.5"/>
+          <circle cx="304" cy="60" r="5" fill="#60a5fa" stroke="#1e2d42" stroke-width="1.5"/>
+          <!-- 범례 -->
+          <line x1="80" y1="250" x2="102" y2="250" stroke="#3b82f6" stroke-width="2"/>
+          <text x="106" y="254" fill="#94a3b8" font-size="10" font-family="Apple SD Gothic Neo,Malgun Gothic,sans-serif">회귀 직선</text>
+          <circle cx="190" cy="250" r="4" fill="#60a5fa"/>
+          <text x="198" y="254" fill="#94a3b8" font-size="10" font-family="Apple SD Gothic Neo,Malgun Gothic,sans-serif">데이터</text>
+          <line x1="255" y1="245" x2="255" y2="255" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="3,2"/>
+          <text x="260" y="254" fill="#94a3b8" font-size="10" font-family="Apple SD Gothic Neo,Malgun Gothic,sans-serif">잔차</text>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       SECTION 01a — MSE
+  ══════════════════════════════════════ -->
+  <section class="section" id="sec01a">
+    <div class="section-header">
+      <span class="section-num">01a</span>
+      <h2 class="section-title">MSE 비용 함수</h2>
+    </div>
+
+    <div class="card">
+      <div class="card-title">평균 제곱 오차 (MSE, Mean Squared Error)</div>
+      <div class="formula-box">
+        J(θ) = (1/N) Σᵢ (ŷᵢ − yᵢ)²<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= (1/N) Σᵢ (θᵀxᵢ − yᵢ)²<br><br>
+        <span class="comment">학습 목표: θ* = argmin<sub>θ</sub> J(θ)</span>
+      </div>
+    </div>
+
+    <div class="grid-3">
+      <div class="info-card blue">
+        <h4>왜 제곱인가?</h4>
+        <ul>
+          <li>음수 오차와 양수 오차가 상쇄되지 않도록</li>
+          <li>절댓값 대신 제곱으로 모두 양수화</li>
+          <li>미분이 가능해 경사하강법 적용 가능</li>
+        </ul>
+      </div>
+      <div class="info-card green">
+        <h4>왜 평균인가?</h4>
+        <ul>
+          <li>데이터 수 N에 무관하게 비용 함수 스케일 유지</li>
+          <li>데이터가 늘어도 값이 폭발하지 않음</li>
+          <li>배치 크기가 달라도 비교 가능</li>
+        </ul>
+      </div>
+      <div class="info-card yellow">
+        <h4>MSE의 기하학적 의미</h4>
+        <ul>
+          <li>각 데이터 포인트에서 회귀직선까지의 수직 거리의 제곱합 최소화</li>
+          <li>= 최소제곱법 (Least Squares Method)</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- MSE vs MAE 그래프 -->
+    <div class="graph-card" style="margin-top:20px;">
+      <div class="graph-desc">
+        <h4>MSE vs MAE 비교</h4>
+        <p><strong style="color:var(--accent2)">MSE</strong>: 이상치에 민감 (오류가 제곱으로 커짐), 미분이 연속적이라 최적화 용이. <strong>딥러닝의 기본</strong>.</p>
+        <p><strong style="color:var(--green2)">MAE</strong>: 이상치에 더 강인하지만, 미분 불연속 지점 존재 (z=0에서).</p>
+        <div class="formula-box" style="font-size:12px; margin-top:10px;">
+          MAE = (1/N) Σ|ŷᵢ − yᵢ|<br>
+          MSE = (1/N) Σ(ŷᵢ − yᵢ)²
+        </div>
+      </div>
+      <div class="graph-area">
+        <svg viewBox="0 0 380 260" xmlns="http://www.w3.org/2000/svg">
+          <rect width="380" height="260" fill="#0d1117" rx="8"/>
+          <!-- grid -->
+          <line x1="60" y1="200" x2="340" y2="200" stroke="#2a3a55" stroke-width="1"/>
+          <line x1="60" y1="160" x2="340" y2="160" stroke="#2a3a55" stroke-width="0.5" stroke-dasharray="3,4"/>
+          <line x1="60" y1="120" x2="340" y2="120" stroke="#2a3a55" stroke-width="0.5" stroke-dasharray="3,4"/>
+          <line x1="60" y1="80" x2="340" y2="80" stroke="#2a3a55" stroke-width="0.5" stroke-dasharray="3,4"/>
+          <line x1="60" y1="40" x2="340" y2="40" stroke="#2a3a55" stroke-width="0.5" stroke-dasharray="3,4"/>
+          <!-- 수직 grid -->
+          <line x1="130" y1="40" x2="130" y2="200" stroke="#2a3a55" stroke-width="0.5" stroke-dasharray="3,4"/>
+          <line x1="200" y1="40" x2="200" y2="200" stroke="#2a3a55" stroke-width="0.5" stroke-dasharray="3,4"/>
+          <line x1="270" y1="40" x2="270" y2="200" stroke="#2a3a55" stroke-width="0.5" stroke-dasharray="3,4"/>
+          <!-- axes -->
+          <line x1="60" y1="200" x2="60" y2="35" stroke="#4a5a75" stroke-width="1.5"/>
+          <line x1="60" y1="200" x2="345" y2="200" stroke="#4a5a75" stroke-width="1.5"/>
+          <polygon points="60,33 54,45 66,45" fill="#4a5a75"/>
+          <polygon points="347,200 335,194 335,206" fill="#4a5a75"/>
+          <!-- y labels -->
+          <text x="52" y="204" fill="#64748b" font-size="10" text-anchor="end" font-family="Menlo,monospace">0</text>
+          <text x="52" y="164" fill="#64748b" font-size="10" text-anchor="end" font-family="Menlo,monospace">2</text>
+          <text x="52" y="124" fill="#64748b" font-size="10" text-anchor="end" font-family="Menlo,monospace">4</text>
+          <text x="52" y="84" fill="#64748b" font-size="10" text-anchor="end" font-family="Menlo,monospace">6</text>
+          <text x="52" y="44" fill="#64748b" font-size="10" text-anchor="end" font-family="Menlo,monospace">8</text>
+          <!-- x labels: e from -2 to 2, center=200 -->
+          <text x="60" y="215" fill="#64748b" font-size="10" text-anchor="middle" font-family="Menlo,monospace">-2</text>
+          <text x="130" y="215" fill="#64748b" font-size="10" text-anchor="middle" font-family="Menlo,monospace">-1</text>
+          <text x="200" y="215" fill="#64748b" font-size="10" text-anchor="middle" font-family="Menlo,monospace">0</text>
+          <text x="270" y="215" fill="#64748b" font-size="10" text-anchor="middle" font-family="Menlo,monospace">1</text>
+          <text x="340" y="215" fill="#64748b" font-size="10" text-anchor="middle" font-family="Menlo,monospace">2</text>
+          <text x="350" y="205" fill="#94a3b8" font-size="11" font-family="Menlo,monospace">e</text>
+          <text x="45" y="32" fill="#94a3b8" font-size="11" font-family="Menlo,monospace">L</text>
+          <!-- MSE: L=e^2, scale: e[-2..2] → x_s[60..340], L[0..4] → y_s[200..40] so y_s=200-L*40 -->
+          <!-- points: e=-2: L=4,y_s=40 / e=-1.5: L=2.25,y_s=110 / e=-1: L=1,y_s=160 / e=-0.5: L=0.25,y_s=190 / e=0: L=0,y_s=200 -->
+          <path d="M60,40 Q130,160 200,200 Q270,160 340,40" fill="none" stroke="#3b82f6" stroke-width="2.5"/>
+          <!-- MAE: L=|e|, L[-2..2] → y_s: e=-2:L=2,y_s=120 | e=0:L=0,y_s=200 | e=2:L=2,y_s=120 -->
+          <polyline points="60,120 200,200 340,120" fill="none" stroke="#22c55e" stroke-width="2.5"/>
+          <!-- 범례 -->
+          <line x1="75" y1="238" x2="95" y2="238" stroke="#3b82f6" stroke-width="2.5"/>
+          <text x="98" y="242" fill="#94a3b8" font-size="11" font-family="Menlo,monospace">MSE (e²)</text>
+          <line x1="190" y1="238" x2="210" y2="238" stroke="#22c55e" stroke-width="2.5"/>
+          <text x="213" y="242" fill="#94a3b8" font-size="11" font-family="Menlo,monospace">MAE (|e|)</text>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       SECTION 01b — 정규방정식
+  ══════════════════════════════════════ -->
+  <section class="section" id="sec01b">
+    <div class="section-header">
+      <span class="section-num">01b</span>
+      <h2 class="section-title">정규방정식 (Normal Equation)</h2>
+    </div>
+
+    <div class="card">
+      <div class="card-title">MSE를 미분을 이용해 해석적으로 θ 구하기</div>
+      <div class="steps">
+        <div class="step">
+          <span class="step-num">Step 1</span>
+          <div class="step-content">
+            <strong>행렬 표현:</strong> <code>J(θ) = (1/N)||Xθ − y||²</code><br>
+            X: N×d 설계 행렬 (각 행이 하나의 샘플), &nbsp; y: N×1 레이블 벡터
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-num">Step 2</span>
+          <div class="step-content">
+            <strong>미분:</strong> <code>∇θJ(θ) = (2/N) XᵀXθ − (2/N) Xᵀy = 0</code><br>
+            → <code>XᵀXθ = Xᵀy</code>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-num">Step 3</span>
+          <div class="step-content">
+            <strong>해:</strong> <code style="color:var(--green2); font-size:14px;">θ = (XᵀX)⁻¹ Xᵀy</code> ← <strong>정규방정식 (Normal Equation)</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="info-card green">
+        <h4>정규방정식의 장점</h4>
+        <ul>
+          <li>반복 학습 불필요 — 한 번에 해를 구함</li>
+          <li>하이퍼파라미터(학습률) 없음</li>
+          <li>소규모 데이터에서 매우 효율적</li>
+        </ul>
+      </div>
+      <div class="info-card red">
+        <h4>정규방정식의 단점</h4>
+        <ul>
+          <li>(XᵀX) 역행렬 계산: <strong>O(d³)</strong> — 특징 수 d가 크면 매우 느림</li>
+          <li>XᵀX가 특이행렬이면 역행렬 불가 → Ridge 정규화로 해결</li>
+          <li>Rank가 낮을 경우 (d &gt; N)</li>
+          <li>딥러닝(비선형 모델)에는 적용 불가 → 경사하강법 사용</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       SECTION 01c — 경사하강법
+  ══════════════════════════════════════ -->
+  <section class="section" id="sec01c">
+    <div class="section-header">
+      <span class="section-num">01c</span>
+      <h2 class="section-title">경사하강법 (Gradient Descent)</h2>
+    </div>
+
+    <div class="card">
+      <div class="card-title">파라미터 업데이트 규칙</div>
+      <div class="formula-box">
+        θ ← θ − α · ∇<sub>θ</sub>J(θ)   <span class="comment">α: 학습률 (learning rate)</span><br><br>
+        <span class="comment">MSE에 대한 그래디언트 (선형 회귀):</span><br>
+        ∇<sub>θ</sub>J(θ) = (2/N) Xᵀ(Xθ − y)<br><br>
+        → <span style="color:#4ade80;">θ ← θ − (2α/N) Xᵀ(Xθ − y)</span>
+      </div>
+    </div>
+
+    <!-- 경사하강법 그래프 -->
+    <div class="graph-card">
+      <div class="graph-desc">
+        <h4>경사하강법의 원리</h4>
+        <p>비용 함수 J(θ)의 <strong style="color:var(--accent2)">기울기(gradient) 반대 방향</strong>으로 θ를 반복 이동시켜 최솟값을 찾는다.</p>
+        <p>학습률 α가 너무 크면 <strong style="color:var(--red2)">발산</strong>, 너무 작으면 학습이 매우 <strong style="color:var(--yellow2)">느림</strong>.</p>
+        <div class="alert alert-yellow" style="margin-top:10px; font-size:12.5px;">
+          <span class="alert-icon">⚠️</span>
+          <div class="alert-content">학습률 스케줄링 또는 Adam · RMSProp 같은 적응적 최적화 기법 사용 권장</div>
+        </div>
+      </div>
+      <div class="graph-area">
+        <svg viewBox="0 0 380 260" xmlns="http://www.w3.org/2000/svg">
+          <rect width="380" height="260" fill="#0d1117" rx="8"/>
+          <!-- grid -->
+          <line x1="50" y1="220" x2="340" y2="220" stroke="#2a3a55" stroke-width="1"/>
+          <line x1="50" y1="180" x2="340" y2="180" stroke="#2a3a55" stroke-width="0.5" stroke-dasharray="3,4"/>
+          <line x1="50" y1="140" x2="340" y2="140" stroke="#2a3a55" stroke-width="0.5" stroke-dasharray="3,4"/>
+          <line x1="50" y1="100" x2="340" y2="100" stroke="#2a3a55" stroke-width="0.5" stroke-dasharray="3,4"/>
+          <line x1="50" y1="60" x2="340" y2="60" stroke="#2a3a55" stroke-width="0.5" stroke-dasharray="3,4"/>
+          <!-- axes -->
+          <line x1="50" y1="220" x2="50" y2="45" stroke="#4a5a75" stroke-width="1.5"/>
+          <line x1="50" y1="220" x2="345" y2="220" stroke="#4a5a75" stroke-width="1.5"/>
+          <polygon points="50,43 44,55 56,55" fill="#4a5a75"/>
+          <polygon points="347,220 335,214 335,226" fill="#4a5a75"/>
+          <!-- labels -->
+          <text x="44" y="224" fill="#64748b" font-size="10" text-anchor="end" font-family="Menlo,monospace">0</text>
+          <text x="44" y="184" fill="#64748b" font-size="10" text-anchor="end" font-family="Menlo,monospace">2</text>
+          <text x="44" y="144" fill="#64748b" font-size="10" text-anchor="end" font-family="Menlo,monospace">4</text>
+          <text x="44" y="104" fill="#64748b" font-size="10" text-anchor="end" font-family="Menlo,monospace">6</text>
+          <text x="44" y="64" fill="#64748b" font-size="10" text-anchor="end" font-family="Menlo,monospace">8</text>
+          <!-- x labels: θ axis -->
+          <text x="100" y="234" fill="#64748b" font-size="10" text-anchor="middle" font-family="Menlo,monospace">-2</text>
+          <text x="150" y="234" fill="#64748b" font-size="10" text-anchor="middle" font-family="Menlo,monospace">-1</text>
+          <text x="195" y="234" fill="#64748b" font-size="10" text-anchor="middle" font-family="Menlo,monospace">0</text>
+          <text x="245" y="234" fill="#64748b" font-size="10" text-anchor="middle" font-family="Menlo,monospace">1</text>
+          <text x="295" y="234" fill="#64748b" font-size="10" text-anchor="middle" font-family="Menlo,monospace">2</text>
+          <text x="352" y="225" fill="#94a3b8" font-size="11" font-family="Menlo,monospace">θ</text>
+          <text x="36" y="42" fill="#94a3b8" font-size="11" font-family="Menlo,monospace">J</text>
+          <!-- Parabola: J = (θ-0.5)^2 + 0.5, center at θ=0.5 (x_s=220) -->
+          <!-- θ[-2..2] → x_s[100..290], scale 47.5 per unit -->
+          <!-- θ=-2: J=6.75, y_s=220-6.75*20=85 | θ=0.5: J=0.5, y_s=210 | θ=2: J=2.75, y_s=165 -->
+          <!-- x_s = 195 + θ*50, y_s = 220 - J(θ)*20, J = (θ-0.5)²+0.5 -->
+          <path d="M95,85 C130,200 170,215 220,210 C260,205 300,160 345,55" fill="none" stroke="#60a5fa" stroke-width="2.5"/>
+          <!-- minimum marker -->
+          <circle cx="220" cy="210" r="5" fill="#22c55e" stroke="#0d1117" stroke-width="1.5"/>
+          <text x="224" y="206" fill="#22c55e" font-size="10" font-family="Apple SD Gothic Neo,Malgun Gothic,sans-serif">최솟값</text>
+          <!-- gradient arrows showing descent -->
+          <!-- Point 1: θ=-1.5, x_s=120, J=((-1.5-0.5)²+0.5)=4.5, y_s=220-90=130 -->
+          <circle cx="120" cy="130" r="4" fill="#f59e0b" stroke="#0d1117" stroke-width="1"/>
+          <line x1="120" y1="130" x2="145" y2="145" stroke="#f59e0b" stroke-width="1.5" marker-end="url(#arr)"/>
+          <!-- Point 2: θ=-0.8, x_s=156, J=(−1.3²+0.5)=2.19 y_s=220-43.8=176 -->
+          <circle cx="158" cy="176" r="4" fill="#f59e0b" stroke="#0d1117" stroke-width="1"/>
+          <line x1="158" y1="176" x2="178" y2="188" stroke="#f59e0b" stroke-width="1.5" marker-end="url(#arr)"/>
+          <!-- Point 3: θ=0, x_s=195, J=0.75, y_s=220-15=205 -->
+          <circle cx="195" cy="205" r="4" fill="#f59e0b" stroke="#0d1117" stroke-width="1"/>
+          <line x1="195" y1="205" x2="208" y2="208" stroke="#f59e0b" stroke-width="1.5" marker-end="url(#arr)"/>
+          <defs>
+            <marker id="arr" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+              <polygon points="0,0 6,3 0,6" fill="#f59e0b"/>
+            </marker>
+          </defs>
+          <!-- legend -->
+          <path d="M65,248 Q80,248 80,248" stroke="#60a5fa" stroke-width="2" fill="none"/>
+          <text x="84" y="252" fill="#94a3b8" font-size="10" font-family="Apple SD Gothic Neo,Malgun Gothic,sans-serif">J(θ) 비용함수</text>
+          <circle cx="195" cy="249" r="4" fill="#f59e0b"/>
+          <text x="202" y="253" fill="#94a3b8" font-size="10" font-family="Apple SD Gothic Neo,Malgun Gothic,sans-serif">경사하강 경로</text>
+          <circle cx="288" cy="249" r="4" fill="#22c55e"/>
+          <text x="295" y="253" fill="#94a3b8" font-size="10" font-family="Apple SD Gothic Neo,Malgun Gothic,sans-serif">최솟값</text>
+        </svg>
+      </div>
+    </div>
+
+    <div class="grid-3" style="margin-top:8px;">
+      <div class="info-card blue">
+        <h4>배치 경사하강법 (Batch GD)</h4>
+        <p>매 스텝에 전체 N개 데이터 사용<br>→ 안정적이지만 느림<br>→ 대규모 데이터에 비효율적</p>
+      </div>
+      <div class="info-card yellow">
+        <h4>확률적 경사하강법 (SGD)</h4>
+        <p>매 스텝에 1개 샘플 사용<br>→ 빠르지만 불안정 (노이즈 큼)<br>→ 지역 최솟값 탈출 가능</p>
+      </div>
+      <div class="info-card green">
+        <h4>미니배치 경사하강법 ★</h4>
+        <p>매 스텝에 B개 샘플 (B=32~256)<br>→ 배치와 SGD의 절충안<br>→ <strong>딥러닝의 표준 방식</strong></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       SECTION 01d — 다항 회귀 & 과적합
+  ══════════════════════════════════════ -->
+  <section class="section" id="sec01d">
+    <div class="section-header">
+      <span class="section-num">01d</span>
+      <h2 class="section-title">다항 회귀 & 과적합</h2>
+    </div>
+
+    <div class="card">
+      <div class="card-title">다항 특징 변환</div>
+      <p style="color:var(--text-sub); font-size:14px; margin-bottom:14px;">비선형 관계도 <strong style="color:var(--accent2)">'특징 변환'</strong>으로 선형 회귀 틀 안에서 표현할 수 있다.</p>
+      <div class="formula-box">
+        원래 특징 x → [1, x, x², x³, …, xᵐ] 으로 확장 후 선형 회귀 적용
+      </div>
+    </div>
+
+    <div class="grid-3">
+      <div class="info-card red">
+        <h4>1차 (Linear) — Underfitting</h4>
+        <p>모델이 너무 단순<br>데이터의 패턴을 담지 못함<br><br><strong style="color:var(--red2)">High Bias</strong></p>
+      </div>
+      <div class="info-card green">
+        <h4>적절한 차수 — Good Fit ✓</h4>
+        <p>적절한 복잡도<br>훈련·테스트 오차 균형<br><br><strong style="color:var(--green2)">Bias-Variance 균형</strong></p>
+      </div>
+      <div class="info-card yellow">
+        <h4>고차 (n차) — Overfitting</h4>
+        <p>모델이 너무 복잡<br>훈련 데이터의 노이즈까지 학습<br><br><strong style="color:var(--yellow2)">High Variance</strong></p>
+      </div>
+    </div>
+
+    <div class="alert alert-blue" style="margin-top:8px;">
+      <span class="alert-icon">🔗</span>
+      <div class="alert-content">
+        <strong>이전 강의 연결:</strong> Underfitting = High Bias / Overfitting = High Variance → <strong>Bias-Variance Tradeoff</strong><br>
+        <strong>해결책:</strong> 교차 검증(Cross-Validation)으로 차수 선택 / 정규화(Regularization)로 계수를 제한
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       SECTION 02 — 이진 분류
+  ══════════════════════════════════════ -->
+  <section class="section" id="sec02">
+    <div class="section-header">
+      <span class="section-num">02</span>
+      <h2 class="section-title">이진 분류 (Binary Classification)</h2>
+    </div>
+
+    <div class="card">
+      <div class="card-title">분류(Classification)란?</div>
+      <p style="color:var(--text-sub); font-size:14px; margin-bottom:16px;">
+        <strong style="color:var(--accent2)">입력 x를 유한한 클래스 중 하나로 할당</strong>하는 지도 학습 문제.
+      </p>
+      <div class="grid-2">
+        <div class="info-card blue" style="padding:18px;">
+          <h4>회귀 vs 분류</h4>
+          <p><strong style="color:var(--accent2)">회귀:</strong> y ∈ ℝ (연속 실수)<br>예) 가격, 온도, 주가</p>
+          <br>
+          <p><strong style="color:var(--green2)">분류:</strong> y ∈ {0, 1, …, K−1} (이산 클래스)<br>이진 분류: y ∈ {0, 1}</p>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <div class="info-card cyan" style="padding:14px;">
+            <h4>스팸 메일 분류</h4>
+            <p>스팸 (1) / 정상 (0)</p>
+          </div>
+          <div class="info-card green" style="padding:14px;">
+            <h4>질병 진단</h4>
+            <p>양성 (1) / 음성 (0)</p>
+          </div>
+          <div class="info-card yellow" style="padding:14px;">
+            <h4>신용카드 부정거래</h4>
+            <p>사기 (1) / 정상 (0)</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title" style="color:var(--red2);">왜 MSE로 분류 문제를 풀면 안 되는가?</div>
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <div class="alert alert-red">
+          <span class="alert-icon">❌</span>
+          <div class="alert-content">선형 회귀는 ŷ가 <strong>[0,1] 범위를 벗어날 수 있다</strong> → '확률'로 해석 불가</div>
+        </div>
+        <div class="alert alert-red">
+          <span class="alert-icon">❌</span>
+          <div class="alert-content">이상치 1개가 결정 경계를 크게 왜곡시킨다 (MSE가 큰 오차를 제곱으로 과중 처벌)</div>
+        </div>
+        <div class="alert alert-red">
+          <span class="alert-icon">❌</span>
+          <div class="alert-content">MSE는 오차 분포가 <strong>Gaussian</strong>임을 가정 → 이진 레이블 {0,1}에는 부적합</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       SECTION 02a — Sigmoid
+  ══════════════════════════════════════ -->
+  <section class="section" id="sec02a">
+    <div class="section-header">
+      <span class="section-num">02a</span>
+      <h2 class="section-title">시그모이드 (Sigmoid) 함수</h2>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Sigmoid 함수 정의</div>
+      <div class="formula-box">
+        σ(z) = 1 / (1 + e⁻ᶻ)  &nbsp;&nbsp; <span class="comment">출력 범위: (0, 1)</span>
+      </div>
+      <div class="grid-2" style="margin-top:16px;">
+        <div class="info-card blue" style="padding:14px;">
+          <h4>σ(0) = 0.5</h4>
+          <p>z = 0이면 출력 = 0.5 (중립)</p>
+        </div>
+        <div class="info-card green" style="padding:14px;">
+          <h4>z → +∞</h4>
+          <p>σ(z) → 1 (C₁에 가까워짐)</p>
+        </div>
+        <div class="info-card red" style="padding:14px;">
+          <h4>z → −∞</h4>
+          <p>σ(z) → 0 (C₀에 가까워짐)</p>
+        </div>
+        <div class="info-card purple" style="padding:14px;">
+          <h4>미분 공식 (역전파 핵심!)</h4>
+          <p><code style="font-family:Menlo,monospace; color:var(--purple2);">σ'(z) = σ(z) · (1 − σ(z))</code></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sigmoid 그래프 -->
+    <div class="graph-card">
+      <div class="graph-desc">
+        <h4>S자 형태의 곡선</h4>
+        <p>z축 기준 주요 값:</p>
+        <div class="formula-box" style="font-size:12px; line-height:1.9;">
+          z ≪ 0 → σ ≈ 0<br>
+          z = −2 → σ ≈ 0.12<br>
+          z = 0 → σ = 0.50<br>
+          z = 2 → σ ≈ 0.88<br>
+          z ≫ 0 → σ ≈ 1
+        </div>
+        <div class="card-title" style="margin-top:16px;">로지스틱 회귀 모델</div>
+        <div class="formula-box" style="font-size:12px;">
+          P(y=1|x; θ) = σ(θᵀx)<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= 1 / (1 + exp(−θᵀx))
+        </div>
+      </div>
+      <div class="graph-area">
+        <svg viewBox="0 0 380 280" xmlns="http://www.w3.org/2000/svg">
+          <rect width="380" height="280" fill="#0d1117" rx="8"/>
+          <!-- grid -->
+          <line x1="60" y1="240" x2="340" y2="240" stroke="#2a3a55" stroke-width="1"/>
+          <line x1="60" y1="200" x2="340" y2="200" stroke="#2a3a55" stroke-width="0.5" stroke-dasharray="3,4"/>
+          <line x1="60" y1="160" x2="340" y2="160" stroke="#2a3a55" stroke-width="0.5" stroke-dasharray="3,4"/>
+          <line x1="60" y1="120" x2="340" y2="120" stroke="#2a3a55" stroke-width="0.5" stroke-dasharray="3,4"/>
+          <line x1="60" y1="80" x2="340" y2="80" stroke="#2a3a55" stroke-width="0.5" stroke-dasharray="3,4"/>
+          <line x1="60" y1="40" x2="340" y2="40" stroke="#2a3a55" stroke-width="0.5" stroke-dasharray="3,4"/>
+          <!-- vertical grid -->
+          <line x1="110" y1="40" x2="110" y2="240" stroke="#2a3a55" stroke-width="0.5" stroke-dasharray="3,4"/>
+          <line x1="160" y1="40" x2="160" y2="240" stroke="#2a3a55" stroke-width="0.5" stroke-dasharray="3,4"/>
+          <line x1="200" y1="40" x2="200" y2="240" stroke="#1e4a8a" stroke-width="1" stroke-dasharray="4,3"/>
+          <line x1="250" y1="40" x2="250" y2="240" stroke="#2a3a55" stroke-width="0.5" stroke-dasharray="3,4"/>
+          <line x1="300" y1="40" x2="300" y2="240" stroke="#2a3a55" stroke-width="0.5" stroke-dasharray="3,4"/>
+          <!-- axes -->
+          <line x1="60" y1="240" x2="60" y2="30" stroke="#4a5a75" stroke-width="1.5"/>
+          <line x1="60" y1="240" x2="345" y2="240" stroke="#4a5a75" stroke-width="1.5"/>
+          <polygon points="60,28 54,40 66,40" fill="#4a5a75"/>
+          <polygon points="347,240 335,234 335,246" fill="#4a5a75"/>
+          <!-- y labels -->
+          <text x="52" y="244" fill="#64748b" font-size="10" text-anchor="end" font-family="Menlo,monospace">0</text>
+          <text x="52" y="204" fill="#64748b" font-size="10" text-anchor="end" font-family="Menlo,monospace">0.2</text>
+          <text x="52" y="164" fill="#64748b" font-size="10" text-anchor="end" font-family="Menlo,monospace">0.4</text>
+          <text x="52" y="124" fill="#64748b" font-size="10" text-anchor="end" font-family="Menlo,monospace">0.6</text>
+          <text x="52" y="84" fill="#64748b" font-size="10" text-anchor="end" font-family="Menlo,monospace">0.8</text>
+          <text x="52" y="44" fill="#64748b" font-size="10" text-anchor="end" font-family="Menlo,monospace">1.0</text>
+          <!-- x labels: z[-4..4], center x=200, scale=35px/unit -->
+          <text x="60" y="255" fill="#64748b" font-size="10" text-anchor="middle" font-family="Menlo,monospace">-4</text>
+          <text x="110" y="255" fill="#64748b" font-size="10" text-anchor="middle" font-family="Menlo,monospace">-3</text>
+          <text x="160" y="255" fill="#64748b" font-size="10" text-anchor="middle" font-family="Menlo,monospace">-2</text>
+          <text x="200" y="255" fill="#3b82f6" font-size="10" text-anchor="middle" font-family="Menlo,monospace">0</text>
+          <text x="250" y="255" fill="#64748b" font-size="10" text-anchor="middle" font-family="Menlo,monospace">2</text>
+          <text x="300" y="255" fill="#64748b" font-size="10" text-anchor="middle" font-family="Menlo,monospace">3</text>
+          <text x="340" y="255" fill="#64748b" font-size="10" text-anchor="middle" font-family="Menlo,monospace">4</text>
+          <text x="350" y="245" fill="#94a3b8" font-size="11" font-family="Menlo,monospace">z</text>
+          <text x="45" y="27" fill="#94a3b8" font-size="11" font-family="Menlo,monospace">σ</text>
+          <!-- sigmoid curve: σ(z) = 1/(1+e^-z)
+               x_s = 200 + z*35, y_s = 240 - σ(z)*200
+               z=-4: σ=0.018, y_s=240-3.6=236.4 | z=-2: σ=0.12, y_s=240-24=216 |
+               z=0: σ=0.5, y_s=240-100=140 | z=2: σ=0.88, y_s=240-176=64 | z=4: σ=0.982, y_s=240-196.4=43.6 -->
+          <path d="M60,237 C80,235 110,230 140,220 C160,213 175,190 200,140 C220,100 235,65 255,55 C275,47 300,43 340,42" fill="none" stroke="#a855f7" stroke-width="2.5"/>
+          <!-- 0.5 horizontal line -->
+          <line x1="60" y1="140" x2="340" y2="140" stroke="#3b82f6" stroke-width="1" stroke-dasharray="5,3" opacity="0.6"/>
+          <text x="342" y="144" fill="#3b82f6" font-size="10" font-family="Menlo,monospace">0.5</text>
+          <!-- z=0 marker -->
+          <circle cx="200" cy="140" r="5" fill="#f59e0b" stroke="#0d1117" stroke-width="1.5"/>
+          <!-- z=-2 marker -->
+          <circle cx="130" cy="216" r="4" fill="#60a5fa" stroke="#0d1117" stroke-width="1"/>
+          <text x="115" y="210" fill="#60a5fa" font-size="9" font-family="Menlo,monospace">0.12</text>
+          <!-- z=2 marker -->
+          <circle cx="270" cy="64" r="4" fill="#60a5fa" stroke="#0d1117" stroke-width="1"/>
+          <text x="274" y="60" fill="#60a5fa" font-size="9" font-family="Menlo,monospace">0.88</text>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       SECTION 03 — Cross-Entropy
+  ══════════════════════════════════════ -->
+  <section class="section" id="sec03">
+    <div class="section-header">
+      <span class="section-num">03</span>
+      <h2 class="section-title">Cross-Entropy 손실 & 경사하강법</h2>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Binary Cross-Entropy (단일 샘플)</div>
+      <div class="formula-box">
+        L(ŷ, y) = −[y · log(ŷ) + (1 − y) · log(1 − ŷ)]<br>
+        <span class="comment">단, ŷ = σ(θᵀx) = P(y=1|x)</span>
+      </div>
+      <div class="grid-2" style="margin-top:16px;">
+        <div class="info-card blue" style="padding:18px;">
+          <h4>y = 1 일 때</h4>
+          <p><code style="font-family:Menlo,monospace; font-size:12px; color:var(--accent2);">L = −log(ŷ)</code></p>
+          <p style="margin-top:8px;">ŷ = 1이면 L = 0, &nbsp; ŷ → 0이면 L → ∞<br>예측이 <strong>1에 가까울수록</strong> 손실 감소</p>
+        </div>
+        <div class="info-card green" style="padding:18px;">
+          <h4>y = 0 일 때</h4>
+          <p><code style="font-family:Menlo,monospace; font-size:12px; color:var(--green2);">L = −log(1 − ŷ)</code></p>
+          <p style="margin-top:8px;">ŷ = 0이면 L = 0, &nbsp; ŷ → 1이면 L → ∞<br>예측이 <strong>0에 가까울수록</strong> 손실 감소</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">전체 데이터셋 손실 (N개 샘플 평균)</div>
+      <div class="formula-box">
+        J(θ) = −(1/N) Σᵢ [yᵢ · log(ŷᵢ) + (1 − yᵢ) · log(1 − ŷᵢ)]
+      </div>
+      <div class="alert alert-purple" style="background:rgba(168,85,247,0.08); border:1px solid rgba(168,85,247,0.2); margin-top:14px;">
+        <span class="alert-icon">🔬</span>
+        <div class="alert-content">
+          Cross-Entropy 손실 최소화 = <strong>Bernoulli 분포에 대한 MLE (최대 우도 추정)</strong>와 수학적으로 완전히 동치 — MLE 수업에서 증명 예정
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">로지스틱 회귀 경사하강법 — 그래디언트 도출</div>
+      <div class="steps">
+        <div class="step">
+          <span class="step-num">Step 1</span>
+          <div class="step-content">
+            <code>J(θ) = −(1/N) Σ [y · log(σ(z)) + (1 − y) · log(1 − σ(z))]</code> 에서 <code>z = θᵀx</code>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-num">Step 2</span>
+          <div class="step-content">
+            <code>∂J/∂z = σ(z) − y</code> &nbsp; (시그모이드 미분 성질 σ'(z) = σ(z)(1 − σ(z)) 이용)
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-num">Step 3</span>
+          <div class="step-content">
+            <code>∂J/∂θ = (σ(z) − y) · x → (1/N) Xᵀ(ŷ − y)</code> ← <strong style="color:var(--yellow2)">MSE Gradient와 형태 동일!</strong>
+          </div>
+        </div>
+      </div>
+      <div class="formula-box" style="margin-top:16px;">
+        <span class="comment">파라미터 업데이트:</span><br>
+        θ ← θ − (α/N) · Xᵀ(ŷ − y) &nbsp;&nbsp; <span class="comment">( ŷ = σ(Xθ) )</span>
+      </div>
+      <div class="alert alert-green" style="margin-top:14px;">
+        <span class="alert-icon">✅</span>
+        <div class="alert-content">
+          <strong>로지스틱 회귀는 정규방정식 없음.</strong> Sigmoid를 포함하므로 해석적 해가 없다 → 반드시 반복적 최적화(경사하강법) 사용.<br>
+          단, MSE와 달리 <strong>Cross-Entropy + Sigmoid 조합은 볼록(convex) 함수</strong> → 지역 최솟값이 곧 전역 최솟값.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       SECTION 03a — 결정 경계
+  ══════════════════════════════════════ -->
+  <section class="section" id="sec03a">
+    <div class="section-header">
+      <span class="section-num">03a</span>
+      <h2 class="section-title">결정 경계 (Decision Boundary)</h2>
+    </div>
+
+    <div class="card">
+      <div class="card-title">결정 규칙</div>
+      <div class="formula-box">
+        P(y=1|x) = σ(θᵀx) ≥ 0.5 → <span style="color:#4ade80;">y = 1로 예측</span><br>
+        P(y=1|x) = σ(θᵀx) &lt; 0.5 → <span style="color:#f87171;">y = 0으로 예측</span><br><br>
+        <span class="comment">결정 경계 조건:</span><br>
+        σ(θᵀx) = 0.5 ⟺ θᵀx = 0 → θ₀ + θ₁x₁ + θ₂x₂ = 0 <span class="comment">(2차원 입력)</span>
+      </div>
+    </div>
+
+    <!-- 결정 경계 그래프 -->
+    <div class="graph-card">
+      <div class="graph-desc">
+        <h4>2차원 예시</h4>
+        <p>θ = [−6, 1, 1] (θ₀=−6, θ₁=1, θ₂=1) 이면:</p>
+        <div class="formula-box" style="font-size:12px; margin:10px 0;">
+          결정 경계: x₁ + x₂ = 6 (직선)
+        </div>
+        <div class="info-card green" style="padding:12px; margin-bottom:8px;">
+          <h4>y = 1 영역</h4>
+          <p>x₁ + x₂ &gt; 6</p>
+        </div>
+        <div class="info-card red" style="padding:12px;">
+          <h4>y = 0 영역</h4>
+          <p>x₁ + x₂ &lt; 6</p>
+        </div>
+        <div class="alert alert-blue" style="margin-top:10px; font-size:12px;">
+          <span class="alert-icon">💡</span>
+          <div class="alert-content"><strong>비선형 결정 경계:</strong> 입력 특징을 다항 변환하면 곡선 경계 가능 (원형, 타원, 쌍곡선 등)</div>
+        </div>
+      </div>
+      <div class="graph-area">
+        <svg viewBox="0 0 380 300" xmlns="http://www.w3.org/2000/svg">
+          <rect width="380" height="300" fill="#0d1117" rx="8"/>
+          <!-- y=1 region (upper right) -->
+          <polygon points="190,50 340,50 340,200" fill="rgba(34,197,94,0.08)"/>
+          <!-- y=0 region (lower left) -->
+          <polygon points="40,300 340,300 340,200 40,200" fill="rgba(239,68,68,0.06)"/>
+          <polygon points="40,50 190,50 40,200" fill="rgba(239,68,68,0.06)"/>
+          <!-- grid -->
+          <line x1="40" y1="260" x2="340" y2="260" stroke="#2a3a55" stroke-width="0.5" stroke-dasharray="3,4"/>
+          <line x1="40" y1="220" x2="340" y2="220" stroke="#2a3a55" stroke-width="0.5" stroke-dasharray="3,4"/>
+          <line x1="40" y1="180" x2="340" y2="180" stroke="#2a3a55" stroke-width="0.5" stroke-dasharray="3,4"/>
+          <line x1="40" y1="140" x2="340" y2="140" stroke="#2a3a55" stroke-width="0.5" stroke-dasharray="3,4"/>
+          <line x1="40" y1="100" x2="340" y2="100" stroke="#2a3a55" stroke-width="0.5" stroke-dasharray="3,4"/>
+          <line x1="80" y1="50" x2="80" y2="290" stroke="#2a3a55" stroke-width="0.5" stroke-dasharray="3,4"/>
+          <line x1="140" y1="50" x2="140" y2="290" stroke="#2a3a55" stroke-width="0.5" stroke-dasharray="3,4"/>
+          <line x1="200" y1="50" x2="200" y2="290" stroke="#2a3a55" stroke-width="0.5" stroke-dasharray="3,4"/>
+          <line x1="260" y1="50" x2="260" y2="290" stroke="#2a3a55" stroke-width="0.5" stroke-dasharray="3,4"/>
+          <line x1="320" y1="50" x2="320" y2="290" stroke="#2a3a55" stroke-width="0.5" stroke-dasharray="3,4"/>
+          <!-- axes -->
+          <line x1="40" y1="290" x2="40" y2="42" stroke="#4a5a75" stroke-width="1.5"/>
+          <line x1="40" y1="290" x2="350" y2="290" stroke="#4a5a75" stroke-width="1.5"/>
+          <polygon points="40,40 34,52 46,52" fill="#4a5a75"/>
+          <polygon points="352,290 340,284 340,296" fill="#4a5a75"/>
+          <!-- x labels -->
+          <text x="80" y="302" fill="#64748b" font-size="10" text-anchor="middle" font-family="Menlo,monospace">1</text>
+          <text x="140" y="302" fill="#64748b" font-size="10" text-anchor="middle" font-family="Menlo,monospace">2</text>
+          <text x="200" y="302" fill="#64748b" font-size="10" text-anchor="middle" font-family="Menlo,monospace">3</text>
+          <text x="260" y="302" fill="#64748b" font-size="10" text-anchor="middle" font-family="Menlo,monospace">4</text>
+          <text x="320" y="302" fill="#64748b" font-size="10" text-anchor="middle" font-family="Menlo,monospace">5</text>
+          <!-- y labels -->
+          <text x="32" y="294" fill="#64748b" font-size="10" text-anchor="end" font-family="Menlo,monospace">0</text>
+          <text x="32" y="264" fill="#64748b" font-size="10" text-anchor="end" font-family="Menlo,monospace">1</text>
+          <text x="32" y="224" fill="#64748b" font-size="10" text-anchor="end" font-family="Menlo,monospace">2</text>
+          <text x="32" y="184" fill="#64748b" font-size="10" text-anchor="end" font-family="Menlo,monospace">3</text>
+          <text x="32" y="144" fill="#64748b" font-size="10" text-anchor="end" font-family="Menlo,monospace">4</text>
+          <text x="32" y="104" fill="#64748b" font-size="10" text-anchor="end" font-family="Menlo,monospace">5</text>
+          <text x="355" y="295" fill="#94a3b8" font-size="11" font-family="Menlo,monospace">x₁</text>
+          <text x="25" y="38" fill="#94a3b8" font-size="11" font-family="Menlo,monospace">x₂</text>
+          <!-- decision boundary: x1+x2=6, x1=1→x2=5(y_s=100), x1=5→x2=1(y_s=260) -->
+          <!-- x_s = 40 + x1*60 = at x1=1: 100 / x1=5: 340 -->
+          <!-- y_s = 290 - x2*40 = at x2=5: 90 / x2=1: 250 wait, scale differs -->
+          <!-- let's use: x1: [0..5] → x_s=[40..340], x2: [0..5] → y_s=[290..90] -->
+          <!-- x_s = 40 + x1*60, y_s = 290 - x2*40 -->
+          <!-- boundary x1+x2=6: at x1=1, x2=5 → (100, 90); at x1=5, x2=1 → (340, 250) -->
+          <line x1="100" y1="90" x2="340" y2="250" stroke="#fbbf24" stroke-width="2.5"/>
+          <!-- class 1 label -->
+          <text x="280" y="100" fill="#4ade80" font-size="13" font-family="Apple SD Gothic Neo,Malgun Gothic,sans-serif" font-weight="700">y = 1</text>
+          <!-- class 0 label -->
+          <text x="60" y="260" fill="#f87171" font-size="13" font-family="Apple SD Gothic Neo,Malgun Gothic,sans-serif" font-weight="700">y = 0</text>
+          <!-- class 1 dots -->
+          <circle cx="260" cy="130" r="5" fill="#4ade80" stroke="#0d1117" stroke-width="1"/>
+          <circle cx="300" cy="110" r="5" fill="#4ade80" stroke="#0d1117" stroke-width="1"/>
+          <circle cx="280" cy="150" r="5" fill="#4ade80" stroke="#0d1117" stroke-width="1"/>
+          <circle cx="320" cy="130" r="5" fill="#4ade80" stroke="#0d1117" stroke-width="1"/>
+          <circle cx="240" cy="160" r="5" fill="#4ade80" stroke="#0d1117" stroke-width="1"/>
+          <!-- class 0 dots -->
+          <circle cx="100" cy="250" r="5" fill="#f87171" stroke="#0d1117" stroke-width="1"/>
+          <circle cx="140" cy="230" r="5" fill="#f87171" stroke="#0d1117" stroke-width="1"/>
+          <circle cx="80" cy="220" r="5" fill="#f87171" stroke="#0d1117" stroke-width="1"/>
+          <circle cx="120" cy="270" r="5" fill="#f87171" stroke="#0d1117" stroke-width="1"/>
+          <circle cx="160" cy="260" r="5" fill="#f87171" stroke="#0d1117" stroke-width="1"/>
+          <!-- legend -->
+          <line x1="60" y1="278" x2="80" y2="278" stroke="#fbbf24" stroke-width="2.5"/>
+          <text x="84" y="282" fill="#94a3b8" font-size="10" font-family="Apple SD Gothic Neo,Malgun Gothic,sans-serif">결정경계: x₁+x₂=6</text>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       SECTION 04 — 다중 클래스 & 정규화
+  ══════════════════════════════════════ -->
+  <section class="section" id="sec04">
+    <div class="section-header">
+      <span class="section-num">04</span>
+      <h2 class="section-title">다중 클래스 확장 & 정규화</h2>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Softmax 함수 (다중 분류)</div>
+      <p style="color:var(--text-sub); font-size:14px; margin-bottom:14px;">
+        이진 분류(Sigmoid)를 K개 클래스로 일반화 → <strong style="color:var(--accent2)">Softmax 함수</strong>
+      </p>
+      <div class="formula-box">
+        P(y=k | x; W) = exp(wₖᵀx) / Σⱼ exp(wⱼᵀx)  <span class="comment">→ K개 클래스의 확률 합 = 1</span>
+      </div>
+      <div class="grid-2" style="margin-top:16px;">
+        <div class="info-card blue" style="padding:18px;">
+          <h4>Sigmoid (이진 분류)</h4>
+          <ul>
+            <li>클래스 K = 2</li>
+            <li>출력: P(y=1|x) ∈ (0,1) (스칼라)</li>
+            <li>σ(z) = 1/(1 + e⁻ᶻ)</li>
+            <li style="color:var(--text-dim);">Softmax(K=2)와 동치</li>
+          </ul>
+        </div>
+        <div class="info-card purple" style="padding:18px;">
+          <h4>Softmax (다중 분류)</h4>
+          <ul>
+            <li>클래스 K ≥ 2</li>
+            <li>출력: [P(y=0), …, P(y=K−1)] 벡터</li>
+            <li>각 원소 ∈ (0,1), 합 = 1</li>
+            <li>→ 확률 분포 형태</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">다중 클래스 Cross-Entropy (Categorical CE)</div>
+      <div class="formula-box">
+        J(W) = −(1/N) Σᵢ Σₖ yᵢₖ · log P(y=k|xᵢ; W)<br>
+        <span class="comment">yᵢₖ: one-hot 레이블</span>
+      </div>
+      <div class="alert alert-purple" style="background:rgba(168,85,247,0.08); border:1px solid rgba(168,85,247,0.2); margin-top:14px;">
+        <span class="alert-icon">🔬</span>
+        <div class="alert-content">Categorical Cross-Entropy 최소화 = <strong>Categorical 분포에 대한 MLE</strong> — MLE 수업에서 증명</div>
+      </div>
+    </div>
+
+    <!-- 정규화 -->
+    <div class="subsection-title">정규화 (Regularization)</div>
+
+    <div class="card">
+      <div class="card-title" style="color:var(--red2);">과적합(Overfitting): 훈련 데이터의 노이즈까지 학습 → 새로운 데이터에서 성능 저하</div>
+      <p style="color:var(--text-sub); font-size:14px; margin-bottom:16px;">
+        정규화: <strong style="color:var(--accent2)">손실 함수에 패널티 항을 추가</strong>해 θ가 과도하게 커지는 것을 제한
+      </p>
+      <div class="grid-2">
+        <div class="info-card blue" style="padding:18px;">
+          <h4>L2 정규화 (Ridge)</h4>
+          <div class="formula-box" style="font-size:12px; margin:10px 0;">
+            J(θ) = 원래 손실 + λ||θ||²
+          </div>
+          <ul>
+            <li>θ를 0 방향으로 축소 (shrinkage)</li>
+            <li>모든 특징을 조금씩 사용</li>
+            <li style="color:var(--text-dim); font-size:12px;">= Gaussian Prior를 사용한 MAP 추정</li>
+          </ul>
+        </div>
+        <div class="info-card yellow" style="padding:18px;">
+          <h4>L1 정규화 (Lasso)</h4>
+          <div class="formula-box" style="font-size:12px; margin:10px 0;">
+            J(θ) = 원래 손실 + λ||θ||₁
+          </div>
+          <ul>
+            <li>일부 θ를 정확히 0으로 만듦</li>
+            <li>자동 특징 선택 (sparse solution)</li>
+            <li style="color:var(--text-dim); font-size:12px;">= Laplace Prior를 사용한 MAP 추정</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">정규화 강도 λ (하이퍼파라미터)</div>
+      <!-- lambda effect graph -->
+      <svg viewBox="0 0 700 120" xmlns="http://www.w3.org/2000/svg" style="width:100%; display:block; margin-bottom:12px;">
+        <rect width="700" height="120" fill="#0d1117" rx="6"/>
+        <!-- axis -->
+        <line x1="40" y1="60" x2="660" y2="60" stroke="#4a5a75" stroke-width="1.5"/>
+        <polygon points="662,60 650,55 650,65" fill="#4a5a75"/>
+        <!-- markers -->
+        <line x1="40" y1="50" x2="40" y2="70" stroke="#22c55e" stroke-width="2"/>
+        <line x1="340" y1="50" x2="340" y2="70" stroke="#fbbf24" stroke-width="2"/>
+        <line x1="640" y1="50" x2="640" y2="70" stroke="#ef4444" stroke-width="2"/>
+        <!-- labels -->
+        <text x="40" y="42" fill="#22c55e" font-size="11" text-anchor="middle" font-family="Apple SD Gothic Neo,Malgun Gothic,sans-serif">λ = 0</text>
+        <text x="40" y="88" fill="#94a3b8" font-size="10" text-anchor="middle" font-family="Apple SD Gothic Neo,Malgun Gothic,sans-serif">정규화 없음</text>
+        <text x="40" y="102" fill="#94a3b8" font-size="10" text-anchor="middle" font-family="Apple SD Gothic Neo,Malgun Gothic,sans-serif">(일반 학습)</text>
+        <text x="340" y="42" fill="#fbbf24" font-size="11" text-anchor="middle" font-family="Apple SD Gothic Neo,Malgun Gothic,sans-serif">λ 최적값</text>
+        <text x="340" y="88" fill="#94a3b8" font-size="10" text-anchor="middle" font-family="Apple SD Gothic Neo,Malgun Gothic,sans-serif">교차 검증으로</text>
+        <text x="340" y="102" fill="#94a3b8" font-size="10" text-anchor="middle" font-family="Apple SD Gothic Neo,Malgun Gothic,sans-serif">선택</text>
+        <text x="640" y="42" fill="#ef4444" font-size="11" text-anchor="middle" font-family="Apple SD Gothic Neo,Malgun Gothic,sans-serif">λ → ∞</text>
+        <text x="640" y="88" fill="#94a3b8" font-size="10" text-anchor="middle" font-family="Apple SD Gothic Neo,Malgun Gothic,sans-serif">θ → 0</text>
+        <text x="640" y="102" fill="#94a3b8" font-size="10" text-anchor="middle" font-family="Apple SD Gothic Neo,Malgun Gothic,sans-serif">심한 underfitting</text>
+        <text x="662" y="65" fill="#94a3b8" font-size="11" font-family="Menlo,monospace">λ</text>
+      </svg>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       SECTION 05 — 비교 & 요약
+  ══════════════════════════════════════ -->
+  <section class="section" id="sec05">
+    <div class="section-header">
+      <span class="section-num">05</span>
+      <h2 class="section-title">선형 회귀 vs 로지스틱 회귀 — 비교 & 핵심 요약</h2>
+    </div>
+
+    <div class="card">
+      <div class="card-title">핵심 비교표</div>
+      <table class="cmp-table">
+        <thead>
+          <tr>
+            <th>비교 항목</th>
+            <th>선형 회귀 (Linear Reg.)</th>
+            <th>로지스틱 회귀 (Logistic Reg.)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>문제 유형</td>
+            <td>회귀 (연속 출력)</td>
+            <td>이진 분류 (확률 출력)</td>
+          </tr>
+          <tr>
+            <td>출력 범위</td>
+            <td>ŷ ∈ ℝ (임의 실수)</td>
+            <td>ŷ ∈ (0, 1) (확률)</td>
+          </tr>
+          <tr>
+            <td>출력 함수</td>
+            <td><code style="font-family:Menlo,monospace; color:var(--accent2);">ŷ = θᵀx</code> (항등 함수)</td>
+            <td><code style="font-family:Menlo,monospace; color:var(--green2);">ŷ = σ(θᵀx)</code> (Sigmoid)</td>
+          </tr>
+          <tr>
+            <td>손실 함수</td>
+            <td>MSE: (1/N)Σ(ŷ − y)²</td>
+            <td>Binary CE: −(1/N)Σ[y·log(ŷ)+(1−y)·log(1−ŷ)]</td>
+          </tr>
+          <tr>
+            <td>해석적 해</td>
+            <td><span class="badge badge-green">O</span> 정규방정식 (XᵀX)⁻¹Xᵀy</td>
+            <td><span class="badge badge-red">X</span> 반드시 경사하강법</td>
+          </tr>
+          <tr>
+            <td>MLE 연결</td>
+            <td>MSE = Gaussian MLE</td>
+            <td>Cross-Entropy = Bernoulli MLE</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="alert alert-yellow" style="margin-top:16px;">
+        <span class="alert-icon">⭐</span>
+        <div class="alert-content">
+          <strong>두 모델 모두 '선형 결정 경계'를 가진다.</strong> 비선형 경계가 필요하면 특징 변환 또는 신경망을 사용한다.
+        </div>
+      </div>
+    </div>
+
+    <!-- 핵심 요약 -->
+    <div class="card" style="margin-top:24px;">
+      <div class="card-title">기계학습 관점 요약</div>
+      <div class="summary-grid">
+        <div class="summary-card s-blue">
+          <h4>📐 모델</h4>
+          <ul>
+            <li>선형: ŷ = θᵀx (= Wx + b)</li>
+            <li>로지스틱: ŷ = σ(θᵀx)</li>
+            <li>신경망: ŷ = f(x; θ) (비선형 구성)</li>
+          </ul>
+        </div>
+        <div class="summary-card s-green">
+          <h4>📉 손실 함수</h4>
+          <ul>
+            <li>MSE: (1/N)Σ(ŷᵢ−yᵢ)² [회귀]</li>
+            <li>Binary CE: [이진 분류]</li>
+            <li>Categorical CE: [다중 분류]</li>
+          </ul>
+        </div>
+        <div class="summary-card s-yellow">
+          <h4>⚙️ 최적화</h4>
+          <ul>
+            <li>정규방정식: θ=(XᵀX)⁻¹Xᵀy (소규모)</li>
+            <li>배치 GD: 전체 데이터 사용</li>
+            <li>미니배치 GD: 딥러닝 표준 ★</li>
+          </ul>
+        </div>
+        <div class="summary-card s-purple">
+          <h4>🔗 신경망 연결</h4>
+          <ul>
+            <li>출력층 = 선형/로지스틱 회귀의 일반화</li>
+            <li>L2 정규화 = Gaussian Prior MAP</li>
+            <li>L1 정규화 = Laplace Prior MAP</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- 연습문제 -->
+    <div class="card" style="margin-top:24px; border-color:var(--accent);">
+      <div class="card-title">연습문제 (슬라이드 18)</div>
+      <div class="grid-2">
+        <div class="info-card blue" style="padding:18px;">
+          <h4>Q1 선형 회귀</h4>
+          <p>데이터 5개 [(1,2), (2,3), (3,5), (4,6), (5,8)]에 대해<br>
+          MSE 손실 J(θ)를 행렬 표현으로 나타내고,<br>
+          정규방정식으로 θ를 구하라.</p>
+        </div>
+        <div class="info-card yellow" style="padding:18px;">
+          <h4>Q2 이진 분류</h4>
+          <p>θ = [−3, 1, 1]이고 입력 x = [2, 2]일 때:<br>
+          ① P(y=1|x) = σ(θᵀx)를 계산하라.<br>
+          ② 결정 경계 θᵀx = 0을 2D 직선으로 나타내라.</p>
+        </div>
+        <div class="info-card green" style="padding:18px;">
+          <h4>Q3 생각해볼 문제</h4>
+          <p>분류 문제에서 MSE 손실을 사용했을 때의 문제점을 구체적인 예시를 들어 설명하라.<br>
+          (힌트: 이상치가 하나 추가됐을 때 결정 경계는?)</p>
+        </div>
+        <div class="info-card purple" style="padding:18px;">
+          <h4>Q4 연결고리</h4>
+          <p>선형 회귀의 MSE 최소화와 정규분포 하의 MLE가 동치임을 직관적으로 설명하라.<br>
+          (다음 단원 MLE/MAP를 예습해보세요)</p>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+</main>
+
+<script>
+function setActive(el) {
+  document.querySelectorAll('.toc-item').forEach(i => i.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// 스크롤 감지로 TOC 하이라이팅
+const sections = document.querySelectorAll('section[id]');
+const tocItems = document.querySelectorAll('.toc-item');
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const id = entry.target.getAttribute('id');
+      tocItems.forEach(item => {
+        item.classList.remove('active');
+        if (item.getAttribute('href') === '#' + id) {
+          item.classList.add('active');
+        }
+      });
+    }
+  });
+}, { rootMargin: '-20% 0px -70% 0px' });
+
+sections.forEach(section => observer.observe(section));
+</script>
+</body>
+</html>
