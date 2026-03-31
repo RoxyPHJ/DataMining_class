@@ -1,0 +1,1273 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>6: Linear Model (1) — Data Mining</title>
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --surface: #111827;
+    --surface2: #1a2235;
+    --surface3: #1e2d45;
+    --border: #1e3050;
+    --accent: #38bdf8;
+    --accent2: #818cf8;
+    --accent3: #34d399;
+    --accent4: #f472b6;
+    --warn: #fb923c;
+    --text: #e2e8f0;
+    --text2: #94a3b8;
+    --text3: #64748b;
+    --red: #f87171;
+    --yellow: #fbbf24;
+    --green: #34d399;
+    --font-body: 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', sans-serif;
+    --font-code: 'Menlo', 'Courier New', monospace;
+    --font-head: 'Impact', 'Arial Narrow', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.75;
+    min-height: 100vh;
+  }
+
+  /* ── LAYOUT ── */
+  .layout {
+    display: flex;
+    min-height: 100vh;
+  }
+
+  /* ── TOC SIDEBAR ── */
+  .toc {
+    width: 260px;
+    min-width: 260px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 28px 0 40px;
+    flex-shrink: 0;
+  }
+
+  .toc-header {
+    padding: 0 22px 20px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 16px;
+  }
+  .toc-course {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .toc-title {
+    font-family: var(--font-head);
+    font-size: 16px;
+    letter-spacing: 0.04em;
+    color: var(--text);
+    line-height: 1.3;
+  }
+
+  .toc-list {
+    list-style: none;
+    padding: 0 10px;
+  }
+  .toc-list li a {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px 12px;
+    border-radius: 7px;
+    text-decoration: none;
+    color: var(--text2);
+    font-size: 12.5px;
+    line-height: 1.4;
+    transition: all 0.2s;
+  }
+  .toc-list li a:hover {
+    background: var(--surface2);
+    color: var(--text);
+  }
+  .toc-list li a.active {
+    background: rgba(56,189,248,0.12);
+    color: var(--accent);
+  }
+  .toc-num {
+    font-family: var(--font-head);
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.05em;
+    min-width: 26px;
+    padding-top: 1px;
+    opacity: 0.7;
+  }
+  .toc-list li a.active .toc-num { opacity: 1; }
+
+  /* ── MAIN CONTENT ── */
+  .main {
+    flex: 1;
+    padding: 52px 48px 80px;
+    max-width: 960px;
+  }
+
+  /* ── PAGE HERO ── */
+  .hero {
+    margin-bottom: 60px;
+    padding-bottom: 36px;
+    border-bottom: 1px solid var(--border);
+  }
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(56,189,248,0.1);
+    border: 1px solid rgba(56,189,248,0.25);
+    border-radius: 20px;
+    padding: 4px 14px;
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+  .hero-title {
+    font-family: var(--font-head);
+    font-size: 42px;
+    letter-spacing: 0.04em;
+    color: var(--text);
+    line-height: 1.1;
+    margin-bottom: 10px;
+  }
+  .hero-sub {
+    font-size: 16px;
+    color: var(--text2);
+  }
+  .hero-meta {
+    display: flex;
+    gap: 24px;
+    margin-top: 20px;
+  }
+  .hero-meta-item {
+    font-size: 12px;
+    color: var(--text3);
+  }
+  .hero-meta-item span {
+    color: var(--text2);
+  }
+
+  /* ── SECTION ── */
+  .section {
+    margin-bottom: 60px;
+    scroll-margin-top: 32px;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+  .section-num {
+    font-family: var(--font-head);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    color: var(--accent);
+    background: rgba(56,189,248,0.1);
+    border: 1px solid rgba(56,189,248,0.2);
+    border-radius: 5px;
+    padding: 3px 10px;
+  }
+  .section-title {
+    font-family: var(--font-head);
+    font-size: 24px;
+    letter-spacing: 0.04em;
+    color: var(--text);
+  }
+
+  /* ── CARD ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px 28px;
+    margin-bottom: 18px;
+  }
+  .card-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent2);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+  .card p {
+    color: var(--text2);
+    font-size: 14px;
+    margin-bottom: 10px;
+  }
+  .card p:last-child { margin-bottom: 0; }
+
+  /* ── SPLIT CARD (text left, SVG right) ── */
+  .card-split {
+    display: flex;
+    gap: 28px;
+    align-items: flex-start;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px 28px;
+    margin-bottom: 18px;
+  }
+  .card-split .card-text { flex: 1; min-width: 0; }
+  .card-split .card-visual { flex: 0 0 340px; }
+
+  /* ── BULLET LIST ── */
+  .blist {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .blist li {
+    padding: 5px 0 5px 20px;
+    position: relative;
+    color: var(--text2);
+    font-size: 14px;
+  }
+  .blist li::before {
+    content: '▸';
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+    font-size: 11px;
+    top: 7px;
+  }
+  .blist li strong { color: var(--text); }
+
+  /* ── HIGHLIGHT ── */
+  .hl { color: var(--accent); font-weight: 600; }
+  .hl2 { color: var(--accent2); font-weight: 600; }
+  .hl3 { color: var(--accent3); font-weight: 600; }
+  .hl4 { color: var(--accent4); font-weight: 600; }
+  .hlw { color: var(--warn); font-weight: 600; }
+
+  /* ── FORMULA BOX ── */
+  .formula {
+    background: var(--surface2);
+    border-left: 3px solid var(--accent2);
+    border-radius: 0 8px 8px 0;
+    padding: 14px 20px;
+    margin: 14px 0;
+    font-family: var(--font-code);
+    font-size: 13.5px;
+    color: var(--accent2);
+    letter-spacing: 0.02em;
+    overflow-x: auto;
+  }
+
+  /* ── CODE BLOCK ── */
+  .code-block {
+    background: #0d1626;
+    border: 1px solid #1e3050;
+    border-radius: 8px;
+    padding: 16px 20px;
+    font-family: var(--font-code);
+    font-size: 12.5px;
+    line-height: 1.8;
+    color: #a5d6ff;
+    overflow-x: auto;
+    margin: 12px 0;
+  }
+  .code-block .kw { color: #c792ea; }
+  .code-block .fn { color: #82aaff; }
+  .code-block .str { color: #c3e88d; }
+  .code-block .cmt { color: #546e7a; font-style: italic; }
+  .code-block .num { color: #f78c6c; }
+  .code-block .var { color: #eeffff; }
+
+  /* ── TABLE ── */
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin: 16px 0;
+  }
+  .data-table th {
+    background: var(--surface2);
+    color: var(--accent);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 10px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  .data-table td {
+    padding: 9px 14px;
+    color: var(--text2);
+    border-bottom: 1px solid rgba(30,48,80,0.5);
+    font-size: 13px;
+  }
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table td strong { color: var(--text); }
+
+  /* ── BADGE ── */
+  .badge {
+    display: inline-block;
+    padding: 2px 9px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+  .badge-blue { background: rgba(56,189,248,0.15); color: var(--accent); }
+  .badge-purple { background: rgba(129,140,248,0.15); color: var(--accent2); }
+  .badge-green { background: rgba(52,211,153,0.15); color: var(--accent3); }
+  .badge-orange { background: rgba(251,146,60,0.15); color: var(--warn); }
+  .badge-red { background: rgba(248,113,113,0.15); color: var(--red); }
+
+  /* ── COMPARE TABLE ── */
+  .compare-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+  }
+  .compare-table th {
+    padding: 12px 16px;
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    text-align: center;
+    border-bottom: 2px solid var(--border);
+  }
+  .compare-table th:nth-child(2) { color: var(--accent); }
+  .compare-table th:nth-child(3) { color: var(--accent3); }
+  .compare-table td {
+    padding: 11px 16px;
+    color: var(--text2);
+    font-size: 13px;
+    border-bottom: 1px solid rgba(30,48,80,0.5);
+    vertical-align: middle;
+  }
+  .compare-table td:first-child { color: var(--text3); font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .compare-table td:nth-child(2) { color: var(--accent); }
+  .compare-table td:nth-child(3) { color: var(--accent3); }
+
+  /* ── SVG general ── */
+  .chart-svg { width: 100%; display: block; }
+
+  /* ── SUMMARY BOX ── */
+  .summary-box {
+    background: linear-gradient(135deg, rgba(56,189,248,0.07) 0%, rgba(129,140,248,0.07) 100%);
+    border: 1px solid rgba(129,140,248,0.25);
+    border-radius: 12px;
+    padding: 26px 30px;
+    margin-bottom: 18px;
+  }
+  .summary-box h3 {
+    color: var(--accent2);
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .summary-box p {
+    color: var(--text2);
+    font-size: 14px;
+    margin-bottom: 8px;
+  }
+
+  /* ── ALGO STEP ── */
+  .algo {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    font-family: var(--font-code);
+    font-size: 13px;
+    line-height: 2;
+    color: var(--text2);
+    margin: 14px 0;
+    counter-reset: step;
+  }
+  .algo .step {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .algo .step-num {
+    color: var(--accent3);
+    min-width: 20px;
+    font-weight: 700;
+  }
+  .algo .step-text { flex: 1; }
+  .algo .kw2 { color: #c792ea; }
+  .algo .indent { padding-left: 28px; }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--surface); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text3); }
+
+  /* ── GRID 2-COL ── */
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 18px; }
+
+  @media (max-width: 900px) {
+    .layout { flex-direction: column; }
+    .toc { width: 100%; height: auto; position: static; }
+    .main { padding: 28px 20px 60px; }
+    .card-split { flex-direction: column; }
+    .card-split .card-visual { flex: unset; width: 100%; }
+    .grid2 { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+<!-- ── TOC ── -->
+<nav class="toc" id="toc">
+  <div class="toc-header">
+    <div class="toc-course">Data Mining · FE06064001</div>
+    <div class="toc-title">6: Linear Model (1)</div>
+  </div>
+  <ul class="toc-list">
+    <li><a href="#s01" class="toc-link"><span class="toc-num">01</span>선형 모델 개요</a></li>
+    <li><a href="#s02" class="toc-link"><span class="toc-num">02</span>이진 분류</a></li>
+    <li><a href="#s03" class="toc-link"><span class="toc-num">03</span>선형 분리 불가 & Pocket</a></li>
+    <li><a href="#s04" class="toc-link"><span class="toc-num">04</span>손글씨 숫자 인식</a></li>
+    <li><a href="#s05" class="toc-link"><span class="toc-num">05</span>MNIST 데이터셋</a></li>
+    <li><a href="#s06" class="toc-link"><span class="toc-num">06</span>회귀 개요</a></li>
+    <li><a href="#s07" class="toc-link"><span class="toc-num">07</span>선형 회귀 알고리즘</a></li>
+    <li><a href="#s08" class="toc-link"><span class="toc-num">08</span>행렬 표현 & 해 도출</a></li>
+    <li><a href="#s09" class="toc-link"><span class="toc-num">09</span>실습 예제: 산소/탄화수소</a></li>
+    <li><a href="#s10" class="toc-link"><span class="toc-num">10</span>핵심 요약</a></li>
+  </ul>
+</nav>
+
+<!-- ── MAIN ── -->
+<main class="main">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-badge">📘 Lecture 6</div>
+    <h1 class="hero-title">Linear Model (1)</h1>
+    <p class="hero-sub">분류·회귀·확률 추정을 위한 선형 모델 이론과 알고리즘</p>
+    <div class="hero-meta">
+      <div class="hero-meta-item">강의자 <span>Jangho Lee</span></div>
+      <div class="hero-meta-item">소속 <span>CSE, Incheon National University</span></div>
+      <div class="hero-meta-item">슬라이드 <span>41p</span></div>
+    </div>
+  </div>
+
+  <!-- ── S01 선형 모델 개요 ── -->
+  <section class="section" id="s01">
+    <div class="section-header">
+      <span class="section-num">01</span>
+      <h2 class="section-title">선형 모델 개요</h2>
+    </div>
+
+    <div class="card">
+      <div class="card-title">The Linear Model</div>
+      <ul class="blist">
+        <li><strong>직선들의 집합(set of lines)</strong>으로 이루어진 모델</li>
+        <li>많은 경우 <span class="hl">좋은 첫 번째 선택(good first choice)</span></li>
+        <li><span class="hl2">작은 VC 차원</span> → 학습 데이터(E_in)에서 테스트 데이터(E_out)로 잘 일반화</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="card-title">세 가지 핵심 문제 (슬라이드 3)</div>
+      <div class="grid2">
+        <div style="background:var(--surface2);border-radius:9px;padding:18px 20px;border:1px solid var(--border);">
+          <div class="badge badge-blue" style="margin-bottom:10px;">1. Classification</div>
+          <p style="font-size:13px;color:var(--text2);margin:0;">입력 데이터를 <strong style="color:var(--text)">이산 클래스</strong>로 분류</p>
+        </div>
+        <div style="background:var(--surface2);border-radius:9px;padding:18px 20px;border:1px solid var(--border);">
+          <div class="badge badge-purple" style="margin-bottom:10px;">2. Regression</div>
+          <p style="font-size:13px;color:var(--text2);margin:0;">연속적인 <strong style="color:var(--text)">실수 값</strong>을 예측</p>
+        </div>
+      </div>
+      <div style="background:var(--surface2);border-radius:9px;padding:18px 20px;border:1px solid var(--border);">
+        <div class="badge badge-green" style="margin-bottom:10px;">3. Probability Estimation (Logistic Regression)</div>
+        <p style="font-size:13px;color:var(--text2);margin:0;">클래스에 속할 <strong style="color:var(--text)">확률</strong>을 추정</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── S02 이진 분류 ── -->
+  <section class="section" id="s02">
+    <div class="section-header">
+      <span class="section-num">02</span>
+      <h2 class="section-title">이진 분류 (Binary Classification)</h2>
+    </div>
+
+    <div class="card">
+      <div class="card-title">선형 분류기의 가설 (슬라이드 4)</div>
+      <ul class="blist">
+        <li>가설 집합: 선형 분류기들의 집합</li>
+        <li><strong>w</strong> ∈ ℝ<sup>d+1</sup> : 가중치 열벡터 (weight column vector)</li>
+        <li>d : 입력 차원 (input dimension)</li>
+        <li>x₀ = 1 : 편향(bias) w₀에 대응</li>
+        <li>h와 <strong>w</strong>는 가설을 지칭하는 데 혼용</li>
+      </ul>
+      <div class="formula">h(x) = sign(w<sup>T</sup>x)</div>
+      <p style="font-size:13px;color:var(--text3);margin-top:8px;">※ PLA(Perceptron Learning Algorithm)는 선형 분리 가능한 데이터에서 최적 <strong>w</strong>를 찾음</p>
+    </div>
+
+    <div class="card-split">
+      <div class="card-text">
+        <div class="card-title">선형 분리 불가 데이터의 두 유형 (슬라이드 5)</div>
+        <ul class="blist">
+          <li><span class="hl">(a) 노이즈 포인트</span><br>단 2개 예제를 이동하면 선형 분리 가능 → 노이즈/이상치</li>
+          <li><span class="hl2">(b) 비선형 분리</span><br>직선이 아닌 원(circle)으로만 분리 가능</li>
+        </ul>
+        <div style="margin-top:16px;">
+          <div class="badge badge-blue" style="margin-right:6px;">상황 (a)</div>
+          <span style="font-size:13px;color:var(--text2);">선형 모델 유지 + 노이즈 허용 (E_in을 0이 아닌 작은 값으로)</span>
+        </div>
+        <div style="margin-top:10px;">
+          <div class="badge badge-purple" style="margin-right:6px;">상황 (b)</div>
+          <span style="font-size:13px;color:var(--text2);">비선형 변환(nonlinear transformation) 기법 필요</span>
+        </div>
+      </div>
+      <div class="card-visual">
+        <!-- SVG: 두 유형 시각화 -->
+        <svg viewBox="0 0 340 260" class="chart-svg" xmlns="http://www.w3.org/2000/svg">
+          <!-- (a) 노이즈 -->
+          <rect x="10" y="10" width="150" height="115" rx="8" fill="#1a2235" stroke="#1e3050" stroke-width="1"/>
+          <text x="85" y="28" text-anchor="middle" fill="#94a3b8" font-size="9" font-family="Apple SD Gothic Neo,sans-serif">(a) 노이즈 포인트</text>
+          <!-- 분리선 -->
+          <line x1="30" y1="108" x2="145" y2="30" stroke="#38bdf8" stroke-width="1.5" stroke-dasharray="4,3"/>
+          <!-- O points (blue) -->
+          <circle cx="120" cy="38" r="5" fill="none" stroke="#60a5fa" stroke-width="1.5"/>
+          <circle cx="100" cy="35" r="5" fill="none" stroke="#60a5fa" stroke-width="1.5"/>
+          <circle cx="135" cy="50" r="5" fill="none" stroke="#60a5fa" stroke-width="1.5"/>
+          <circle cx="110" cy="55" r="5" fill="none" stroke="#60a5fa" stroke-width="1.5"/>
+          <circle cx="90" cy="65" r="5" fill="none" stroke="#60a5fa" stroke-width="1.5"/>
+          <!-- X points (red) -->
+          <text x="45" y="60" fill="#f87171" font-size="12" font-weight="bold">×</text>
+          <text x="35" y="78" fill="#f87171" font-size="12" font-weight="bold">×</text>
+          <text x="55" y="85" fill="#f87171" font-size="12" font-weight="bold">×</text>
+          <text x="68" y="98" fill="#f87171" font-size="12" font-weight="bold">×</text>
+          <text x="90" y="108" fill="#f87171" font-size="12" font-weight="bold">×</text>
+          <!-- noisy outliers -->
+          <circle cx="68" cy="48" r="5" fill="none" stroke="#60a5fa" stroke-width="1.5" opacity="0.5"/>
+          <circle cx="80" cy="90" r="5" fill="none" stroke="#60a5fa" stroke-width="1.5" opacity="0.5"/>
+
+          <!-- (b) 비선형 -->
+          <rect x="175" y="10" width="155" height="115" rx="8" fill="#1a2235" stroke="#1e3050" stroke-width="1"/>
+          <text x="253" y="28" text-anchor="middle" fill="#94a3b8" font-size="9" font-family="Apple SD Gothic Neo,sans-serif">(b) 비선형 분리</text>
+          <!-- circle boundary -->
+          <ellipse cx="253" cy="72" rx="42" ry="32" fill="none" stroke="#818cf8" stroke-width="1.5"/>
+          <!-- O inside circle -->
+          <circle cx="253" cy="62" r="5" fill="none" stroke="#60a5fa" stroke-width="1.5"/>
+          <circle cx="240" cy="72" r="5" fill="none" stroke="#60a5fa" stroke-width="1.5"/>
+          <circle cx="265" cy="75" r="5" fill="none" stroke="#60a5fa" stroke-width="1.5"/>
+          <circle cx="255" cy="83" r="5" fill="none" stroke="#60a5fa" stroke-width="1.5"/>
+          <!-- X outside -->
+          <text x="195" y="42" fill="#f87171" font-size="12" font-weight="bold">×</text>
+          <text x="300" y="40" fill="#f87171" font-size="12" font-weight="bold">×</text>
+          <text x="185" y="90" fill="#f87171" font-size="12" font-weight="bold">×</text>
+          <text x="305" y="88" fill="#f87171" font-size="12" font-weight="bold">×</text>
+          <text x="220" y="115" fill="#f87171" font-size="12" font-weight="bold">×</text>
+          <text x="275" y="115" fill="#f87171" font-size="12" font-weight="bold">×</text>
+
+          <!-- 범례 -->
+          <circle cx="30" cy="150" r="5" fill="none" stroke="#60a5fa" stroke-width="1.5"/>
+          <text x="42" y="154" fill="#94a3b8" font-size="10" font-family="Apple SD Gothic Neo,sans-serif">클래스 O (positive)</text>
+          <text x="30" y="175" fill="#f87171" font-size="12" font-weight="bold">×</text>
+          <text x="42" y="179" fill="#94a3b8" font-size="10" font-family="Apple SD Gothic Neo,sans-serif">클래스 X (negative)</text>
+          <line x1="30" y1="200" x2="55" y2="200" stroke="#38bdf8" stroke-width="1.5" stroke-dasharray="4,3"/>
+          <text x="62" y="204" fill="#94a3b8" font-size="10" font-family="Apple SD Gothic Neo,sans-serif">결정 경계</text>
+          <ellipse cx="42" cy="225" rx="12" ry="8" fill="none" stroke="#818cf8" stroke-width="1.5"/>
+          <text x="62" y="229" fill="#94a3b8" font-size="10" font-family="Apple SD Gothic Neo,sans-serif">원형 경계</text>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── S03 Pocket Algorithm ── -->
+  <section class="section" id="s03">
+    <div class="section-header">
+      <span class="section-num">03</span>
+      <h2 class="section-title">선형 분리 불가 & Pocket Algorithm</h2>
+    </div>
+
+    <div class="card">
+      <div class="card-title">E_in 최소화의 어려움 (슬라이드 7)</div>
+      <ul class="blist">
+        <li>최소 E_in을 찾으려면 <span class="hlw">조합 최적화(combinatorial optimization)</span> 필요</li>
+        <li>sign(·) 함수와 [·] 모두 이산적(discrete) → <span class="hlw">일반적으로 NP-hard</span></li>
+        <li>효율적인 알고리즘이 알려져 있지 않음</li>
+      </ul>
+      <div class="formula">min<sub>w∈ℝ<sup>d+1</sup></sub>  (1/N) · Σ [sign(w<sup>T</sup>x) ≠ y]</div>
+      <p style="font-size:13px;color:var(--text2);margin-top:8px;">→ 따라서 E_in을 <span class="hl">근사적으로 최소화</span>하는 접근이 필요</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Pocket Algorithm (슬라이드 8~9)</div>
+      <ul class="blist" style="margin-bottom:16px;">
+        <li>PLA의 <span class="hl">단순 수정</span>으로 확장 (pocket algorithm with ratchet)</li>
+        <li>매 반복마다 <span class="hl2">"주머니(pocket)"에 최선의 w를 보관</span></li>
+        <li>최종적으로 가장 낮은 E_in을 가진 w를 반환</li>
+        <li>단점: 각 반복에서 E_in 평가 필요 → PLA보다 <span class="hlw">훨씬 느림</span></li>
+      </ul>
+      <div class="algo">
+        <div class="step"><span class="step-num">1:</span><span class="step-text"><span class="kw2">set</span> pocket weight vector <strong>ŵ</strong> ← <strong>w</strong><sup>(0)</sup> of PLA</span></div>
+        <div class="step"><span class="step-num">2:</span><span class="step-text"><span class="kw2">for</span> t = 0, …, T−1 <span class="kw2">do</span></span></div>
+        <div class="step"><span class="step-num">3:</span><span class="step-text indent">run PLA for one update → obtain <strong>w</strong><sup>(t+1)</sup></span></div>
+        <div class="step"><span class="step-num">4:</span><span class="step-text indent">evaluate E_in(<strong>w</strong><sup>(t+1)</sup>)  <span class="cmt">/* time consuming */</span></span></div>
+        <div class="step"><span class="step-num">5:</span><span class="step-text indent"><span class="kw2">if</span> <strong>w</strong><sup>(t+1)</sup> is better than <strong>ŵ</strong> in terms of E_in</span></div>
+        <div class="step"><span class="step-num">6:</span><span class="step-text indent">&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw2">then</span> set <strong>ŵ</strong> ← <strong>w</strong><sup>(t+1)</sup></span></div>
+        <div class="step"><span class="step-num">7:</span><span class="step-text"><span class="kw2">return</span> <strong>ŵ</strong></span></div>
+      </div>
+    </div>
+
+    <div class="card-split">
+      <div class="card-text">
+        <div class="card-title">PLA vs Pocket: 오류 비교 (슬라이드 14)</div>
+        <table class="compare-table">
+          <tr>
+            <th></th><th>PLA</th><th>Pocket</th>
+          </tr>
+          <tr>
+            <td>E_in</td>
+            <td>2.24%</td>
+            <td><strong>0.45%</strong></td>
+          </tr>
+          <tr>
+            <td>E_out</td>
+            <td>6.37%</td>
+            <td><strong>1.89%</strong></td>
+          </tr>
+          <tr>
+            <td>반복 횟수</td>
+            <td>1000 (강제 종료)</td>
+            <td>1000</td>
+          </tr>
+          <tr>
+            <td>수렴 형태</td>
+            <td>불안정 (진동)</td>
+            <td>단조 감소</td>
+          </tr>
+        </table>
+        <p style="font-size:13px;color:var(--text2);margin-top:12px;">Pocket: E_in이 <span class="hl3">단조적으로 감소</span>하며 안정화</p>
+      </div>
+      <div class="card-visual">
+        <!-- SVG: PLA vs Pocket 오류 그래프 -->
+        <svg viewBox="0 0 320 210" class="chart-svg" xmlns="http://www.w3.org/2000/svg">
+          <!-- 제목 -->
+          <text x="160" y="16" text-anchor="middle" fill="#94a3b8" font-size="10" font-family="Apple SD Gothic Neo,sans-serif">Error vs. Iteration (log scale)</text>
+
+          <!-- 축 -->
+          <line x1="50" y1="28" x2="50" y2="168" stroke="#1e3050" stroke-width="1.5"/>
+          <line x1="50" y1="168" x2="305" y2="168" stroke="#1e3050" stroke-width="1.5"/>
+
+          <!-- y축 눈금 레이블 (로그 스케일 근사) -->
+          <text x="44" y="35" text-anchor="end" fill="#64748b" font-size="9">50%</text>
+          <line x1="48" y1="33" x2="52" y2="33" stroke="#1e3050" stroke-width="1"/>
+          <text x="44" y="80" text-anchor="end" fill="#64748b" font-size="9">10%</text>
+          <line x1="48" y1="78" x2="52" y2="78" stroke="#1e3050" stroke-width="1"/>
+          <text x="44" y="128" text-anchor="end" fill="#64748b" font-size="9">1%</text>
+          <line x1="48" y1="126" x2="52" y2="126" stroke="#1e3050" stroke-width="1"/>
+          <text x="44" y="168" text-anchor="end" fill="#64748b" font-size="9">0%</text>
+
+          <!-- x축 눈금 레이블 -->
+          <text x="50" y="182" text-anchor="middle" fill="#64748b" font-size="9">0</text>
+          <text x="116" y="182" text-anchor="middle" fill="#64748b" font-size="9">250</text>
+          <line x1="116" y1="166" x2="116" y2="170" stroke="#1e3050" stroke-width="1"/>
+          <text x="182" y="182" text-anchor="middle" fill="#64748b" font-size="9">500</text>
+          <line x1="182" y1="166" x2="182" y2="170" stroke="#1e3050" stroke-width="1"/>
+          <text x="248" y="182" text-anchor="middle" fill="#64748b" font-size="9">750</text>
+          <line x1="248" y1="166" x2="248" y2="170" stroke="#1e3050" stroke-width="1"/>
+          <text x="305" y="182" text-anchor="middle" fill="#64748b" font-size="9">1000</text>
+          <line x1="305" y1="166" x2="305" y2="170" stroke="#1e3050" stroke-width="1"/>
+          <text x="178" y="198" text-anchor="middle" fill="#64748b" font-size="9">iteration, t</text>
+
+          <!-- y축 레이블 -->
+          <text x="14" y="100" text-anchor="middle" fill="#64748b" font-size="9" transform="rotate(-90,14,100)">error</text>
+
+          <!-- PLA E_out (보라, 진동) -->
+          <polyline points="50,78 66,40 82,125 98,60 114,78 130,38 146,90 162,55 178,80 194,42 210,90 226,58 242,75 258,40 274,85 290,60 305,80"
+            fill="none" stroke="#c084fc" stroke-width="1.5"/>
+          <!-- PLA E_in (초록, 진동하지만 낮음) -->
+          <polyline points="50,126 66,100 82,128 98,110 114,126 130,108 146,130 162,112 178,126 194,105 210,128 226,112 242,125 258,108 274,127 290,112 305,126"
+            fill="none" stroke="#4ade80" stroke-width="1.5"/>
+
+          <!-- Pocket E_out (보라, 평탄) -->
+          <polyline points="50,78 75,55 100,50 150,50 200,50 250,50 305,50"
+            fill="none" stroke="#c084fc" stroke-width="1.5" stroke-dasharray="5,3" opacity="0.7"/>
+          <!-- Pocket E_in (초록, 단조 감소) -->
+          <polyline points="50,126 75,120 100,118 150,117 200,117 250,117 305,116"
+            fill="none" stroke="#4ade80" stroke-width="1.5" stroke-dasharray="5,3" opacity="0.7"/>
+
+          <!-- 범례 -->
+          <line x1="58" y1="198" x2="76" y2="198" stroke="#c084fc" stroke-width="1.5"/>
+          <text x="80" y="202" fill="#94a3b8" font-size="9" font-family="Apple SD Gothic Neo,sans-serif">E_out</text>
+          <line x1="120" y1="198" x2="138" y2="198" stroke="#4ade80" stroke-width="1.5"/>
+          <text x="142" y="202" fill="#94a3b8" font-size="9" font-family="Apple SD Gothic Neo,sans-serif">E_in</text>
+          <line x1="175" y1="198" x2="193" y2="198" stroke="#94a3b8" stroke-width="1.5"/>
+          <text x="197" y="202" fill="#94a3b8" font-size="9" font-family="Apple SD Gothic Neo,sans-serif">PLA 실선 / Pocket 점선</text>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── S04 손글씨 숫자 인식 ── -->
+  <section class="section" id="s04">
+    <div class="section-header">
+      <span class="section-num">04</span>
+      <h2 class="section-title">손글씨 숫자 인식 예제</h2>
+    </div>
+
+    <div class="card">
+      <div class="card-title">데이터 및 목표 (슬라이드 10)</div>
+      <ul class="blist">
+        <li>데이터: US Postal Service zip code DB에서 샘플링</li>
+        <li>각 이미지: <span class="hl">16×16 픽셀</span></li>
+        <li>목표: 각 숫자 인식 (비자명한 과제 — 사람 E_out ≈ 2.5%)</li>
+        <li>혼동하기 쉬운 숫자 쌍: <span class="hl2">{4, 9}</span> 및 <span class="hl2">{2, 7}</span></li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="card-title">해결 구성요소 (슬라이드 11~12)</div>
+      <div class="grid2">
+        <div style="background:var(--surface2);border-radius:9px;padding:18px 20px;border:1px solid var(--border);">
+          <div class="badge badge-blue" style="margin-bottom:10px;">1. 다중→이진 분류 분해</div>
+          <ul class="blist">
+            <li>숫자 {1, 5}에 집중</li>
+            <li>다중 클래스 → 이진 분류로 변환</li>
+            <li>x = (x₀, x₁, x₂)</li>
+          </ul>
+        </div>
+        <div style="background:var(--surface2);border-radius:9px;padding:18px 20px;border:1px solid var(--border);">
+          <div class="badge badge-purple" style="margin-bottom:10px;">2. 특징 추출 (Feature Extraction)</div>
+          <ul class="blist">
+            <li><span class="hl">x₁ = 강도(intensity)</span><br>숫자 5가 1보다 검은 픽셀 더 많음</li>
+            <li><span class="hl2">x₂ = 대칭성(symmetry)</span><br>숫자 1은 대칭, 5는 비대칭</li>
+          </ul>
+        </div>
+      </div>
+      <p style="font-size:13px;color:var(--text2);margin-top:8px;">256개 픽셀 정보 → <span class="hl3">소수 특징으로 압축</span> (매우 일반적/필수적인 ML 접근)</p>
+      <p style="font-size:13px;color:var(--text2);">→ 두 특징 평면(feature space)에서 선으로 <span class="hl">대략적 분리 가능</span>, 일부 불량 필기 숫자로 완벽한 선형 분리 불가</p>
+    </div>
+  </section>
+
+  <!-- ── S05 MNIST ── -->
+  <section class="section" id="s05">
+    <div class="section-header">
+      <span class="section-num">05</span>
+      <h2 class="section-title">MNIST 데이터셋</h2>
+    </div>
+
+    <div class="card">
+      <div class="card-title">데이터셋 개요 (슬라이드 16)</div>
+      <ul class="blist">
+        <li>총 <span class="hl">70,000개</span> 손글씨 숫자 이미지</li>
+        <li>이미지 크기: <span class="hl2">28×28 픽셀</span></li>
+        <li>학습셋: 60,000개 / 테스트셋: 10,000개</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="card-title">분류기 성능 비교</div>
+      <table class="data-table">
+        <thead>
+          <tr><th>모델</th><th>테스트 오류율</th><th>특징</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Linear Classifier</strong></td>
+            <td><span class="badge badge-orange">7.6%</span></td>
+            <td>가장 단순한 선형 모델</td>
+          </tr>
+          <tr>
+            <td><strong>Gaussian SVM</strong></td>
+            <td><span class="badge badge-blue">1.4%</span></td>
+            <td>커널 기반 비선형 분류기</td>
+          </tr>
+          <tr>
+            <td><strong>CNN</strong></td>
+            <td><span class="badge badge-green">0.23%</span></td>
+            <td>딥러닝 합성곱 신경망</td>
+          </tr>
+        </tbody>
+      </table>
+      <p style="font-size:13px;color:var(--text2);margin-top:10px;">Geoffrey Hinton: MNIST = <span class="hl2">"machine learning의 초파리(drosophila)"</span> — ML 연구의 표준 벤치마크</p>
+    </div>
+  </section>
+
+  <!-- ── S06 회귀 개요 ── -->
+  <section class="section" id="s06">
+    <div class="section-header">
+      <span class="section-num">06</span>
+      <h2 class="section-title">회귀 (Regression) 개요</h2>
+    </div>
+
+    <div class="card">
+      <div class="card-title">회귀란? (슬라이드 17~19)</div>
+      <ul class="blist">
+        <li><strong>x</strong>와 y 사이의 관계를 연구하는 통계적 방법</li>
+        <li><span class="hl">x</span>: 공변량(covariate) / 예측 변수 / 독립 변수 / 특징</li>
+        <li><span class="hl2">y</span>: 응답(response) / 종속 변수</li>
+        <li>목표에 노이즈 추가: y = f(x) + ε → y ~ P(y|x)</li>
+        <li>목표: y를 근사하는 모델 h(x) 찾기</li>
+      </ul>
+      <div class="formula">y = f(x) + ε  →  y ~ P(y | x)</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">어원 & 역사 (슬라이드 19)</div>
+      <ul class="blist">
+        <li>Sir Francis Galton (1822~1911)이 처음 사용</li>
+        <li><strong>re</strong>(back) + <strong>gression</strong>(going): <span class="hl">데이터에서 공식으로 돌아가기</span></li>
+        <li>"Regression towards the mean": 키 큰/작은 부모의 자녀 키는 평균에 가까워지는 경향</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="card-title">단순 vs 다중 선형 회귀 (슬라이드 20)</div>
+      <div class="grid2">
+        <div style="background:var(--surface2);border-radius:9px;padding:16px 18px;border:1px solid var(--border);">
+          <div class="badge badge-blue" style="margin-bottom:8px;">단순 선형 회귀 (d=1)</div>
+          <p style="font-size:13px;color:var(--text2);margin:0;">예측 변수 1개<br>2D 평면에서의 직선</p>
+        </div>
+        <div style="background:var(--surface2);border-radius:9px;padding:16px 18px;border:1px solid var(--border);">
+          <div class="badge badge-purple" style="margin-bottom:8px;">다중 선형 회귀 (d≥2)</div>
+          <p style="font-size:13px;color:var(--text2);margin:0;">예측 변수 다수<br>고차원 초평면(hyperplane)</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">파라미터 추정 방법들 (슬라이드 21)</div>
+      <ul class="blist">
+        <li><span class="hl">OLS (Ordinary Least Squares)</span>: 잔차 제곱합 최소화, 닫힌 형태(closed-form) 해 존재</li>
+        <li>Generalized / Iteratively Reweighted Least Squares</li>
+        <li>Maximum Likelihood</li>
+        <li><span class="hl2">Ridge (Tikhonov regularization)</span> / <span class="hl2">Lasso regression</span></li>
+        <li>Least Absolute Deviation regression</li>
+        <li>Bayesian linear regression, Principal component regression</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ── S07 선형 회귀 알고리즘 ── -->
+  <section class="section" id="s07">
+    <div class="section-header">
+      <span class="section-num">07</span>
+      <h2 class="section-title">선형 회귀 알고리즘</h2>
+    </div>
+
+    <div class="card">
+      <div class="card-title">오류 함수 정의 (슬라이드 27~28)</div>
+      <ul class="blist">
+        <li><strong>E_out</strong>: h(x)와 y의 제곱 오차의 기댓값 (P(x,y)가 미지 → 계산 불가)</li>
+        <li><strong>E_in</strong>: 학습 데이터 기반 샘플 평균 오차 (계산 가능)</li>
+      </ul>
+      <div class="formula">E_out(h) = 𝔼[(h(x) − y)²]</div>
+      <div class="formula">E_in(h) = (1/N) · Σᵢ (h(xᵢ) − yᵢ)²</div>
+      <p style="font-size:13px;color:var(--text2);margin-top:8px;">선형 회귀의 가설: <span class="hl">h(x) = w<sup>T</sup>x</span> (w<sup>T</sup>x = "signal")</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">신용 승인 예제 → 회귀로 (슬라이드 23~26)</div>
+      <table class="data-table">
+        <thead>
+          <tr><th>구성요소</th><th>기호</th><th>신용 승인 비유</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>입력</strong></td><td>x</td><td>고객 신청서</td></tr>
+          <tr><td><strong>출력</strong></td><td>y</td><td>승인/거절 또는 신용 한도액</td></tr>
+          <tr><td><strong>목표 함수</strong></td><td>f: X → Y</td><td>이상적인 신용 승인 공식</td></tr>
+          <tr><td><strong>데이터</strong></td><td>(x₁,y₁),...,(xₙ,yₙ)</td><td>과거 기록</td></tr>
+          <tr><td><strong>가설</strong></td><td>h: X → Y</td><td>사용할 공식</td></tr>
+        </tbody>
+      </table>
+      <p style="font-size:13px;color:var(--text2);margin-top:10px;">다수의 전문가가 레이블링 → 목표가 확정적 함수가 아닌 <span class="hl2">분포 P(y|x)</span>로 표현됨</p>
+    </div>
+
+    <div class="card-split">
+      <div class="card-text">
+        <div class="card-title">E_in(w)의 볼록성 (슬라이드 33)</div>
+        <ul class="blist">
+          <li>E_in(w)는 <span class="hl3">연속, 미분 가능, 볼록(convex)</span></li>
+          <li>∇E_in(w) = 0 으로 최솟값 찾기 가능</li>
+          <li>일반 최적화 기법 사용 가능 (e.g. 경사 하강법)</li>
+          <li>유일한 전역 최솟값 보장</li>
+        </ul>
+        <div class="formula" style="margin-top:14px;">E_in(w) = (1/N)(w<sup>T</sup>X<sup>T</sup>Xw − 2w<sup>T</sup>X<sup>T</sup>y + y<sup>T</sup>y)</div>
+        <div class="formula">∇E_in(w) = 0</div>
+      </div>
+      <div class="card-visual">
+        <!-- SVG: 볼록 함수 그래프 (포물선 모양) -->
+        <svg viewBox="0 0 280 210" class="chart-svg" xmlns="http://www.w3.org/2000/svg">
+          <text x="140" y="16" text-anchor="middle" fill="#94a3b8" font-size="10" font-family="Apple SD Gothic Neo,sans-serif">E_in(w) — 볼록 함수</text>
+
+          <!-- 축 -->
+          <line x1="40" y1="170" x2="250" y2="170" stroke="#1e3050" stroke-width="1.5"/>
+          <line x1="40" y1="20" x2="40" y2="170" stroke="#1e3050" stroke-width="1.5"/>
+
+          <!-- y축 레이블 -->
+          <text x="34" y="24" text-anchor="end" fill="#64748b" font-size="9">high</text>
+          <text x="34" y="170" text-anchor="end" fill="#64748b" font-size="9">0</text>
+          <text x="15" y="100" text-anchor="middle" fill="#64748b" font-size="9" transform="rotate(-90,15,100)">E_in</text>
+
+          <!-- x축 레이블 -->
+          <text x="250" y="183" text-anchor="middle" fill="#64748b" font-size="9">w</text>
+          <text x="153" y="183" text-anchor="middle" fill="#34d399" font-size="9">w_lin</text>
+
+          <!-- 포물선 (볼록함수) -->
+          <path d="M 60,155 Q 155,30 245,150" fill="none" stroke="#38bdf8" stroke-width="2"/>
+
+          <!-- 최솟값 표시 -->
+          <line x1="153" y1="60" x2="153" y2="170" stroke="#34d399" stroke-width="1.2" stroke-dasharray="4,3"/>
+          <circle cx="153" cy="60" r="4" fill="#34d399"/>
+          <text x="163" y="58" fill="#34d399" font-size="9" font-family="Apple SD Gothic Neo,sans-serif">w_lin (최솟값)</text>
+
+          <!-- 기울기 = 0 표시 -->
+          <line x1="133" y1="60" x2="173" y2="60" stroke="#fbbf24" stroke-width="1.5"/>
+          <text x="178" y="64" fill="#fbbf24" font-size="9" font-family="Apple SD Gothic Neo,sans-serif">∇E=0</text>
+
+          <!-- 경사 하강 화살표 -->
+          <path d="M 90,130 Q 110,90 130,68" fill="none" stroke="#818cf8" stroke-width="1.2" stroke-dasharray="3,2"/>
+          <polygon points="130,68 122,72 126,62" fill="#818cf8"/>
+          <text x="65" y="148" fill="#818cf8" font-size="8" font-family="Apple SD Gothic Neo,sans-serif">경사 하강</text>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── S08 행렬 표현 & 해 ── -->
+  <section class="section" id="s08">
+    <div class="section-header">
+      <span class="section-num">08</span>
+      <h2 class="section-title">행렬 표현 & 해 도출</h2>
+    </div>
+
+    <div class="card">
+      <div class="card-title">행렬 표현 (슬라이드 29~31)</div>
+      <div class="grid2">
+        <div>
+          <p style="font-size:13px;color:var(--text2);margin-bottom:8px;"><span class="hl">데이터 행렬</span> X ∈ ℝ<sup>N×(d+1)</sup></p>
+          <div class="code-block" style="font-size:12px;">
+X = [ 1  x₁ ]    (d=1, N=4 예시)<br>
+    [ 1  x₂ ]<br>
+    [ 1  x₃ ]<br>
+    [ 1  x₄ ]
+          </div>
+        </div>
+        <div>
+          <p style="font-size:13px;color:var(--text2);margin-bottom:8px;"><span class="hl2">목표 벡터</span> y ∈ ℝ<sup>N</sup></p>
+          <div class="code-block" style="font-size:12px;">
+w = [ w₀ ]    y = [ y₁ ]<br>
+    [ w₁ ]        [ y₂ ]<br>
+                  [ y₃ ]<br>
+                  [ y₄ ]
+          </div>
+        </div>
+      </div>
+      <div class="formula">E_in(w) = (1/N) ‖Xw − y‖²</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">해 도출 과정 (슬라이드 34~36)</div>
+      <ul class="blist">
+        <li>그래디언트 항등식 활용:</li>
+      </ul>
+      <div class="formula">∇E_in(w) = (2/N)(X<sup>T</sup>Xw − X<sup>T</sup>y) = 0</div>
+      <div class="formula">X<sup>T</sup>Xw = X<sup>T</sup>y</div>
+      <ul class="blist" style="margin-top:14px;">
+        <li><span class="hl">X<sup>T</sup>X가 역행렬 존재 시</span>: 유일한 최적해</li>
+      </ul>
+      <div class="formula">w_lin = X† y = (X<sup>T</sup>X)⁻¹X<sup>T</sup>y</div>
+      <ul class="blist" style="margin-top:8px;">
+        <li><span class="hl2">X† = (X<sup>T</sup>X)⁻¹X<sup>T</sup></span> : X의 유사역행렬(pseudo-inverse)</li>
+        <li><span class="hlw">X<sup>T</sup>X가 역행렬 없을 때</span>: 유사역행렬은 여전히 정의 가능, 단 해가 유일하지 않음</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="card-title">선형 회귀 알고리즘 요약 (슬라이드 37~38)</div>
+      <div class="algo">
+        <div class="step"><span class="step-num">1.</span><span class="step-text">데이터셋 (x₁,y₁), …, (xₙ,yₙ)으로 행렬 X와 벡터 y 구성<br>&nbsp;&nbsp;&nbsp;(각 xᵢ에 편향 좌표 x₀=1 포함)</span></div>
+        <div class="step"><span class="step-num">2.</span><span class="step-text">X의 유사역행렬 X† 계산 <span class="cmt">/* X<sup>T</sup>X 가역이면: X† = (X<sup>T</sup>X)⁻¹X<sup>T</sup> */</span></span></div>
+        <div class="step"><span class="step-num">3.</span><span class="step-text"><span class="kw2">return</span> <strong>w_lin = X†y</strong></span></div>
+      </div>
+      <p style="font-size:13px;color:var(--text2);">실제로 N ≫ d+1인 경우가 많아 X<sup>T</sup>X는 대부분 가역 → 많은 수학 라이브러리가 수치적으로 안정적인 X† 구현을 제공</p>
+    </div>
+  </section>
+
+  <!-- ── S09 실습 예제 ── -->
+  <section class="section" id="s09">
+    <div class="section-header">
+      <span class="section-num">09</span>
+      <h2 class="section-title">실습 예제: 산소/탄화수소 수준</h2>
+    </div>
+
+    <div class="card">
+      <div class="card-title">문제 설정 (슬라이드 39)</div>
+      <ul class="blist">
+        <li><span class="hl">y</span>: 화학 증류 공정에서 생성되는 산소의 순도(%)</li>
+        <li><span class="hl2">x</span>: 증류 장치 주 응축기에 존재하는 탄화수소(%)</li>
+        <li>데이터: N=20개 관측값</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="card-title">계산 결과 (슬라이드 41)</div>
+      <div class="grid2">
+        <div>
+          <div class="code-block" style="font-size:12px;">
+<span class="cmt">/* X<sup>T</sup>X 행렬 */</span><br>
+X<sup>T</sup>X = [ 20.00   23.92 ]<br>
+       [ 23.92   29.29 ]<br>
+<br>
+<span class="cmt">/* 역행렬 */</span><br>
+(X<sup>T</sup>X)⁻¹ = [  2.15  -1.76 ]<br>
+          [ -1.76   1.47 ]
+          </div>
+        </div>
+        <div>
+          <div class="code-block" style="font-size:12px;">
+<span class="cmt">/* 최적 가중치 */</span><br>
+w_lin = [ 74.28 ]<br>
+        [ 14.95 ]<br>
+<br>
+<span class="cmt">/* 학습된 모델 */</span><br>
+g(x) = 74.28 + 14.95x<br>
+<br>
+E_in(g)  = 1.06<br>
+E_out(g) ≈ 1.45
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-split">
+      <div class="card-text">
+        <div class="card-title">데이터 요약 (슬라이드 39)</div>
+        <table class="data-table" style="font-size:12px;">
+          <thead><tr><th>no.</th><th>x (탄화수소%)</th><th>y (산소 순도%)</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>0.99</td><td>90.01</td></tr>
+            <tr><td>2</td><td>1.02</td><td>89.05</td></tr>
+            <tr><td>3</td><td>1.15</td><td>91.43</td></tr>
+            <tr><td>4</td><td>1.29</td><td>93.74</td></tr>
+            <tr><td>5</td><td>1.46</td><td>96.73</td></tr>
+            <tr><td>6</td><td>1.36</td><td>94.45</td></tr>
+            <tr><td>7</td><td>0.87</td><td>87.59</td></tr>
+            <tr><td>8</td><td>1.23</td><td>91.77</td></tr>
+            <tr><td>9</td><td>1.55</td><td>99.42</td></tr>
+            <tr><td>10</td><td>1.40</td><td>93.65</td></tr>
+          </tbody>
+        </table>
+        <p style="font-size:11px;color:var(--text3);margin-top:6px;">... (총 20개 데이터)</p>
+      </div>
+      <div class="card-visual">
+        <!-- SVG: 산소/탄화수소 산점도 + 회귀선 -->
+        <svg viewBox="0 0 300 220" class="chart-svg" xmlns="http://www.w3.org/2000/svg">
+          <text x="150" y="14" text-anchor="middle" fill="#94a3b8" font-size="10" font-family="Apple SD Gothic Neo,sans-serif">g(x) = 74.28 + 14.95x</text>
+
+          <!-- 축 -->
+          <line x1="52" y1="170" x2="278" y2="170" stroke="#1e3050" stroke-width="1.5"/>
+          <line x1="52" y1="22" x2="52" y2="170" stroke="#1e3050" stroke-width="1.5"/>
+
+          <!-- x축 눈금 -->
+          <text x="52" y="184" text-anchor="middle" fill="#64748b" font-size="8">0.8</text>
+          <text x="97" y="184" text-anchor="middle" fill="#64748b" font-size="8">0.9</text>
+          <line x1="97" y1="168" x2="97" y2="172" stroke="#1e3050" stroke-width="1"/>
+          <text x="142" y="184" text-anchor="middle" fill="#64748b" font-size="8">1.0</text>
+          <line x1="142" y1="168" x2="142" y2="172" stroke="#1e3050" stroke-width="1"/>
+          <text x="188" y="184" text-anchor="middle" fill="#64748b" font-size="8">1.2</text>
+          <line x1="188" y1="168" x2="188" y2="172" stroke="#1e3050" stroke-width="1"/>
+          <text x="233" y="184" text-anchor="middle" fill="#64748b" font-size="8">1.4</text>
+          <line x1="233" y1="168" x2="233" y2="172" stroke="#1e3050" stroke-width="1"/>
+          <text x="278" y="184" text-anchor="middle" fill="#64748b" font-size="8">1.6</text>
+          <text x="165" y="198" text-anchor="middle" fill="#64748b" font-size="9">hydrocarbon level (%)</text>
+
+          <!-- y축 눈금 -->
+          <text x="46" y="170" text-anchor="end" fill="#64748b" font-size="8">86</text>
+          <text x="46" y="145" text-anchor="end" fill="#64748b" font-size="8">88</text>
+          <line x1="50" y1="143" x2="54" y2="143" stroke="#1e3050" stroke-width="1"/>
+          <text x="46" y="120" text-anchor="end" fill="#64748b" font-size="8">90</text>
+          <line x1="50" y1="118" x2="54" y2="118" stroke="#1e3050" stroke-width="1"/>
+          <text x="46" y="95" text-anchor="end" fill="#64748b" font-size="8">92</text>
+          <line x1="50" y1="93" x2="54" y2="93" stroke="#1e3050" stroke-width="1"/>
+          <text x="46" y="70" text-anchor="end" fill="#64748b" font-size="8">94</text>
+          <line x1="50" y1="68" x2="54" y2="68" stroke="#1e3050" stroke-width="1"/>
+          <text x="46" y="46" text-anchor="end" fill="#64748b" font-size="8">96</text>
+          <line x1="50" y1="44" x2="54" y2="44" stroke="#1e3050" stroke-width="1"/>
+          <text x="46" y="30" text-anchor="end" fill="#64748b" font-size="8">98</text>
+          <line x1="50" y1="27" x2="54" y2="27" stroke="#1e3050" stroke-width="1"/>
+          <text x="14" y="100" text-anchor="middle" fill="#64748b" font-size="8" transform="rotate(-90,14,100)">oxygen purity (%)</text>
+
+          <!-- 회귀선 g(x) = 74.28 + 14.95x  -->
+          <!-- x=0.8 → y=86.24 → svg_y≈170-(86.24-86)/14*168 ≈ 170-2.88=167 -->
+          <!-- x=1.6 → y=98.20 → svg_y≈170-(98.20-86)/14*168 ≈ 170-146.4=--> 
+          <!-- 스케일: y범위 86~100 → 168px  1px = (100-86)/168=0.083%  -->
+          <!-- x범위 0.8~1.6 → 226px  1px = 0.8/226=0.00354 -->
+          <!-- svg_x = 52 + (x-0.8)/0.00354  svg_y = 170 - (y-86)/0.083 -->
+          <!-- x=0.8: svg_x=52, y=86.24, svg_y=170-0.24/0.083=167.1 -->
+          <!-- x=1.6: svg_x=278, y=98.20, svg_y=170-12.20/0.083=23.3 -->
+          <line x1="52" y1="167" x2="278" y2="23" stroke="#ef4444" stroke-width="1.8"/>
+
+          <!-- 데이터 포인트 (20개) -->
+          <!-- 공식: svg_x=52+(x-0.8)/0.00354, svg_y=170-(y-86)/0.083 -->
+          <!-- 1: x=0.99,y=90.01  → sx=105.8,sy=121.7 -->
+          <circle cx="106" cy="122" r="3.5" fill="#3b82f6"/>
+          <!-- 2: x=1.02,y=89.05 → sx=114.3,sy=133.3 -->
+          <circle cx="114" cy="133" r="3.5" fill="#3b82f6"/>
+          <!-- 3: x=1.15,y=91.43 → sx=150.9,sy=104.6 -->
+          <circle cx="151" cy="105" r="3.5" fill="#3b82f6"/>
+          <!-- 4: x=1.29,y=93.74 → sx=190.5,sy=76.7 -->
+          <circle cx="191" cy="77" r="3.5" fill="#3b82f6"/>
+          <!-- 5: x=1.46,y=96.73 → sx=238.4,sy=40.6 -->
+          <circle cx="238" cy="41" r="3.5" fill="#3b82f6"/>
+          <!-- 6: x=1.36,y=94.45 → sx=210.2,sy=68.1 -->
+          <circle cx="210" cy="68" r="3.5" fill="#3b82f6"/>
+          <!-- 7: x=0.87,y=87.59 → sx=75.1,sy=150.7 -->
+          <circle cx="75" cy="151" r="3.5" fill="#3b82f6"/>
+          <!-- 8: x=1.23,y=91.77 → sx=178.0,sy=100.5 -->
+          <circle cx="178" cy="101" r="3.5" fill="#3b82f6"/>
+          <!-- 9: x=1.55,y=99.42 → sx=263.8,sy=8.2 -->
+          <circle cx="264" cy="27" r="3.5" fill="#3b82f6"/>
+          <!-- 10: x=1.40,y=93.65 → sx=221.5,sy=77.8 -->
+          <circle cx="222" cy="78" r="3.5" fill="#3b82f6"/>
+          <!-- 11: x=1.19,y=93.54 → sx=166.9,sy=79.1 -->
+          <circle cx="167" cy="79" r="3.5" fill="#3b82f6"/>
+          <!-- 12: x=1.15,y=92.52 → sx=150.9,sy=91.3 -->
+          <circle cx="151" cy="91" r="3.5" fill="#3b82f6"/>
+          <!-- 13: x=0.98,y=90.56 → sx=103.0,sy=115.0 -->
+          <circle cx="103" cy="115" r="3.5" fill="#3b82f6"/>
+          <!-- 14: x=1.01,y=89.54 → sx=111.4,sy=127.2 -->
+          <circle cx="111" cy="127" r="3.5" fill="#3b82f6"/>
+          <!-- 15: x=1.11,y=89.85 → sx=139.5,sy=123.4 -->
+          <circle cx="140" cy="123" r="3.5" fill="#3b82f6"/>
+          <!-- 16: x=1.20,y=90.39 → sx=169.7,sy=116.9 -->
+          <circle cx="170" cy="117" r="3.5" fill="#3b82f6"/>
+          <!-- 17: x=1.26,y=93.25 → sx=186.7,sy=83.7 -->
+          <circle cx="187" cy="84" r="3.5" fill="#3b82f6"/>
+          <!-- 18: x=1.32,y=93.41 → sx=203.7,sy=81.8 -->
+          <circle cx="204" cy="82" r="3.5" fill="#3b82f6"/>
+          <!-- 19: x=1.43,y=94.98 → sx=229.9,sy=60.5 -->
+          <circle cx="230" cy="61" r="3.5" fill="#3b82f6"/>
+          <!-- 20: x=0.95,y=87.33 → sx=97.5,sy=153.8 -->
+          <circle cx="98" cy="154" r="3.5" fill="#3b82f6"/>
+
+          <!-- E_in 레이블 -->
+          <text x="80" y="38" fill="#ef4444" font-size="9" font-family="Apple SD Gothic Neo,sans-serif">E_in(g) = 1.06</text>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── S10 핵심 요약 ── -->
+  <section class="section" id="s10">
+    <div class="section-header">
+      <span class="section-num">10</span>
+      <h2 class="section-title">핵심 요약</h2>
+    </div>
+
+    <div class="summary-box">
+      <h3>선형 모델의 세 가지 문제</h3>
+      <p>선형 모델은 <strong style="color:var(--text)">분류(Classification)</strong>, <strong style="color:var(--text)">회귀(Regression)</strong>, <strong style="color:var(--text)">확률 추정(Logistic Regression)</strong> 세 가지 주요 문제에 적용된다. 각각 다르지만 관련된 알고리즘을 사용한다.</p>
+    </div>
+
+    <div class="summary-box">
+      <h3>이진 분류 & Pocket Algorithm</h3>
+      <p>선형 분리 불가 데이터에서 최소 E_in을 찾는 것은 NP-hard 문제이다. Pocket Algorithm은 PLA를 단순 수정하여 최선의 w를 "주머니"에 보관하며 근사적으로 E_in을 최소화한다. 결과: E_in 0.45%, E_out 1.89% (PLA 대비 큰 개선).</p>
+    </div>
+
+    <div class="summary-box">
+      <h3>선형 회귀 & OLS</h3>
+      <p>선형 회귀는 h(x) = w<sup>T</sup>x 형태의 가설로 제곱 오차를 최소화한다. E_in(w)가 볼록 함수이므로 ∇E_in = 0 조건으로 단 한 번의 계산으로 전역 최적해를 구할 수 있다.</p>
+    </div>
+
+    <div class="summary-box">
+      <h3>핵심 공식 & 알고리즘</h3>
+      <div class="formula" style="margin:10px 0;">w_lin = X†y = (X<sup>T</sup>X)⁻¹X<sup>T</sup>y</div>
+      <p>① X, y 행렬 구성 → ② 유사역행렬 X† 계산 → ③ w_lin = X†y 반환</p>
+      <p>산소/탄화수소 예제: g(x) = 74.28 + 14.95x, E_in = 1.06, E_out ≈ 1.45</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">PLA vs Pocket vs 선형 회귀 비교</div>
+      <table class="compare-table">
+        <thead>
+          <tr><th>항목</th><th>PLA</th><th>Pocket</th><th style="color:var(--warn)">선형 회귀</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>출력 유형</td>
+            <td>이진 {±1}</td>
+            <td>이진 {±1}</td>
+            <td style="color:var(--warn);">실수 ℝ</td>
+          </tr>
+          <tr>
+            <td>오류 함수</td>
+            <td>0/1 loss</td>
+            <td>0/1 loss</td>
+            <td style="color:var(--warn);">제곱 오차</td>
+          </tr>
+          <tr>
+            <td>최적화</td>
+            <td>반복적 업데이트</td>
+            <td>반복 + 최선 보관</td>
+            <td style="color:var(--warn);">닫힌 형태 해</td>
+          </tr>
+          <tr>
+            <td>선형 분리 불가 시</td>
+            <td>수렴 보장 없음</td>
+            <td>근사적 최소화</td>
+            <td style="color:var(--warn);">항상 해 존재</td>
+          </tr>
+          <tr>
+            <td>계산 복잡도</td>
+            <td>O(d) per iter</td>
+            <td>O(Nd) per iter</td>
+            <td style="color:var(--warn);">O(Nd² + d³)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+</main>
+</div>
+
+<script>
+  // ── TOC 활성화 (IntersectionObserver) ──
+  const sections = document.querySelectorAll('.section');
+  const tocLinks = document.querySelectorAll('.toc-link');
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = entry.target.getAttribute('id');
+        tocLinks.forEach(link => {
+          link.classList.toggle('active', link.getAttribute('href') === '#' + id);
+        });
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px', threshold: 0 });
+
+  sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>
