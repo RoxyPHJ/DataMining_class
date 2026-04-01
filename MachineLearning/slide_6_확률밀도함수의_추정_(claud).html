@@ -1,0 +1,1562 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>기계학습 6. 확률밀도 함수의 추정</title>
+<style>
+:root {
+  --bg: #0a0e1a;
+  --surface: #111827;
+  --surface2: #1a2235;
+  --surface3: #1e2d42;
+  --border: #1e3a5f;
+  --accent: #3b82f6;
+  --accent2: #f59e0b;
+  --accent3: #10b981;
+  --accent4: #8b5cf6;
+  --text: #e2e8f0;
+  --text2: #94a3b8;
+  --text3: #64748b;
+  --c1: #3b82f6;
+  --c2: #f59e0b;
+  --c3: #10b981;
+  --c4: #ef4444;
+  --font-body: 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', sans-serif;
+  --font-code: 'Menlo', 'Courier New', monospace;
+  --font-header: 'Impact', 'Arial Narrow', sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  line-height: 1.7;
+  min-height: 100vh;
+}
+
+/* ── Layout ── */
+.layout { display: flex; min-height: 100vh; }
+
+/* ── TOC ── */
+.toc {
+  width: 280px;
+  min-width: 280px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  position: fixed;
+  top: 0; left: 0;
+  height: 100vh;
+  overflow-y: auto;
+  z-index: 100;
+  padding: 0 0 40px 0;
+}
+
+.toc-header {
+  background: linear-gradient(135deg, #0f2044 0%, #1a3a6e 100%);
+  padding: 24px 20px 20px;
+  border-bottom: 2px solid var(--accent);
+  position: sticky; top: 0; z-index: 10;
+}
+
+.toc-header .course {
+  font-size: 10px;
+  color: var(--text3);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.toc-header h1 {
+  font-family: var(--font-header);
+  font-size: 15px;
+  color: var(--text);
+  letter-spacing: 1px;
+  line-height: 1.3;
+}
+
+.toc-header .subtitle {
+  font-size: 11px;
+  color: var(--accent);
+  margin-top: 4px;
+}
+
+.toc-nav { padding: 16px 0; }
+
+.toc-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 20px;
+  cursor: pointer;
+  transition: all .2s;
+  border-left: 3px solid transparent;
+  text-decoration: none;
+  color: var(--text2);
+}
+
+.toc-item:hover {
+  background: var(--surface2);
+  color: var(--text);
+  border-left-color: var(--accent);
+}
+
+.toc-item.active {
+  background: rgba(59,130,246,.12);
+  color: var(--accent);
+  border-left-color: var(--accent);
+}
+
+.toc-num {
+  font-family: var(--font-header);
+  font-size: 11px;
+  color: var(--accent);
+  min-width: 24px;
+  margin-top: 1px;
+  opacity: .7;
+}
+
+.toc-item.active .toc-num { opacity: 1; }
+
+.toc-label { font-size: 12px; line-height: 1.4; }
+
+/* ── Main ── */
+.main {
+  margin-left: 280px;
+  flex: 1;
+  padding: 40px 48px;
+  max-width: calc(100% - 280px);
+}
+
+/* ── Hero ── */
+.hero {
+  background: linear-gradient(135deg, #0d1f3c 0%, #0f2d56 50%, #0a1929 100%);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 56px 48px;
+  margin-bottom: 40px;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -60px; right: -60px;
+  width: 240px; height: 240px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(59,130,246,.15) 0%, transparent 70%);
+}
+
+.hero .tag {
+  display: inline-block;
+  background: rgba(59,130,246,.2);
+  border: 1px solid rgba(59,130,246,.4);
+  color: var(--accent);
+  font-size: 11px;
+  letter-spacing: 2px;
+  padding: 4px 12px;
+  border-radius: 4px;
+  margin-bottom: 16px;
+  text-transform: uppercase;
+}
+
+.hero h1 {
+  font-family: var(--font-header);
+  font-size: 36px;
+  letter-spacing: 2px;
+  line-height: 1.2;
+  margin-bottom: 8px;
+}
+
+.hero h1 span { color: var(--accent2); }
+
+.hero .meta {
+  color: var(--text3);
+  font-size: 13px;
+  margin-top: 12px;
+}
+
+.hero .topics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 24px;
+}
+
+.hero .topic-chip {
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 20px;
+  padding: 4px 14px;
+  font-size: 12px;
+  color: var(--text2);
+}
+
+/* ── Section ── */
+.section {
+  margin-bottom: 48px;
+  scroll-margin-top: 24px;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.section-num {
+  font-family: var(--font-header);
+  font-size: 42px;
+  color: rgba(59,130,246,.2);
+  line-height: 1;
+  letter-spacing: -1px;
+}
+
+.section-title {
+  font-family: var(--font-header);
+  font-size: 22px;
+  letter-spacing: 1px;
+  color: var(--text);
+}
+
+.section-title span { color: var(--accent2); }
+
+/* ── Cards ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 28px;
+  margin-bottom: 20px;
+}
+
+.card-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-title::before {
+  content: '';
+  display: block;
+  width: 3px; height: 14px;
+  background: var(--accent);
+  border-radius: 2px;
+}
+
+.card-title.yellow { color: var(--accent2); }
+.card-title.yellow::before { background: var(--accent2); }
+.card-title.green { color: var(--accent3); }
+.card-title.green::before { background: var(--accent3); }
+.card-title.purple { color: var(--accent4); }
+.card-title.purple::before { background: var(--accent4); }
+
+/* ── Formula ── */
+.formula {
+  background: #080d18;
+  border: 1px solid #1e3a5f;
+  border-radius: 8px;
+  padding: 16px 20px;
+  font-family: var(--font-code);
+  font-size: 14px;
+  color: #93c5fd;
+  margin: 12px 0;
+  overflow-x: auto;
+  line-height: 1.8;
+}
+
+.formula .label {
+  color: var(--text3);
+  font-size: 11px;
+  display: block;
+  margin-bottom: 6px;
+  font-family: var(--font-body);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+/* ── Grid ── */
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+.grid4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; }
+
+/* ── Info boxes ── */
+.info-box {
+  background: rgba(59,130,246,.08);
+  border: 1px solid rgba(59,130,246,.25);
+  border-radius: 8px;
+  padding: 16px 20px;
+  font-size: 14px;
+  margin: 12px 0;
+}
+
+.info-box.yellow {
+  background: rgba(245,158,11,.08);
+  border-color: rgba(245,158,11,.25);
+}
+
+.info-box.green {
+  background: rgba(16,185,129,.08);
+  border-color: rgba(16,185,129,.25);
+}
+
+.info-box.red {
+  background: rgba(239,68,68,.08);
+  border-color: rgba(239,68,68,.25);
+}
+
+/* ── Chips ── */
+.chip {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.chip.blue { background: rgba(59,130,246,.2); color: #93c5fd; }
+.chip.yellow { background: rgba(245,158,11,.2); color: #fcd34d; }
+.chip.green { background: rgba(16,185,129,.2); color: #6ee7b7; }
+.chip.red { background: rgba(239,68,68,.2); color: #fca5a5; }
+
+/* ── Table ── */
+.compare-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin: 16px 0;
+}
+
+.compare-table th {
+  background: var(--surface2);
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text2);
+  border-bottom: 2px solid var(--border);
+}
+
+.compare-table th.mle { color: var(--c1); }
+.compare-table th.map { color: var(--c2); }
+
+.compare-table td {
+  padding: 11px 16px;
+  border-bottom: 1px solid rgba(30,58,95,.5);
+  color: var(--text);
+  vertical-align: top;
+}
+
+.compare-table tr:hover td { background: rgba(255,255,255,.02); }
+
+.compare-table td:first-child {
+  color: var(--text2);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* ── SVG graph area ── */
+.graph-wrap {
+  background: #080d18;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  margin: 16px 0;
+}
+
+/* ── Split layout ── */
+.split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+/* ── Step boxes ── */
+.step-box {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 14px 18px;
+  background: var(--surface2);
+  border-radius: 8px;
+  margin-bottom: 10px;
+  border-left: 3px solid var(--border);
+  font-size: 13px;
+}
+
+.step-box.s1 { border-left-color: var(--c1); }
+.step-box.s2 { border-left-color: var(--c2); }
+.step-box.s3 { border-left-color: var(--c3); }
+.step-box.s4 { border-left-color: var(--c4); }
+
+.step-num {
+  font-family: var(--font-header);
+  font-size: 22px;
+  line-height: 1;
+  min-width: 32px;
+}
+
+.step-box.s1 .step-num { color: var(--c1); }
+.step-box.s2 .step-num { color: var(--c2); }
+.step-box.s3 .step-num { color: var(--c3); }
+.step-box.s4 .step-num { color: var(--c4); }
+
+/* ── Pipeline diagram ── */
+.pipeline {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  overflow-x: auto;
+  padding: 16px 0;
+  flex-wrap: nowrap;
+}
+
+.pipe-node {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 18px;
+  text-align: center;
+  font-size: 12px;
+  min-width: 100px;
+  flex-shrink: 0;
+}
+
+.pipe-node .pipe-label {
+  font-size: 10px;
+  color: var(--text3);
+  margin-bottom: 4px;
+}
+
+.pipe-node .pipe-val {
+  font-weight: 700;
+  font-family: var(--font-code);
+  font-size: 13px;
+  color: var(--accent2);
+}
+
+.pipe-arrow {
+  color: var(--text3);
+  font-size: 18px;
+  padding: 0 8px;
+  flex-shrink: 0;
+}
+
+/* ── Summary ── */
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.summary-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px;
+  border-top: 3px solid;
+}
+
+.summary-card.blue { border-top-color: var(--c1); }
+.summary-card.yellow { border-top-color: var(--c2); }
+.summary-card.green { border-top-color: var(--c3); }
+.summary-card.purple { border-top-color: var(--c4); }
+.summary-card.red { border-top-color: #ef4444; }
+
+.summary-card h4 {
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.summary-card.blue h4 { color: var(--c1); }
+.summary-card.yellow h4 { color: var(--c2); }
+.summary-card.green h4 { color: var(--c3); }
+.summary-card.purple h4 { color: var(--c4); }
+.summary-card.red h4 { color: #ef4444; }
+
+.summary-card ul { list-style: none; }
+.summary-card ul li {
+  font-size: 12px;
+  color: var(--text2);
+  padding: 4px 0;
+  border-bottom: 1px solid rgba(255,255,255,.04);
+}
+
+.summary-card ul li:last-child { border-bottom: none; }
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+/* ── Misc ── */
+p { font-size: 14px; color: var(--text2); line-height: 1.8; margin-bottom: 10px; }
+ul.content-list { list-style: none; padding: 0; }
+ul.content-list li {
+  font-size: 13px;
+  color: var(--text2);
+  padding: 5px 0 5px 20px;
+  position: relative;
+}
+ul.content-list li::before {
+  content: '→';
+  position: absolute; left: 0;
+  color: var(--accent);
+}
+
+.highlight { color: var(--accent2); font-weight: 700; }
+.hl-blue { color: var(--c1); font-weight: 700; }
+.hl-green { color: var(--c3); font-weight: 700; }
+.hl-red { color: var(--c4); font-weight: 700; }
+
+.divider {
+  height: 1px;
+  background: linear-gradient(to right, var(--border), transparent);
+  margin: 28px 0;
+}
+
+.note-box {
+  background: rgba(245,158,11,.06);
+  border: 1px solid rgba(245,158,11,.2);
+  border-radius: 8px;
+  padding: 14px 18px;
+  font-size: 12px;
+  color: #fcd34d;
+  margin: 14px 0;
+}
+
+.note-box::before {
+  content: '★ ';
+}
+
+@media (max-width: 1100px) {
+  .grid2, .grid3, .grid4, .split, .summary-grid { grid-template-columns: 1fr; }
+  .pipeline { flex-wrap: wrap; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── TOC ── -->
+<nav class="toc" id="toc">
+  <div class="toc-header">
+    <div class="course">기계학습 · 2026 1학기</div>
+    <h1>6. 확률밀도 함수의 추정</h1>
+    <div class="subtitle">Probability Density Estimation</div>
+  </div>
+  <div class="toc-nav">
+    <a class="toc-item" href="#s1" onclick="setActive(this)">
+      <span class="toc-num">01</span>
+      <span class="toc-label">확률론적 추론</span>
+    </a>
+    <a class="toc-item" href="#s2" onclick="setActive(this)">
+      <span class="toc-num">02</span>
+      <span class="toc-label">최대 우도 추정 (MLE)</span>
+    </a>
+    <a class="toc-item" href="#s3" onclick="setActive(this)">
+      <span class="toc-num">03</span>
+      <span class="toc-label">최대 사후 확률 추정 (MAP)</span>
+    </a>
+    <a class="toc-item" href="#s4" onclick="setActive(this)">
+      <span class="toc-num">04</span>
+      <span class="toc-label">Single Variable Gaussian 결정 경계</span>
+    </a>
+    <a class="toc-item" href="#s5" onclick="setActive(this)">
+      <span class="toc-num">05</span>
+      <span class="toc-label">다변수로의 확장 (Multivariate)</span>
+    </a>
+    <a class="toc-item" href="#summary" onclick="setActive(this)">
+      <span class="toc-num">✦</span>
+      <span class="toc-label">핵심 요약</span>
+    </a>
+  </div>
+</nav>
+
+<!-- ── Main ── -->
+<main class="main">
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="tag">Machine Learning · Slide 6</div>
+    <h1>확률밀도 함수의 <span>추정</span></h1>
+    <div class="meta">컴퓨터공학부 · 김인수 · 인천대학교 · 2026 1학기 · 19 slides</div>
+    <div class="topics">
+      <span class="topic-chip">Probabilistic Inference</span>
+      <span class="topic-chip">MLE</span>
+      <span class="topic-chip">MAP</span>
+      <span class="topic-chip">Bayes Theorem</span>
+      <span class="topic-chip">Decision Boundary</span>
+      <span class="topic-chip">LDA / QDA</span>
+      <span class="topic-chip">Softmax</span>
+      <span class="topic-chip">Dirichlet Prior</span>
+    </div>
+  </div>
+
+  <!-- ────────────────────────── SECTION 01 ────────────────────────── -->
+  <section class="section" id="s1">
+    <div class="section-header">
+      <div class="section-num">01</div>
+      <div class="section-title">확률론적 추론 <span>(Probabilistic Inference)</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">왜 확률로 모델을 설명하는가?</div>
+      <ul class="content-list">
+        <li>데이터는 <span class="highlight">노이즈</span>를 포함한다</li>
+        <li>동일한 입력 x에도 출력 y가 다를 수 있다 → 결정론적 함수로는 불완전</li>
+        <li>확률 분포 <span class="hl-blue">P(y | x ; θ)</span>로 모델링하면 불확실성을 수치화할 수 있다</li>
+        <li>파라미터 θ를 '데이터를 가장 잘 설명하는 분포'로 결정하는 것이 핵심 과제</li>
+      </ul>
+    </div>
+
+    <div class="grid3">
+      <div class="card" style="border-top: 3px solid var(--c1);">
+        <div class="card-title">모집단 분포</div>
+        <p>데이터가 실제로 따르는 <span class="hl-blue">알 수 없는</span> 분포</p>
+        <div class="formula" style="font-size:13px;">p_data(x)</div>
+      </div>
+      <div class="card" style="border-top: 3px solid var(--c2);">
+        <div class="card-title yellow">파라미터 θ</div>
+        <p>분포를 결정하는 변수</p>
+        <div class="formula" style="font-size:13px;">평균 μ, 분산 σ², 가중치 W 등</div>
+      </div>
+      <div class="card" style="border-top: 3px solid var(--c3);">
+        <div class="card-title green">추정 목표</div>
+        <p>관측 데이터 X로부터 <span class="hl-green">최적의 θ</span>를 찾는 것</p>
+      </div>
+    </div>
+
+    <div class="info-box yellow">
+      <strong>핵심 질문:</strong> 관측 데이터 X = {x₁, x₂, …, xₙ}가 주어졌을 때, 어떤 θ가 이 데이터를 가장 잘 설명하는가?
+    </div>
+
+    <div class="formula">
+      <span class="label">MLE</span>
+      θ̂* = argmax P(X | θ)
+      <br><br>
+      <span class="label">MAP</span>
+      θ̂* = argmax P(θ | X)
+    </div>
+
+    <!-- SVG: MLE vs MAP 개념 비교 다이어그램 -->
+    <div class="graph-wrap">
+      <svg viewBox="0 0 700 160" width="100%" display="block">
+        <defs>
+          <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L8,3 z" fill="#475569"/>
+          </marker>
+          <marker id="arr-blue" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L8,3 z" fill="#3b82f6"/>
+          </marker>
+          <marker id="arr-yellow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L8,3 z" fill="#f59e0b"/>
+          </marker>
+        </defs>
+        <!-- 데이터 X -->
+        <rect x="30" y="55" width="100" height="50" rx="8" fill="#1a2235" stroke="#1e3a5f" stroke-width="1.5"/>
+        <text x="80" y="76" text-anchor="middle" fill="#94a3b8" font-size="11">관측 데이터</text>
+        <text x="80" y="93" text-anchor="middle" fill="#e2e8f0" font-size="13" font-family="Menlo, monospace">X = {xᵢ}</text>
+
+        <!-- MLE arrow -->
+        <line x1="130" y1="72" x2="195" y2="72" stroke="#3b82f6" stroke-width="1.5" marker-end="url(#arr-blue)"/>
+        <text x="162" y="65" text-anchor="middle" fill="#3b82f6" font-size="10">MLE</text>
+
+        <!-- MLE box -->
+        <rect x="198" y="50" width="135" height="45" rx="8" fill="#0d1f3c" stroke="#3b82f6" stroke-width="1.5"/>
+        <text x="265" y="69" text-anchor="middle" fill="#93c5fd" font-size="11">argmax P(X|θ)</text>
+        <text x="265" y="86" text-anchor="middle" fill="#64748b" font-size="10">우도 최대화</text>
+
+        <!-- MAP arrow (lower) -->
+        <line x1="130" y1="92" x2="195" y2="108" stroke="#f59e0b" stroke-width="1.5" marker-end="url(#arr-yellow)"/>
+        <text x="158" y="107" text-anchor="middle" fill="#f59e0b" font-size="10">MAP</text>
+
+        <!-- MAP box -->
+        <rect x="198" y="95" width="135" height="45" rx="8" fill="#1c1400" stroke="#f59e0b" stroke-width="1.5"/>
+        <text x="265" y="114" text-anchor="middle" fill="#fcd34d" font-size="11">argmax P(θ|X)</text>
+        <text x="265" y="131" text-anchor="middle" fill="#64748b" font-size="10">사후확률 최대화</text>
+
+        <!-- prior box -->
+        <rect x="370" y="95" width="110" height="45" rx="8" fill="#1a1030" stroke="#8b5cf6" stroke-width="1.5"/>
+        <text x="425" y="114" text-anchor="middle" fill="#c4b5fd" font-size="11">Prior P(θ)</text>
+        <text x="425" y="131" text-anchor="middle" fill="#64748b" font-size="10">사전 지식</text>
+        <line x1="370" y1="117" x2="337" y2="117" stroke="#8b5cf6" stroke-width="1.5" marker-end="url(#arr)"/>
+
+        <!-- result arrow MLE -->
+        <line x1="333" y1="72" x2="400" y2="72" stroke="#475569" stroke-width="1.5" marker-end="url(#arr)"/>
+        <rect x="400" y="50" width="110" height="45" rx="8" fill="#0a1929" stroke="#1e3a5f" stroke-width="1"/>
+        <text x="455" y="69" text-anchor="middle" fill="#94a3b8" font-size="11">θ̂_MLE</text>
+        <text x="455" y="86" text-anchor="middle" fill="#475569" font-size="10">표본평균, 표본분산</text>
+
+        <!-- equal sign -->
+        <text x="528" y="77" fill="#475569" font-size="18" text-anchor="middle">→</text>
+
+        <!-- final θ -->
+        <rect x="544" y="50" width="120" height="45" rx="8" fill="#0c1510" stroke="#10b981" stroke-width="1.5"/>
+        <text x="604" y="69" text-anchor="middle" fill="#6ee7b7" font-size="11">최적 파라미터</text>
+        <text x="604" y="86" text-anchor="middle" fill="#10b981" font-size="13" font-family="Menlo, monospace">θ̂*</text>
+
+        <!-- line from MAP to final -->
+        <line x1="333" y1="117" x2="560" y2="82" stroke="#475569" stroke-width="1" stroke-dasharray="4,3"/>
+      </svg>
+    </div>
+  </section>
+
+  <!-- ────────────────────────── SECTION 02 ────────────────────────── -->
+  <section class="section" id="s2">
+    <div class="section-header">
+      <div class="section-num">02</div>
+      <div class="section-title">최대 우도 추정 <span>(MLE)</span></div>
+    </div>
+
+    <!-- 우도 함수 -->
+    <div class="card">
+      <div class="card-title">우도 함수 (Likelihood Function)</div>
+      <div class="split">
+        <div>
+          <p>우도 <span class="hl-blue">L(θ ; X)</span>는 '파라미터 θ가 고정되었을 때 데이터 X가 나올 확률'이다.</p>
+          <div class="info-box">
+            <strong>Likelihood L(θ; X)</strong> — "X를 봤을 때 θ가 얼마나 그럴듯한가?"<br>
+            X를 <em>고정</em>하고 θ의 함수로 본다
+          </div>
+          <div class="info-box" style="background:rgba(100,116,139,.08); border-color:rgba(100,116,139,.25);">
+            <strong>확률 P(X|θ)</strong> — "θ를 알 때 X가 얼마나 자주 일어나나?"<br>
+            θ를 <em>고정</em>하고 X의 함수로 본다
+          </div>
+        </div>
+        <div>
+          <div class="formula">
+            <span class="label">① 우도 함수 (i.i.d. 가정)</span>
+            L(θ ; X) = P(x₁, x₂, … , xₙ | θ)
+                     = ∏ᵢ P(xᵢ | θ)
+          </div>
+          <div class="formula">
+            <span class="label">② 로그 우도 (곱 → 합, 수치 안정성)</span>
+            ℓ(θ) = log L(θ ; X)
+                 = Σᵢ log P(xᵢ | θ)
+            <br><span style="color:#475569; font-size:12px;">← log는 단조증가 → argmax 보존</span>
+          </div>
+          <div class="formula" style="border-color:rgba(59,130,246,.4);">
+            <span class="label">③ MLE 추정량</span>
+            θ_MLE = argmax_θ ℓ(θ)
+            <br>→ 필요조건: ∇_θ ℓ(θ) = 0
+          </div>
+        </div>
+      </div>
+      <div class="note-box">i.i.d.: 데이터 x₁ … xₙ이 동일한 분포에서 독립적으로 샘플링되었다고 가정 → 결합 확률을 곱으로 분리 가능</div>
+    </div>
+
+    <!-- Gaussian MLE -->
+    <div class="card">
+      <div class="card-title">MLE — Gaussian 분포에 적용</div>
+      <p style="margin-bottom:16px;">원본 분포가 N(μ, σ²)으로 가정될 때, 파라미터 θ = (μ, σ²)를 MLE로 추정한다.</p>
+
+      <div class="formula">
+        <span class="label">로그 우도 전개</span>
+        ℓ(μ, σ²) = −(n/2)·log(2πσ²) − Σ(xᵢ − μ)² / (2σ²)
+      </div>
+
+      <!-- Gaussian MLE graph -->
+      <div class="graph-wrap" style="margin: 16px 0;">
+        <svg viewBox="0 0 680 200" width="100%" display="block">
+          <!-- axes -->
+          <line x1="50" y1="160" x2="630" y2="160" stroke="#1e3a5f" stroke-width="1.5"/>
+          <line x1="50" y1="30" x2="50" y2="160" stroke="#1e3a5f" stroke-width="1.5"/>
+          <!-- y-axis label -->
+          <text x="18" y="100" fill="#475569" font-size="11" transform="rotate(-90,18,100)">우도 L(θ)</text>
+          <text x="620" y="175" fill="#475569" font-size="11">θ</text>
+          <!-- y ticks -->
+          <text x="40" y="165" fill="#475569" font-size="10" text-anchor="end">0</text>
+          <text x="40" y="130" fill="#475569" font-size="10" text-anchor="end">0.25</text>
+          <text x="40" y="95" fill="#475569" font-size="10" text-anchor="end">0.50</text>
+          <text x="40" y="60" fill="#475569" font-size="10" text-anchor="end">0.75</text>
+          <text x="40" y="38" fill="#475569" font-size="10" text-anchor="end">1.0</text>
+          <line x1="47" y1="130" x2="53" y2="130" stroke="#1e3a5f" stroke-width="1"/>
+          <line x1="47" y1="95" x2="53" y2="95" stroke="#1e3a5f" stroke-width="1"/>
+          <line x1="47" y1="60" x2="53" y2="60" stroke="#1e3a5f" stroke-width="1"/>
+          <line x1="47" y1="35" x2="53" y2="35" stroke="#1e3a5f" stroke-width="1"/>
+          <!-- x ticks -->
+          <text x="150" y="175" fill="#475569" font-size="10" text-anchor="middle">θ₁</text>
+          <text x="250" y="175" fill="#475569" font-size="10" text-anchor="middle">θ₂</text>
+          <text x="350" y="175" fill="#475569" font-size="10" text-anchor="middle">θ_MLE</text>
+          <text x="450" y="175" fill="#475569" font-size="10" text-anchor="middle">θ₄</text>
+          <text x="550" y="175" fill="#475569" font-size="10" text-anchor="middle">θ₅</text>
+          <line x1="150" y1="157" x2="150" y2="163" stroke="#1e3a5f" stroke-width="1"/>
+          <line x1="250" y1="157" x2="250" y2="163" stroke="#1e3a5f" stroke-width="1"/>
+          <line x1="350" y1="157" x2="350" y2="163" stroke="#1e3a5f" stroke-width="1"/>
+          <line x1="450" y1="157" x2="450" y2="163" stroke="#1e3a5f" stroke-width="1"/>
+          <line x1="550" y1="157" x2="550" y2="163" stroke="#1e3a5f" stroke-width="1"/>
+          <!-- Gaussian curve: peak at 350 -->
+          <path d="M55,158 C90,158 130,158 150,153 C200,140 260,90 310,48 C330,38 345,35 350,35 C355,35 370,38 390,48 C440,90 500,140 550,153 C570,158 610,158 625,158"
+                fill="none" stroke="#3b82f6" stroke-width="2.5"/>
+          <path d="M55,158 C90,158 130,158 150,153 C200,140 260,90 310,48 C330,38 345,35 350,35 C355,35 370,38 390,48 C440,90 500,140 550,153 C570,158 610,158 625,158 L625,158 L55,158 Z"
+                fill="rgba(59,130,246,0.07)"/>
+          <!-- MLE vertical line -->
+          <line x1="350" y1="35" x2="350" y2="160" stroke="#f59e0b" stroke-width="2" stroke-dasharray="5,3"/>
+          <!-- MLE dot -->
+          <circle cx="350" cy="35" r="5" fill="#f59e0b"/>
+          <!-- label -->
+          <text x="360" y="44" fill="#f59e0b" font-size="12" font-weight="bold">θ_MLE = argmax ℓ(θ)</text>
+          <!-- gradient marker -->
+          <text x="140" y="132" fill="#94a3b8" font-size="10">∇ℓ &gt; 0</text>
+          <text x="480" y="132" fill="#94a3b8" font-size="10">∇ℓ &lt; 0</text>
+          <text x="320" y="24" fill="#475569" font-size="10">∇ℓ = 0</text>
+        </svg>
+      </div>
+
+      <div class="grid2">
+        <div>
+          <div class="card-title" style="margin-bottom:12px; font-size:12px;">∂ℓ/∂μ = 0 → μ 추정</div>
+          <div class="formula">
+∂ℓ/∂μ = Σ(xᵢ − μ) / σ² = 0
+
+⟹ μ̂_MLE = (1/n) Σxᵢ = x̄
+          </div>
+          <div class="note-box">표본 평균이 MLE 추정량</div>
+        </div>
+        <div>
+          <div class="card-title yellow" style="margin-bottom:12px; font-size:12px;">∂ℓ/∂σ² = 0 → σ² 추정</div>
+          <div class="formula">
+∂ℓ/∂σ² = −n/(2σ²) + Σ(xᵢ − μ̂)²/(2σ⁴) = 0
+
+⟹ σ̂²_MLE = (1/n) Σ(xᵢ − x̄)²
+          </div>
+          <div class="note-box">표본 분산이 MLE 추정량 (분모 n)</div>
+        </div>
+      </div>
+
+      <div class="info-box red" style="margin-top:16px;">
+        <strong>⚠ 표본 분산의 분모 n vs n−1</strong><br>
+        MLE 분산 추정량 (1/n)은 모분산을 <span class="hl-red">과소 추정</span>하는 편향(bias) 추정량이다.<br>
+        불편 추정량은 <strong>(1/(n−1))</strong>을 사용한다 (Bessel 보정).<br>
+        <span style="font-size:11px; color:#94a3b8;">※ 이유: μ̂(대신 x̄)을 사용하면 자유도가 1 소모되어 n−1로 나눠야 E[σ̂²] = σ² (불편성) 성립</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ────────────────────────── SECTION 03 ────────────────────────── -->
+  <section class="section" id="s3">
+    <div class="section-header">
+      <div class="section-num">03</div>
+      <div class="section-title">최대 사후 확률 추정 <span>(MAP)</span></div>
+    </div>
+
+    <!-- Bayes theorem -->
+    <div class="card">
+      <div class="card-title">베이즈 정리</div>
+      <p style="margin-bottom:14px;"><span class="hl-blue">MLE</span>는 데이터만 본다. <span class="highlight">MAP</span>는 '사전 지식(Prior)'도 함께 반영한다.</p>
+
+      <div class="formula" style="border-color:rgba(139,92,246,.4);">
+        P(θ | X) = P(X | θ) · P(θ) / P(X)
+        <br>→ Posterior = Likelihood × Prior / Evidence
+      </div>
+
+      <div class="grid4" style="margin-top:16px;">
+        <div class="card" style="background:var(--surface2); border-top:3px solid #3b82f6; padding:16px;">
+          <div style="font-size:11px; color:#3b82f6; font-weight:700; margin-bottom:8px;">사전 확률 (Prior)<br>P(θ)</div>
+          <p style="font-size:12px;">데이터 관측 전<br>θ에 대한 사전 믿음</p>
+          <p style="font-size:11px; color:#475569; margin-top:6px;">예: 가중치가 0 근처일 것</p>
+        </div>
+        <div class="card" style="background:var(--surface2); border-top:3px solid #f59e0b; padding:16px;">
+          <div style="font-size:11px; color:#f59e0b; font-weight:700; margin-bottom:8px;">우도 (Likelihood)<br>P(X|θ)</div>
+          <p style="font-size:12px;">θ가 주어졌을 때<br>데이터가 나올 확률</p>
+          <p style="font-size:11px; color:#475569; margin-top:6px;">→ MLE의 목적함수</p>
+        </div>
+        <div class="card" style="background:var(--surface2); border-top:3px solid #475569; padding:16px;">
+          <div style="font-size:11px; color:#94a3b8; font-weight:700; margin-bottom:8px;">증거 (Evidence)<br>P(X)</div>
+          <p style="font-size:12px;">= ∫ P(X|θ)P(θ)dθ<br>정규화 상수</p>
+          <p style="font-size:11px; color:#475569; margin-top:6px;">θ에 독립적 → 최적화 무관</p>
+        </div>
+        <div class="card" style="background:var(--surface2); border-top:3px solid #10b981; padding:16px;">
+          <div style="font-size:11px; color:#10b981; font-weight:700; margin-bottom:8px;">사후 확률 (Posterior)<br>P(θ|X)</div>
+          <p style="font-size:12px;">데이터 관측 후<br>갱신된 θ의 믿음</p>
+          <p style="font-size:11px; color:#475569; margin-top:6px;">→ MAP의 목적함수</p>
+        </div>
+      </div>
+
+      <div class="formula" style="margin-top:16px; border-color:rgba(16,185,129,.4);">
+        <span class="label">MAP 추정량</span>
+        θ̂_MAP = argmax_θ P(θ|X)
+               = argmax_θ [log P(X|θ) + log P(θ)]
+        <span style="color:#475569;">← P(X)는 θ에 무관, log 취해도 argmax 불변</span>
+      </div>
+    </div>
+
+    <!-- MAP derivation -->
+    <div class="card">
+      <div class="card-title yellow">MAP 수식 유도 — Gaussian Prior 적용</div>
+      <div class="info-box" style="margin-bottom:16px;">
+        설정: n개 데이터가 N(μ, 1)에서 샘플링 (분산 = 1로 알려짐). 파라미터 μ의 사전 분포: μ ~ N(0, τ²)
+      </div>
+
+      <div class="step-box s1">
+        <div class="step-num">①</div>
+        <div>
+          <strong style="color:#93c5fd;">로그 우도</strong><br>
+          <code style="color:#93c5fd; font-family:var(--font-code); font-size:13px;">log P(X|μ) = −½ Σ(xᵢ − μ)² + const</code>
+        </div>
+      </div>
+      <div class="step-box s2">
+        <div class="step-num">②</div>
+        <div>
+          <strong style="color:#fcd34d;">로그 사전 확률</strong><br>
+          <code style="color:#fcd34d; font-family:var(--font-code); font-size:13px;">log P(μ) = −μ²/(2τ²) + const</code>
+        </div>
+      </div>
+      <div class="step-box s3">
+        <div class="step-num">③</div>
+        <div>
+          <strong style="color:#6ee7b7;">MAP 목적함수</strong><br>
+          <code style="color:#6ee7b7; font-family:var(--font-code); font-size:13px;">Q(μ) = −½ Σ(xᵢ − μ)² − μ²/(2τ²)</code>
+          <span style="color:#64748b; font-size:12px;"> → 미분 후 0으로 놓으면:</span>
+        </div>
+      </div>
+      <div class="step-box s4">
+        <div class="step-num">④</div>
+        <div>
+          <strong style="color:#fca5a5;">최적 μ̂_MAP</strong><br>
+          <code style="color:#fca5a5; font-family:var(--font-code); font-size:13px;">μ̂_MAP = nτ² / (1 + nτ²) · x̄</code>
+          <span style="color:#64748b; font-size:12px;"> ← 사전 평균(0)과 표본 평균(x̄)의 가중 평균!</span>
+        </div>
+      </div>
+
+      <!-- MAP limits graph -->
+      <div class="graph-wrap" style="margin-top:16px;">
+        <svg viewBox="0 0 680 180" width="100%" display="block">
+          <!-- n → ∞ section -->
+          <rect x="30" y="20" width="295" height="145" rx="8" fill="rgba(59,130,246,0.05)" stroke="rgba(59,130,246,0.2)" stroke-width="1"/>
+          <text x="177" y="40" text-anchor="middle" fill="#3b82f6" font-size="12" font-weight="bold">n → ∞ 극한</text>
+          <!-- x axis -->
+          <line x1="50" y1="140" x2="305" y2="140" stroke="#1e3a5f" stroke-width="1"/>
+          <line x1="50" y1="60" x2="50" y2="140" stroke="#1e3a5f" stroke-width="1"/>
+          <text x="42" y="143" fill="#475569" font-size="9" text-anchor="end">0</text>
+          <text x="42" y="70" fill="#475569" font-size="9" text-anchor="end">x̄</text>
+          <line x1="47" y1="67" x2="53" y2="67" stroke="#1e3a5f" stroke-width="1"/>
+          <!-- curve approaching x̄ -->
+          <path d="M55,135 C100,132 150,105 200,80 C230,67 260,66 295,66" fill="none" stroke="#3b82f6" stroke-width="2"/>
+          <text x="180" y="110" fill="#94a3b8" font-size="10">μ̂_MAP → x̄ (MLE)</text>
+          <text x="60" y="155" fill="#475569" font-size="9">n 증가 →</text>
+          <!-- n label -->
+          <text x="60" y="100" fill="#64748b" font-size="9">n 작음: Prior 지배</text>
+          <text x="210" y="55" fill="#3b82f6" font-size="9">n 커짐: MLE 수렴</text>
+
+          <!-- τ² → 0 section -->
+          <rect x="355" y="20" width="295" height="145" rx="8" fill="rgba(245,158,11,0.05)" stroke="rgba(245,158,11,0.2)" stroke-width="1"/>
+          <text x="502" y="40" text-anchor="middle" fill="#f59e0b" font-size="12" font-weight="bold">τ² → 0 극한 (강한 Prior)</text>
+          <line x1="375" y1="140" x2="630" y2="140" stroke="#1e3a5f" stroke-width="1"/>
+          <line x1="375" y1="60" x2="375" y2="140" stroke="#1e3a5f" stroke-width="1"/>
+          <text x="367" y="143" fill="#475569" font-size="9" text-anchor="end">0</text>
+          <text x="367" y="135" fill="#475569" font-size="9" text-anchor="end">0</text>
+          <line x1="372" y1="130" x2="378" y2="130" stroke="#1e3a5f" stroke-width="1"/>
+          <!-- curve approaching 0 -->
+          <path d="M380,67 C400,67 430,75 470,100 C500,118 540,128 615,131" fill="none" stroke="#f59e0b" stroke-width="2"/>
+          <text x="390" y="55" fill="#fcd34d" font-size="9">μ̂_MAP → 0 (Prior 평균)</text>
+          <text x="430" y="125" fill="#94a3b8" font-size="10">Prior가 데이터 무시</text>
+          <text x="380" y="155" fill="#475569" font-size="9">← τ² 감소</text>
+        </svg>
+      </div>
+    </div>
+
+    <!-- MLE vs MAP comparison -->
+    <div class="card">
+      <div class="card-title green">MLE vs MAP 비교</div>
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>비교 항목</th>
+            <th class="mle">MLE</th>
+            <th class="map">MAP</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>목적함수</td>
+            <td><code style="color:#93c5fd; font-size:12px;">argmax Σ log p(xᵢ|θ)</code></td>
+            <td><code style="color:#fcd34d; font-size:12px;">argmax [Σ log p(xᵢ|θ) + log P(θ)]</code></td>
+          </tr>
+          <tr>
+            <td>Prior 사용</td>
+            <td><span class="chip red">✗ 사용 안 함</span></td>
+            <td><span class="chip green">✓ Prior P(θ) 반영</span></td>
+          </tr>
+          <tr>
+            <td>데이터 적을 때</td>
+            <td>불안정 (과적합 위험)</td>
+            <td>Prior가 안전장치 역할</td>
+          </tr>
+          <tr>
+            <td>Prior → 0 이면</td>
+            <td>—</td>
+            <td>MAP = MLE (Prior 무관)</td>
+          </tr>
+          <tr>
+            <td>정규화 연결</td>
+            <td>없음</td>
+            <td>Gaussian Prior → L2 / Laplace Prior → L1</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="divider"></div>
+      <div class="card-title" style="margin-bottom:12px;">MAP = 정규화 (Regularization)의 수학적 근거</div>
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>Prior P(θ)</th>
+            <th>log P(θ)</th>
+            <th>MAP 목적함수</th>
+            <th>동치인 정규화</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Gaussian N(0, 1/λ)</td>
+            <td><code style="font-family:var(--font-code); color:#93c5fd; font-size:12px;">−λ/2 · ‖θ‖²</code></td>
+            <td><code style="font-family:var(--font-code); color:#93c5fd; font-size:12px;">Σ log p(xᵢ|θ) − λ‖θ‖²</code></td>
+            <td><span class="chip blue">L2 정규화 (Ridge)</span></td>
+          </tr>
+          <tr>
+            <td>Laplace L(0, 1/λ)</td>
+            <td><code style="font-family:var(--font-code); color:#fcd34d; font-size:12px;">−λ · ‖θ‖₁</code></td>
+            <td><code style="font-family:var(--font-code); color:#fcd34d; font-size:12px;">Σ log p(xᵢ|θ) − λ‖θ‖₁</code></td>
+            <td><span class="chip yellow">L1 정규화 (Lasso)</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ────────────────────────── SECTION 04 ────────────────────────── -->
+  <section class="section" id="s4">
+    <div class="section-header">
+      <div class="section-num">04</div>
+      <div class="section-title">Single Variable Gaussian <span>결정 경계</span></div>
+    </div>
+
+    <!-- Decision Boundary Concept -->
+    <div class="card">
+      <div class="card-title">결정 경계 (Decision Boundary) 개념</div>
+      <p>결정 경계란 클래스를 분류하는 <span class="highlight">기준점 / 기준면</span>이다.</p>
+      <p style="margin-top:8px;">설정: 클래스 C₁, C₂가 있을 때, 새로운 데이터 x를 어느 클래스에 할당할지 결정해야 한다.<br>각 클래스의 데이터 분포를 P(x|Cₖ)로 모델링하면 베이즈 정리에 의해 사후 확률을 계산할 수 있다.</p>
+
+      <div class="formula" style="margin-top:16px;">
+        <span class="label">베이즈 결정 규칙 (Bayes Decision Rule)</span>
+        x를 C₁으로 분류 ⟺ P(C₁|x) > P(C₂|x)
+                         ⟺ P(x|C₁)P(C₁) > P(x|C₂)P(C₂)
+      </div>
+
+      <div class="formula" style="border-color:rgba(16,185,129,.4);">
+        <span class="label">결정 경계 (Decision Boundary)</span>
+        P(C₁|x) = P(C₂|x)
+        ⟺ P(x|C₁)P(C₁) = P(x|C₂)P(C₂)
+        ⟺ log 비율 = 0
+      </div>
+
+      <div class="grid3">
+        <div class="info-box" style="margin:0;">
+          <strong>등 사전 확률</strong><br>
+          P(C₁) = P(C₂) = 0.5이면<br>→ P(x|C₁) = P(x|C₂) 인 지점
+        </div>
+        <div class="info-box yellow" style="margin:0;">
+          <strong>로그 우도비</strong><br>
+          log[P(x|C₁)/P(x|C₂)] = 0<br>을 만족하는 x가 결정 경계
+        </div>
+        <div class="info-box green" style="margin:0;">
+          <strong>ML 연결</strong><br>
+          각 클래스의 분포 파라미터를<br>MLE로 추정 → 결정 경계 도출
+        </div>
+      </div>
+    </div>
+
+    <!-- Numerical Example — Linear (LDA) -->
+    <div class="card">
+      <div class="card-title">수치 예시 — 선형 결정 경계 (LDA, σ₁² = σ₂²)</div>
+      <div class="split">
+        <div>
+          <div class="info-box" style="margin-bottom:12px;">
+            <strong>설정:</strong> C₁ ~ N(2, 1), C₂ ~ N(5, 1)<br>사전 확률 동일 (P(C₁) = P(C₂) = 0.5)
+          </div>
+          <div class="formula">
+            σ₁² = σ₂² → 선형 결정 경계
+            x* = (μ₁ + μ₂)/2
+               = (2 + 5)/2
+               = 3.5
+          </div>
+          <div class="info-box green" style="margin-top:12px;">
+            <strong>결론:</strong><br>
+            x &lt; 3.5 → C₁으로 분류<br>
+            x &gt; 3.5 → C₂로 분류<br>
+            x* = 3.5는 두 평균의 정확한 중점 (사전 확률이 동일하기 때문)
+          </div>
+        </div>
+        <!-- SVG number line -->
+        <div>
+          <div class="graph-wrap">
+            <svg viewBox="0 0 340 200" width="100%" display="block">
+              <!-- Two Gaussian curves -->
+              <line x1="20" y1="165" x2="320" y2="165" stroke="#1e3a5f" stroke-width="1.5"/>
+              <text x="20" y="178" fill="#475569" font-size="9">-1</text>
+              <text x="56" y="178" fill="#475569" font-size="9">0</text>
+              <text x="92" y="178" fill="#475569" font-size="9">1</text>
+              <text x="127" y="178" fill="#475569" font-size="9">2</text>
+              <text x="163" y="178" fill="#475569" font-size="9">3</text>
+              <text x="198" y="178" fill="#3b82f6" font-size="9" font-weight="bold">3.5</text>
+              <text x="232" y="178" fill="#475569" font-size="9">4</text>
+              <text x="267" y="178" fill="#475569" font-size="9">5</text>
+              <text x="302" y="178" fill="#475569" font-size="9">6</text>
+              <!-- ticks -->
+              <line x1="57" y1="162" x2="57" y2="168" stroke="#1e3a5f"/>
+              <line x1="92" y1="162" x2="92" y2="168" stroke="#1e3a5f"/>
+              <line x1="127" y1="162" x2="127" y2="168" stroke="#1e3a5f"/>
+              <line x1="163" y1="162" x2="163" y2="168" stroke="#1e3a5f"/>
+              <line x1="198" y1="162" x2="198" y2="168" stroke="#3b82f6"/>
+              <line x1="233" y1="162" x2="233" y2="168" stroke="#1e3a5f"/>
+              <line x1="268" y1="162" x2="268" y2="168" stroke="#1e3a5f"/>
+              <line x1="303" y1="162" x2="303" y2="168" stroke="#1e3a5f"/>
+              <!-- C1 Gaussian (mu=2, sigma=1) peak at x=127 -->
+              <path d="M30,163 C50,163 75,163 90,155 C105,143 115,115 120,95 C123,80 125,68 127,62 C129,68 131,80 134,95 C139,115 149,143 164,155 C179,163 200,164 220,164"
+                    fill="none" stroke="#3b82f6" stroke-width="2"/>
+              <path d="M30,163 C50,163 75,163 90,155 C105,143 115,115 120,95 C123,80 125,68 127,62 C129,68 131,80 134,95 C139,115 149,143 164,155 C179,163 200,164 220,164 L220,163 L30,163 Z"
+                    fill="rgba(59,130,246,0.12)"/>
+              <!-- C2 Gaussian (mu=5, sigma=1) peak at x=268 -->
+              <path d="M170,164 C190,164 210,163 225,155 C240,143 250,115 255,95 C258,80 260,68 268,55 C276,68 278,80 281,95 C286,115 296,143 311,155 C320,162 325,164 320,164"
+                    fill="none" stroke="#f59e0b" stroke-width="2"/>
+              <path d="M170,164 C190,164 210,163 225,155 C240,143 250,115 255,95 C258,80 260,68 268,55 C276,68 278,80 281,95 C286,115 296,143 311,155 C320,162 325,164 320,164 L320,163 L170,163 Z"
+                    fill="rgba(245,158,11,0.12)"/>
+              <!-- Decision boundary -->
+              <line x1="198" y1="20" x2="198" y2="163" stroke="#10b981" stroke-width="2.5" stroke-dasharray="5,3"/>
+              <circle cx="198" cy="20" r="4" fill="#10b981"/>
+              <text x="200" y="18" fill="#10b981" font-size="10" font-weight="bold">x* = 3.5</text>
+              <!-- Labels -->
+              <text x="90" y="50" fill="#3b82f6" font-size="11" text-anchor="middle">C₁</text>
+              <text x="80" y="62" fill="#3b82f6" font-size="9" text-anchor="middle">μ₁=2</text>
+              <text x="268" y="42" fill="#f59e0b" font-size="11" text-anchor="middle">C₂</text>
+              <text x="268" y="54" fill="#f59e0b" font-size="9" text-anchor="middle">μ₂=5</text>
+              <!-- region labels -->
+              <text x="90" y="190" fill="#3b82f6" font-size="10" text-anchor="middle">← C₁ 영역</text>
+              <text x="280" y="190" fill="#f59e0b" font-size="10" text-anchor="middle">C₂ 영역 →</text>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAP decision boundary -->
+    <div class="card">
+      <div class="card-title yellow">MAP 결정 경계 — Prior 반영</div>
+      <p>MAP 결정 경계는 MLE 결정 경계와 동일한 구조이지만 <span class="highlight">Prior에 의해 위치가 이동</span>된다.</p>
+
+      <div class="formula" style="margin:12px 0;">
+        <span class="label">MAP 결정 규칙</span>
+        x를 C₁으로 분류 ⟺ log P(x|C₁) + log P(C₁) > log P(x|C₂) + log P(C₂)
+      </div>
+
+      <div class="grid2">
+        <div class="info-box" style="margin:0;">
+          <strong>MLE 기반 결정 경계</strong><br>
+          P(x|C₁) = P(x|C₂) 인 지점<br>
+          (사전 확률 무시 또는 균등 가정)<br><br>
+          예: x* = (μ₁ + μ₂)/2 = 3.5<br>
+          (μ₁=2, μ₂=5, 분산 동일 가정)
+        </div>
+        <div class="info-box yellow" style="margin:0;">
+          <strong>MAP 기반 결정 경계</strong><br>
+          P(x|C₁)P(C₁) = P(x|C₂)P(C₂) 인 지점<br>
+          (사전 확률 반영)<br><br>
+          예: P(C₁)=0.3, P(C₂)=0.7이면<br>
+          x* = 3.5 − [σ²/(μ₁−μ₂)]·log(0.3/0.7)<br>
+          = 3.5 + 0.28 ≈ 3.78 (C₂ 쪽으로 이동)
+        </div>
+      </div>
+      <div class="note-box" style="margin-top:12px;">해석: C₂가 더 많이 나타나는 (사전 확률이 높은) 경우, 결정 경계가 C₁ 쪽으로 이동 → x가 더 'C₁스럽게' 보여야 C₁으로 분류된다.</div>
+    </div>
+
+    <!-- LDA vs QDA -->
+    <div class="card">
+      <div class="card-title purple">분산이 다를 때 — 이차 결정 경계 (QDA)</div>
+      <p>분산이 다를 때(σ₁² ≠ σ₂²), 결정 경계는 <span class="highlight">이차 방정식</span>이 되어 두 개의 교점이 생긴다.</p>
+
+      <!-- LDA vs QDA SVG -->
+      <div class="graph-wrap" style="margin:16px 0;">
+        <svg viewBox="0 0 680 240" width="100%" display="block">
+          <!-- LDA panel -->
+          <rect x="20" y="20" width="300" height="205" rx="8" fill="rgba(59,130,246,0.05)" stroke="rgba(59,130,246,0.2)" stroke-width="1"/>
+          <text x="170" y="40" text-anchor="middle" fill="#3b82f6" font-size="12" font-weight="bold">LDA: σ₁² = σ₂² (선형 결정 경계)</text>
+          <!-- axes -->
+          <line x1="40" y1="195" x2="305" y2="195" stroke="#1e3a5f" stroke-width="1"/>
+          <line x1="40" y1="60" x2="40" y2="195" stroke="#1e3a5f" stroke-width="1"/>
+          <text x="38" y="198" fill="#475569" font-size="9" text-anchor="end">0</text>
+          <text x="38" y="80" fill="#475569" font-size="9" text-anchor="end">1.0</text>
+          <text x="38" y="130" fill="#475569" font-size="9" text-anchor="end">0.5</text>
+          <line x1="38" y1="77" x2="42" y2="77" stroke="#1e3a5f"/>
+          <line x1="38" y1="127" x2="42" y2="127" stroke="#1e3a5f"/>
+          <text x="85" y="208" fill="#475569" font-size="9" text-anchor="middle">0</text>
+          <text x="133" y="208" fill="#475569" font-size="9" text-anchor="middle">2</text>
+          <text x="181" y="208" fill="#475569" font-size="9" text-anchor="middle">3.5</text>
+          <text x="229" y="208" fill="#475569" font-size="9" text-anchor="middle">5</text>
+          <!-- LDA C1 curve same width -->
+          <path d="M42,193 C60,193 80,193 95,185 C110,173 120,148 128,125 C131,113 132,100 133,88 C134,100 135,113 138,125 C146,148 156,173 171,185 C186,193 215,194 250,194"
+                fill="none" stroke="#3b82f6" stroke-width="2"/>
+          <path d="M42,193 C60,193 80,193 95,185 C110,173 120,148 128,125 C131,113 132,100 133,88 C134,100 135,113 138,125 C146,148 156,173 171,185 C186,193 215,194 250,194 L250,193 L42,193 Z"
+                fill="rgba(59,130,246,0.1)"/>
+          <!-- LDA C2 curve same width -->
+          <path d="M120,194 C145,194 165,193 178,186 C192,174 202,149 210,126 C213,113 214,101 229,88 C244,101 245,113 248,126 C256,149 266,174 280,186 C290,193 300,194 305,194"
+                fill="none" stroke="#f59e0b" stroke-width="2"/>
+          <path d="M120,194 C145,194 165,193 178,186 C192,174 202,149 210,126 C213,113 214,101 229,88 C244,101 245,113 248,126 C256,149 266,174 280,186 C290,193 300,194 305,194 L305,193 L120,193 Z"
+                fill="rgba(245,158,11,0.1)"/>
+          <!-- LDA decision boundary - single vertical line -->
+          <line x1="181" y1="55" x2="181" y2="193" stroke="#10b981" stroke-width="2.5"/>
+          <text x="184" y="72" fill="#10b981" font-size="10">x* = 3.5</text>
+          <text x="133" y="74" fill="#3b82f6" font-size="10">C₁</text>
+          <text x="229" y="74" fill="#f59e0b" font-size="10">C₂</text>
+
+          <!-- QDA panel -->
+          <rect x="360" y="20" width="300" height="205" rx="8" fill="rgba(245,158,11,0.05)" stroke="rgba(245,158,11,0.2)" stroke-width="1"/>
+          <text x="510" y="40" text-anchor="middle" fill="#f59e0b" font-size="12" font-weight="bold">QDA: σ₁² ≠ σ₂² (이차 결정 경계)</text>
+          <!-- axes -->
+          <line x1="380" y1="195" x2="645" y2="195" stroke="#1e3a5f" stroke-width="1"/>
+          <line x1="380" y1="60" x2="380" y2="195" stroke="#1e3a5f" stroke-width="1"/>
+          <text x="378" y="198" fill="#475569" font-size="9" text-anchor="end">0</text>
+          <text x="378" y="80" fill="#475569" font-size="9" text-anchor="end">1.0</text>
+          <text x="378" y="130" fill="#475569" font-size="9" text-anchor="end">0.5</text>
+          <line x1="378" y1="77" x2="382" y2="77" stroke="#1e3a5f"/>
+          <line x1="378" y1="127" x2="382" y2="127" stroke="#1e3a5f"/>
+          <text x="415" y="208" fill="#475569" font-size="9" text-anchor="middle">0</text>
+          <text x="463" y="208" fill="#475569" font-size="9" text-anchor="middle">2</text>
+          <text x="531" y="208" fill="#475569" font-size="9" text-anchor="middle">5</text>
+          <!-- QDA C1 wide curve -->
+          <path d="M382,190 C395,188 410,183 420,175 C432,162 438,145 445,128 C451,112 453,95 463,83 C473,95 475,112 481,128 C488,145 494,162 506,175 C516,183 531,188 544,190 C560,192 610,193 640,193"
+                fill="none" stroke="#3b82f6" stroke-width="2"/>
+          <path d="M382,190 C395,188 410,183 420,175 C432,162 438,145 445,128 C451,112 453,95 463,83 C473,95 475,112 481,128 C488,145 494,162 506,175 C516,183 531,188 544,190 C560,192 610,193 640,193 L640,193 L382,193 Z"
+                fill="rgba(59,130,246,0.1)"/>
+          <!-- QDA C2 narrow curve (σ₂²=0.5) -->
+          <path d="M458,193 C468,193 478,190 488,182 C496,172 500,155 503,138 C505,126 506,113 531,77 C556,113 557,126 559,138 C562,155 566,172 574,182 C584,190 594,193 604,193"
+                fill="none" stroke="#f59e0b" stroke-width="2"/>
+          <path d="M458,193 C468,193 478,190 488,182 C496,172 500,155 503,138 C505,126 506,113 531,77 C556,113 557,126 559,138 C562,155 566,172 574,182 C584,190 594,193 604,193 L604,193 L458,193 Z"
+                fill="rgba(245,158,11,0.1)"/>
+          <!-- QDA two boundaries -->
+          <line x1="485" y1="55" x2="485" y2="193" stroke="#10b981" stroke-width="2" stroke-dasharray="4,3"/>
+          <line x1="576" y1="55" x2="576" y2="193" stroke="#10b981" stroke-width="2" stroke-dasharray="4,3"/>
+          <text x="487" y="65" fill="#10b981" font-size="9">x₁*</text>
+          <text x="578" y="65" fill="#10b981" font-size="9">x₂*</text>
+          <!-- region labels -->
+          <text x="430" y="155" fill="#3b82f6" font-size="10" text-anchor="middle">C₁</text>
+          <text x="531" y="65" fill="#f59e0b" font-size="10" text-anchor="middle">C₂</text>
+          <text x="610" y="155" fill="#3b82f6" font-size="10" text-anchor="middle">C₁</text>
+          <text x="463" y="74" fill="#3b82f6" font-size="9">μ₁=2</text>
+          <text x="531" y="68" fill="#f59e0b" font-size="9">μ₂=5</text>
+        </svg>
+      </div>
+
+      <div class="grid2">
+        <div class="info-box" style="margin:0;">
+          <strong>LDA</strong> (σ₁² = σ₂²)<br>
+          → <span class="hl-blue">선형 결정 경계</span> (직선/초평면)<br>
+          파라미터 수가 적어 안정적
+        </div>
+        <div class="info-box yellow" style="margin:0;">
+          <strong>QDA</strong> (σ₁² ≠ σ₂²)<br>
+          → <span class="highlight">이차 결정 경계</span> (곡선/이차 초곡면)<br>
+          유연하지만 데이터가 많이 필요
+        </div>
+      </div>
+
+      <div class="note-box" style="margin-top:12px;">핵심: 분산이 같으면 선형(직선), 분산이 다르면 이차(포물선) 결정 경계 — 이것이 LDA vs QDA의 차이</div>
+    </div>
+  </section>
+
+  <!-- ────────────────────────── SECTION 05 ────────────────────────── -->
+  <section class="section" id="s5">
+    <div class="section-header">
+      <div class="section-num">05</div>
+      <div class="section-title">다변수로의 확장 <span>(Multivariate)</span></div>
+    </div>
+
+    <!-- Categorical MLE -->
+    <div class="card">
+      <div class="card-title">Multinomial / Categorical 분포 MLE</div>
+      <p>이진 분류 (Bernoulli)를 K개 클래스로 일반화하면 <span class="highlight">Categorical 분포</span>가 된다.</p>
+
+      <div class="formula" style="margin:12px 0;">
+        <span class="label">로그 우도 (Categorical MLE 유도)</span>
+        log L(π) = Σₖ nₖ · log πₖ
+        (nₖ = 클래스 k가 나온 횟수, n = Σnₖ = 전체 샘플 수)
+      </div>
+
+      <div class="formula" style="border-color:rgba(16,185,129,.4);">
+        <span class="label">MLE 결과 (라그랑주 승수법)</span>
+        π̂ₖ = nₖ / n
+        (각 클래스의 관측 비율 = MLE 추정량)
+      </div>
+    </div>
+
+    <!-- Softmax -->
+    <div class="card">
+      <div class="card-title">Categorical MLE — Softmax 함수 연결</div>
+      <p>신경망에서 다중 클래스 분류를 위해 <span class="highlight">Softmax 출력층</span>을 사용한다.<br>이것은 Categorical 분포의 파라미터를 신경망으로 모델링하는 것이다.</p>
+
+      <div class="split" style="margin-top:16px;">
+        <div>
+          <div class="formula">
+            <span class="label">Softmax 함수</span>
+            P(y=k | x ; W) = softmax(Wx)ₖ
+                           = exp(wₖᵀx) / Σⱼ exp(wⱼᵀx)
+          </div>
+          <div class="formula">
+            <span class="label">Cross-Entropy 손실</span>
+            L = −(1/n) Σᵢ log P(yᵢ | xᵢ ; W)
+              = −(1/n) Σᵢ Σₖ yᵢₖ · log P(y=k | xᵢ ; W)
+          </div>
+          <div class="note-box">MLE ↔ Cross-Entropy 최소화의 동치: Cross-Entropy를 최소화하는 것 = MLE</div>
+        </div>
+        <div>
+          <!-- Classification pipeline SVG -->
+          <div class="graph-wrap">
+            <svg viewBox="0 0 300 260" width="100%" display="block">
+              <!-- pipeline nodes -->
+              <rect x="100" y="20" width="100" height="40" rx="8" fill="#1a2235" stroke="#3b82f6" stroke-width="1.5"/>
+              <text x="150" y="36" text-anchor="middle" fill="#93c5fd" font-size="11">입력 x</text>
+              <text x="150" y="52" text-anchor="middle" fill="#475569" font-size="10">Feature vector</text>
+              <!-- arrow -->
+              <line x1="150" y1="60" x2="150" y2="78" stroke="#475569" stroke-width="1.5" marker-end="url(#arr)"/>
+              <rect x="90" y="80" width="120" height="40" rx="8" fill="#1a2235" stroke="#f59e0b" stroke-width="1.5"/>
+              <text x="150" y="96" text-anchor="middle" fill="#fcd34d" font-size="11">Wx + b</text>
+              <text x="150" y="112" text-anchor="middle" fill="#475569" font-size="10">선형 변환</text>
+              <!-- arrow -->
+              <line x1="150" y1="120" x2="150" y2="138" stroke="#475569" stroke-width="1.5" marker-end="url(#arr)"/>
+              <rect x="90" y="140" width="120" height="40" rx="8" fill="#1a2235" stroke="#10b981" stroke-width="1.5"/>
+              <text x="150" y="156" text-anchor="middle" fill="#6ee7b7" font-size="11">Softmax</text>
+              <text x="150" y="172" text-anchor="middle" fill="#475569" font-size="10">→ 확률 벡터</text>
+              <!-- arrow -->
+              <line x1="150" y1="180" x2="150" y2="198" stroke="#475569" stroke-width="1.5" marker-end="url(#arr)"/>
+              <rect x="80" y="200" width="140" height="40" rx="8" fill="#1a2235" stroke="#8b5cf6" stroke-width="1.5"/>
+              <text x="150" y="216" text-anchor="middle" fill="#c4b5fd" font-size="11">Cross-Entropy 손실</text>
+              <text x="150" y="232" text-anchor="middle" fill="#475569" font-size="10">∇W → 경사하강</text>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+      <div class="card-title green" style="margin-bottom:12px;">일반화 정리</div>
+      <div class="grid3">
+        <div class="info-box" style="margin:0; text-align:center;">
+          <strong>이진 분류</strong><br>
+          Bernoulli<br>↓<br>
+          <span class="hl-blue">Sigmoid + Binary CE</span>
+        </div>
+        <div class="info-box yellow" style="margin:0; text-align:center;">
+          <strong>다중 분류</strong><br>
+          Categorical<br>↓<br>
+          <span class="highlight">Softmax + Categorical CE</span>
+        </div>
+        <div class="info-box green" style="margin:0; text-align:center;">
+          <strong>회귀</strong><br>
+          Gaussian<br>↓<br>
+          <span class="hl-green">선형출력 + MSE (= MLE)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dirichlet Prior -->
+    <div class="card">
+      <div class="card-title yellow">Multinomial MAP — Dirichlet Prior</div>
+      <p>Categorical MLE는 데이터가 적을 때 <span class="hl-red">0 확률</span>이 발생할 수 있다. MAP + Dirichlet Prior로 해결한다.</p>
+
+      <div class="grid2" style="margin-top:16px;">
+        <div class="info-box red" style="margin:0;">
+          <strong>문제: MLE의 한계</strong><br>
+          클래스 k가 학습 데이터에서 한 번도 나오지 않으면<br>
+          π̂ₖ = 0/n = 0<br>
+          → 새로운 데이터에 대해 P(x|Cₖ) = 0 발생<br>
+          → <strong>Zero probability problem</strong>
+        </div>
+        <div class="info-box green" style="margin:0;">
+          <strong>해결: MAP + Dirichlet Prior</strong><br>
+          Dirichlet(α₁, …, αₖ)를 Prior로 사용<br>
+          αₖ: 각 클래스에 대한 가상 카운트 (pseudo-count)<br>
+          → <strong>Laplace 평활화</strong> (αₖ=1이면 모든 클래스에 1 추가)
+        </div>
+      </div>
+
+      <div class="formula" style="margin-top:16px; border-color:rgba(16,185,129,.4);">
+        <span class="label">Dirichlet Prior MAP 추정량</span>
+        π̂ₖ = (nₖ + αₖ − 1) / (n + Σαₖ − K)
+
+        Laplace 평활화 (αₖ = 1):
+        π̂ₖ = (nₖ + 1) / (n + K)
+      </div>
+
+      <div class="note-box">실제 활용: Naive Bayes 텍스트 분류에서 단어 등장 확률 추정 시 Laplace 평활화(αₖ=1)가 표준적으로 사용된다.</div>
+    </div>
+
+    <!-- Multivariate Gaussian -->
+    <div class="card">
+      <div class="card-title purple">다변량 Gaussian — 결정 경계 확장</div>
+      <p>1차원 Gaussian → d차원으로 확장하면 결정 경계가 <span class="highlight">'초평면'</span> 또는 <span class="highlight">'이차 초곡면'</span>이 된다.</p>
+
+      <div class="formula" style="margin:12px 0;">
+        <span class="label">다변량 Gaussian PDF</span>
+        P(x|Cₖ) = N(x ; μₖ, Σₖ)
+                = (2π)^(−d/2) |Σₖ|^(−½) · exp[−½(x−μₖ)ᵀΣₖ⁻¹(x−μₖ)]
+      </div>
+
+      <div class="grid2" style="margin-top:16px;">
+        <div class="info-box" style="margin:0;">
+          <strong>LDA (Σ₁ = Σ₂ = Σ)</strong><br>
+          로그 우도비에서 이차 항 (xᵀΣ⁻¹x)이 상쇄됨<br>
+          → <span class="hl-blue">선형 결정 경계 (초평면)</span><br><br>
+          파라미터 수가 적어 안정적
+        </div>
+        <div class="info-box yellow" style="margin:0;">
+          <strong>QDA (Σ₁ ≠ Σ₂)</strong><br>
+          이차 항이 남음<br>
+          → <span class="highlight">이차 결정 경계 (이차 초곡면)</span><br>
+          타원, 쌍곡면, 포물면 등 다양한 형태<br><br>
+          유연하지만 데이터가 많이 필요
+        </div>
+      </div>
+
+      <div class="note-box" style="margin-top:12px;">핵심: 공분산 행렬의 가정에 따라 결정 경계의 형태가 결정된다.</div>
+    </div>
+
+    <!-- Generative vs Discriminative -->
+    <div class="card">
+      <div class="card-title">생성 모델 vs 판별 모델</div>
+
+      <div class="grid2">
+        <div class="card" style="background:var(--surface2); border-top:3px solid #3b82f6; padding:20px;">
+          <div style="font-size:13px; font-weight:700; color:#3b82f6; margin-bottom:12px;">판별 모델 (Discriminative)</div>
+          <p style="font-size:12px; margin-bottom:10px;">학습 목표: <span class="hl-blue">P(y|x)</span> 직접 학습</p>
+          <p style="font-size:12px; margin-bottom:8px;">결정 경계만 학습<br>→ 분류 정확도 높음<br>→ 새로운 데이터 생성 불가</p>
+          <div style="font-size:11px; color:#475569; margin-top:10px;">
+            예시: Logistic Regression, SVM, 신경망 분류기, Transformer (분류)
+          </div>
+        </div>
+        <div class="card" style="background:var(--surface2); border-top:3px solid #f59e0b; padding:20px;">
+          <div style="font-size:13px; font-weight:700; color:#f59e0b; margin-bottom:12px;">생성 모델 (Generative)</div>
+          <p style="font-size:12px; margin-bottom:10px;">학습 목표: <span class="highlight">P(x,y) = P(x|y)P(y)</span> 결합 분포 학습</p>
+          <p style="font-size:12px; margin-bottom:8px;">데이터 생성 분포 자체를 모델링<br>→ 새로운 데이터 생성 가능</p>
+          <div style="font-size:11px; color:#475569; margin-top:10px;">
+            예시: Naive Bayes, Gaussian Mixture Model, VAE, GAN, Diffusion, LLM
+          </div>
+        </div>
+      </div>
+
+      <div class="formula" style="margin-top:16px;">
+        <span class="label">베이즈 정리로 연결</span>
+        P(y|x) = P(x|y) · P(y) / P(x)
+        생성 모델의 P(x|y), P(y)를 추정하면 → 판별 확률 P(y|x) 도출 가능
+      </div>
+    </div>
+  </section>
+
+  <!-- ────────────────────────── SUMMARY ────────────────────────── -->
+  <section class="section" id="summary">
+    <div class="section-header">
+      <div class="section-num">✦</div>
+      <div class="section-title">핵심 <span>요약</span></div>
+    </div>
+
+    <div class="summary-grid">
+      <div class="summary-card blue">
+        <h4>01 확률론적 추론</h4>
+        <ul>
+          <li>데이터 = 노이즈 포함 → 확률 모델 필요</li>
+          <li>P(y|x;θ)로 불확실성 수치화</li>
+          <li>MLE: argmax P(X|θ)</li>
+          <li>MAP: argmax P(θ|X)</li>
+        </ul>
+      </div>
+      <div class="summary-card yellow">
+        <h4>02 MLE</h4>
+        <ul>
+          <li>우도 L(θ;X) = ∏ P(xᵢ|θ)</li>
+          <li>로그 우도로 곱 → 합 변환</li>
+          <li>Gaussian: μ̂ = x̄, σ̂² = (1/n)Σ(xᵢ−x̄)²</li>
+          <li>MLE 분산 = 편향 추정 (분모 n)</li>
+        </ul>
+      </div>
+      <div class="summary-card green">
+        <h4>03 MAP</h4>
+        <ul>
+          <li>= MLE + log Prior</li>
+          <li>Gaussian Prior → L2 (Ridge)</li>
+          <li>Laplace Prior → L1 (Lasso)</li>
+          <li>데이터 적을 때 Prior가 안전장치</li>
+        </ul>
+      </div>
+      <div class="summary-card purple">
+        <h4>04 결정 경계</h4>
+        <ul>
+          <li>P(C₁|x) = P(C₂|x) 인 지점</li>
+          <li>σ₁² = σ₂² → LDA (선형)</li>
+          <li>σ₁² ≠ σ₂² → QDA (이차)</li>
+          <li>MAP 경계: Prior에 의해 위치 이동</li>
+        </ul>
+      </div>
+      <div class="summary-card red">
+        <h4>05 다변수 확장</h4>
+        <ul>
+          <li>Categorical MLE: π̂ₖ = nₖ/n</li>
+          <li>Dirichlet Prior → Laplace 평활화</li>
+          <li>Softmax = Categorical 파라미터 신경망</li>
+          <li>생성 모델 vs 판별 모델</li>
+        </ul>
+      </div>
+      <div class="summary-card" style="border-top-color:#94a3b8;">
+        <h4 style="color:#94a3b8;">핵심 공식 모음</h4>
+        <ul>
+          <li>θ̂_MLE = argmax Σ log P(xᵢ|θ)</li>
+          <li>θ̂_MAP = argmax [Σ log P(xᵢ|θ) + log P(θ)]</li>
+          <li>x* (LDA) = (μ₁+μ₂)/2</li>
+          <li>Softmax: exp(wₖᵀx) / Σⱼ exp(wⱼᵀx)</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script>
+function setActive(el) {
+  document.querySelectorAll('.toc-item').forEach(i => i.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// IntersectionObserver for TOC highlight
+const sections = document.querySelectorAll('.section[id]');
+const tocItems = document.querySelectorAll('.toc-item');
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const id = entry.target.id;
+      tocItems.forEach(item => {
+        item.classList.remove('active');
+        if (item.getAttribute('href') === '#' + id) {
+          item.classList.add('active');
+        }
+      });
+    }
+  });
+}, { threshold: 0.3, rootMargin: '-40px 0px -60% 0px' });
+
+sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>
