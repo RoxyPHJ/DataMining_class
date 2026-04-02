@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ML 실전 25제: 확률밀도함수의 추정 (MLE & MAP)</title>
+    <style>
+        body { font-family: 'Pretendard', sans-serif; line-height: 1.6; color: #333; max-width: 900px; margin: 0 auto; padding: 20px; background-color: #f8f9fa; }
+        .quiz-container { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
+        h1 { color: #0d6efd; text-align: center; font-size: 2.2em; margin-bottom: 30px; border-bottom: 4px solid #e9ecef; padding-bottom: 20px; }
+        .question-card { margin-bottom: 35px; padding: 25px; border: 1px solid #dee2e6; border-radius: 15px; background: #fff; }
+        .q-text { font-weight: 700; font-size: 1.2em; margin-bottom: 15px; display: block; color: #212529; }
+        .options-list { list-style: none; padding: 0; }
+        .option-item { margin: 12px 0; padding: 12px; border-radius: 10px; background: #f1f3f5; cursor: pointer; display: flex; align-items: center; border: 1px solid transparent; }
+        .option-item:hover { background: #e7f1ff; border-color: #0d6efd; }
+        input[type="radio"], input[type="text"] { margin-right: 15px; }
+        input[type="text"] { width: 100%; padding: 12px; border: 2px solid #ced4da; border-radius: 10px; font-size: 1em; box-sizing: border-box; }
+        .essay-area { width: 100%; height: 120px; padding: 15px; border: 2px solid #ced4da; border-radius: 10px; resize: vertical; box-sizing: border-box; font-size: 1em; }
+        .btn-submit { display: block; width: 100%; padding: 20px; background: #0d6efd; color: white; border: none; border-radius: 12px; font-size: 1.3em; font-weight: bold; cursor: pointer; margin-top: 40px; transition: 0.3s; }
+        .btn-submit:hover { background: #0b5ed7; }
+        .feedback { display: none; margin-top: 30px; padding: 25px; border-radius: 15px; }
+        .correct-ans { background-color: #d1e7dd; border: 1px solid #badbcc; color: #0f5132; margin-bottom: 25px; }
+        .wrong-ans { background-color: #f8d7da; border: 1px solid #f5c2c7; color: #842029; margin-bottom: 25px; }
+        .explain-box { margin-top: 15px; padding-top: 15px; border-top: 1px dashed #adb5bd; font-size: 1em; color: #495057; white-space: pre-wrap; line-height: 1.8; }
+    </style>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+
+<div class="quiz-container">
+    <h1>📊 ML Slide 6: PDF Estimation Master</h1>
+    
+    <div id="quiz-content"></div>
+
+    <button class="btn-submit" onclick="gradeQuiz()">제출 및 해설 확인</button>
+
+    <div id="final-result" class="feedback">
+        <h2 style="text-align: center;">학습 완료! 점수: <span id="final-score">0</span> / 25</h2>
+        <div id="feedback-list"></div>
+    </div>
+</div>
+
+<script>
+const quizData = [
+    // 1~10 객관식
+    { type: 'mc', q: "우도(Likelihood)와 확률(Probability)의 차이점에 대한 설명으로 가장 옳은 것은?", options: ["둘은 수학적으로 정의가 다르며 계산법도 아예 다르다.", "확률은 파라미터 θ를 알 때 데이터 X를 예측하는 것이고, 우도는 데이터 X를 알 때 θ를 추정하는 것이다.", "우도는 데이터가 발생할 미래의 빈도를 뜻한다.", "확률은 탐정의 시선이고, 우도는 과학자의 시선이다."], ans: 1, explain: "확률은 고정된 θ 하에서 가변적인 데이터 X의 분포를 보는 '과학자의 관점'입니다.\n\n반면 우도는 관측된 데이터 X를 고정하고 이를 가장 잘 설명하는 θ를 찾는 '탐정의 관점'입니다." },
+    { type: 'mc', q: "로그 우도(Log-Likelihood)를 사용하는 이유가 아닌 것은?", options: ["곱셈 연산을 덧셈 연산으로 바꾸어 미분을 단순화하기 위해", "매우 작은 확률값들의 곱으로 인한 언더플로우(Underflow) 현상을 방지하기 위해", "로그 함수가 단조 증가 함수여서 최댓값의 위치를 보존하기 위해", "우도 함수를 항상 0과 1 사이의 값으로 변환하기 위해"], ans: 3, explain: "로그를 취하는 주된 이유는 계산의 편의성(덧셈 변환)과 수치적 안정성(언더플로우 방지) 때문입니다.\n\n우도 함수를 특정 범위로 가두기 위한 목적이 아닙니다." },
+    { type: 'mc', q: "동전 던지기(Bernoulli) 실험에서 앞면이 k번, 뒷면이 n-k번 나왔을 때 앞면이 나올 확률 p의 MLE 추정량은?", options: ["p = k / n", "p = (k+1) / (n+2)", "p = 0.5", "p = (n-k) / n"], ans: 0, explain: "베르누이 우도 함수를 p로 미분하여 0이 되는 지점을 찾으면 전체 시행 횟수 대비 성공 횟수인 k/n이 도출됩니다.\n\n이는 상식적인 '비율' 계산과 일치합니다." },
+    { type: 'mc', q: "가우시안 분포의 MLE 추정에서 평균(μ)의 결과값은 무엇인가?", options: ["데이터의 최댓값", "데이터의 중앙값", "데이터의 산술 평균(표본 평균)", "데이터의 최빈값"], ans: 2, explain: "로그 우도 함수를 μ로 미분하여 정리하면 모든 관측값의 합을 개수 n으로 나눈 산술 평균이 됩니다.\n\n우리가 평소에 쓰는 평균이 통계적으로 최적의 추정치임을 증명합니다." },
+    { type: 'mc', q: "MLE로 구한 가우시안 분산(σ²)이 실제 모집단의 분산보다 작게 측정되는 성질을 무엇이라 하는가?", options: ["불편성(Unbiasedness)", "편향(Bias)", "일관성(Consistency)", "효율성(Efficiency)"], ans: 1, explain: "MLE 분산 추정량은 n으로 나누기 때문에 모집단의 실제 분산을 과소 추정하는 경향이 있으며, 이를 '편향되어 있다(Biased)'고 합니다.\n\n따라서 n-1로 나누는 보정(Bessel's correction)을 사용하기도 합니다." },
+    { type: 'mc', q: "MAP(Maximum A Posteriori) 추정이 MLE와 다른 결정적인 차이점은?", options: ["데이터의 개수가 무한할 때만 사용 가능하다.", "사전 지식(Prior probability)을 고려한다.", "미분을 사용하지 않고 정답을 찾는다.", "항상 MSE 손실 함수만 사용한다."], ans: 1, explain: "MAP는 '사후 확률 ∝ 우도 × 사전 확률'의 원리에 따라, 데이터 증거뿐만 아니라 우리가 미리 알고 있는 상식(Prior)을 결합합니다.\n\n데이터가 부족할 때 특히 강력한 힘을 발휘합니다." },
+    { type: 'mc', q: "데이터의 오차(Noise)가 가우시안 분포를 따른다고 가정할 때 MLE를 수행하면 도출되는 손실 함수는?", options: ["Cross-Entropy", "Hinge Loss", "MSE (Mean Squared Error)", "Absolute Error"], ans: 2, explain: "가우시안 확률 밀도 함수의 지수 부분에는 (y - y_hat)² 형태가 포함되어 있습니다.\n\n로그를 취하면 이 제곱항이 밖으로 나오며 자연스럽게 MSE 최소화 문제로 변신합니다." },
+    { type: 'mc', q: "MAP 추정에서 사전 확률(Prior)을 가우시안 분포로 가정하면 어떤 효과가 나타나는가?", options: ["변수 선택(Feature Selection) 효과", "L2 정규화(Ridge) 효과", "L1 정규화(Lasso) 효과", "데이터 증강 효과"], ans: 1, explain: "가우시안 Prior를 적용하면 가중치 θ의 제곱합을 패널티로 주는 L2 정규화 식이 유도됩니다.\n\n가중치를 0 근처로 부드럽게 억제하는 역할을 합니다." },
+    { type: 'mc', q: "MAP 추정에서 사전 확률(Prior)을 라플라스(Laplace) 분포로 가정하면 어떤 효과가 나타나는가?", options: ["L2 정규화 효과", "데이터 차원 축소", "L1 정규화(Lasso) 효과", "평균값 이동"], ans: 2, explain: "라플라스 분포는 절댓값 항을 포함하므로 L1 정규화와 수학적으로 연결됩니다.\n\n중요하지 않은 변수의 가중치를 0으로 만드는 특성이 있습니다." },
+    { type: 'mc', q: "베이즈 정리에서 사후 확률(Posterior)을 계산할 때 분모에 위치하여 정규화 역할을 하는 항은?", options: ["Likelihood", "Prior", "Evidence (P(X))", "Parameter θ"], ans: 2, explain: "분모의 P(X)는 증거(Evidence) 항으로, 전체 확률의 합을 1로 만들어주는 상수 역할을 합니다.\n\n최적화 과정(θ 찾기)에서는 θ와 무관하므로 보통 무시됩니다." },
+
+    // 11~18 OX
+    { type: 'ox', q: "데이터의 개수(n)가 무한히 많아지면 MAP 추정치는 MLE 추정치와 거의 같아진다.", ans: "O", explain: "데이터가 많아지면 증거(Likelihood)의 영향력이 사전 지식(Prior)을 압도하게 됩니다.\n\n결국 데이터가 충분할 때는 상식보다 눈앞의 사실이 더 중요해지는 것과 같습니다." },
+    { type: 'ox', q: "MLE는 전역 최적해(Global Optimum)를 항상 보장하지만 MAP는 그렇지 않다.", ans: "X", explain: "두 방식 모두 함수의 모양(Convexity)에 따라 전역 최적해 보장 여부가 결정됩니다.\n\n방식 자체의 차이로 인한 보장 여부 구분은 틀린 설명입니다." },
+    { type: 'ox', q: "i.i.d(Independent and Identically Distributed) 가정은 모든 데이터가 서로 독립적이며 같은 분포에서 나왔다는 뜻이다.", ans: "O", explain: "이 가정이 있어야 전체 데이터의 결합 확률을 개별 확률의 단순 곱셈으로 표현할 수 있습니다.\n\n기계학습 수식 전개의 가장 기초적인 약속입니다." },
+    { type: 'ox', q: "로그 함수는 단조 증가 함수이므로 우도를 최대화하는 θ와 로그 우도를 최대화하는 θ는 동일하다.", ans: "O", explain: "f(x)가 최대일 때 log(f(x))도 최대입니다.\n\n따라서 계산이 편한 로그 우도를 대신 사용해도 결과는 변하지 않습니다." },
+    { type: 'ox', q: "MLE 분산 추정량을 구할 때 n 대신 n-1로 나누는 것을 베셀의 보정(Bessel's correction)이라 한다.", ans: "O", explain: "샘플 분산이 모집단 분산을 과소 평가하는 문제를 해결하기 위해 자유도를 1 줄여서(n-1) 보정합니다.\n\n통계학적으로 더 정확한(불편) 추정치를 얻기 위함입니다." },
+    { type: 'ox', q: "사전 확률(Prior)이 모든 θ에 대해 균등한 분포(Uniform Distribution)라면 MAP와 MLE는 같다.", ans: "O", explain: "사전 지식이 '모든 가능성이 똑같다'는 무색무취한 상태라면, 오직 눈앞의 데이터(Likelihood)에 의해서만 결과가 결정됩니다.\n\n수학적으로 P(θ)가 상수가 되어 수식에서 무시되는 원리입니다." },
+    { type: 'ox', q: "MLE는 항상 데이터에 과적합(Overfitting)될 위험이 MAP보다 적다.", ans: "X", explain: "반대입니다. MLE는 주어진 데이터에만 집착하기 때문에 과적합 위험이 큽니다.\n\nMAP는 사전 지식(Prior)이라는 고삐를 통해 과적합을 억제하는 효과가 있습니다." },
+    { type: 'ox', q: "가우시안 분포의 PDF(확률밀도함수)를 적분하면 전 영역에서 1이 된다.", ans: "O", explain: "확률의 정의에 따라 전체 구간에 대한 확률 밀도의 합(적분)은 반드시 1이어야 합니다.\n\n모든 정규화된 확률 분포의 기본 성질입니다." },
+
+    // 19~23 단답형
+    { type: 'sa', q: "데이터 X가 주어졌을 때 파라미터 θ가 정답일 확률 $P(θ|X)$를 무엇이라 부르는가?", ans: ["사후확률", "사후 확률", "posterior"], explain: "관측 데이터를 본 '이후'의 확률이라는 뜻에서 사후 확률이라고 부릅니다.\n\nMAP 추정의 직접적인 최적화 대상입니다." },
+    { type: 'sa', q: "관측된 데이터들을 바탕으로 이를 가장 잘 설명할 것 같은 '원인(θ)'을 거꾸로 추적하는 함수는?", ans: ["우도", "가능도", "likelihood"], explain: "데이터가 고정되었을 때 파라미터의 타당성을 평가하는 우도(Likelihood) 함수입니다.\n\n수식으로는 P(X|θ)이지만 관점은 θ에 대한 함수입니다." },
+    { type: 'sa', q: "사전 확률(Prior)을 반영하여 손실 함수에 특정 제약 조건을 추가하는 기법을 무엇이라 하는가?", ans: ["정규화", "regularization"], explain: "MAP 추정의 Prior 항은 기계학습 손실 함수의 정규화(Regularization) 항으로 변신합니다.\n\n모델의 복잡도를 제어하여 일반화 성능을 높이는 핵심 기술입니다." },
+    { type: 'sa', q: "베이즈 정리를 구성하는 요소 중 $P(X|θ)$에 해당하는 항의 명칭은?", ans: ["우도", "가능도", "likelihood"], explain: "θ라는 가정이 맞을 때 X라는 데이터가 나타날 확률, 즉 우도입니다.\n\n사후 확률을 결정하는 가장 직접적인 증거입니다." },
+    { type: 'sa', q: "MLE 추정에서 오차가 베르누이 분포를 따를 때 유도되는 손실 함수의 이름은?", ans: ["교차엔트로피", "교차 엔트로피", "cross entropy"], explain: "이진 분류의 데이터 성격인 베르누이 분포를 MLE로 풀면 Cross-Entropy 식이 나옵니다.\n\n따라서 분류 문제의 표준 손실 함수가 된 것입니다." },
+
+    // 24~25 서술형
+    { type: 'essay', q: "가우시안 MLE 유도 과정에서 로그 우도 함수를 미분하여 평균(μ)을 구할 때, 왜 최종 결과가 모든 데이터의 산술 평균으로 수렴하는지 논리적으로 설명하시오.", ans: "확인 완료", explain: "해설: 로그 우도 함수의 지수항을 μ에 대해 미분하면 $\\sum(x_i - μ) = 0$ 이라는 일차 방정식을 얻게 됩니다.\n\n이 식을 전개하면 $\\sum x_i - nμ = 0$ 이 되며, 최종적으로 $μ = (\\sum x_i) / n$ 이라는 형태가 됩니다.\n\n이는 '오차의 제곱합이 최소가 되는 지점은 평균값이다'라는 수학적 원리와도 일맥상통합니다." },
+    { type: 'essay', q: "데이터가 매우 적은 상황(예: 동전을 2번 던져서 모두 앞면이 나온 경우)에서 MLE 추정만 사용했을 때의 위험성과 MAP가 이를 어떻게 보완하는지 서술하시오.", ans: "확인 완료", explain: "해설: 데이터가 적을 때 MLE는 '앞면 확률 100%'라는 극단적인 과적합 결과를 내놓습니다.\n\n하지만 MAP는 '동전은 보통 앞뒤가 반반이다'라는 사전 지식(Prior)을 수식에 포함시킵니다.\n\n따라서 데이터가 적더라도 상식적인 선에서 결과가 나오도록 유도하여 모델의 안정성을 확보합니다." }
+];
+
+function renderQuiz() {
+    const container = document.getElementById('quiz-content');
+    quizData.forEach((item, idx) => {
+        let html = `<div class="question-card" id="q-card-${idx}">
+            <span class="q-text">${idx + 1}. ${item.q}</span>`;
+        
+        if (item.type === 'mc') {
+            html += `<ul class="options-list">`;
+            item.options.forEach((opt, oIdx) => {
+                html += `<li class="option-item">
+                    <input type="radio" name="q${idx}" id="q${idx}_${oIdx}" value="${oIdx}">
+                    <label for="q${idx}_${oIdx}">${opt}</label>
+                </li>`;
+            });
+            html += `</ul>`;
+        } else if (item.type === 'ox') {
+            html += `<ul class="options-list">
+                <li class="option-item"><input type="radio" name="q${idx}" id="q${idx}_o" value="O"><label for="q${idx}_o">O</label></li>
+                <li class="option-item"><input type="radio" name="q${idx}" id="q${idx}_x" value="X"><label for="q${idx}_x">X</label></li>
+            </ul>`;
+        } else if (item.type === 'sa') {
+            html += `<input type="text" id="q${idx}_input" placeholder="정답을 입력하세요">`;
+        } else if (item.type === 'essay') {
+            html += `<textarea class="essay-area" id="q${idx}_input" placeholder="답안을 서술해 보세요... (제출 후 해설과 비교)"></textarea>`;
+        }
+        
+        html += `<div id="feedback-${idx}" class="feedback"></div></div>`;
+        container.innerHTML += html;
+    });
+}
+
+function gradeQuiz() {
+    let score = 0;
+    quizData.forEach((item, idx) => {
+        let isCorrect = false;
+        let userVal = "";
+        const feedbackDiv = document.getElementById(`feedback-${idx}`);
+        
+        if (item.type === 'mc') {
+            const selected = document.querySelector(`input[name="q${idx}"]:checked`);
+            if (selected && parseInt(selected.value) === item.ans) isCorrect = true;
+        } else if (item.type === 'ox') {
+            const selected = document.querySelector(`input[name="q${idx}"]:checked`);
+            if (selected && selected.value === item.ans) isCorrect = true;
+        } else if (item.type === 'sa') {
+            userVal = document.getElementById(`q${idx}_input`).value.trim().toLowerCase();
+            if (item.ans.some(a => userVal.includes(a.toLowerCase()))) isCorrect = true;
+        } else if (item.type === 'essay') {
+            isCorrect = true; 
+        }
+
+        if (isCorrect && item.type !== 'essay') score++;
+        
+        feedbackDiv.style.display = "block";
+        feedbackDiv.className = isCorrect ? "feedback correct-ans" : "feedback wrong-ans";
+        feedbackDiv.innerHTML = `<strong>${isCorrect ? (item.type==='essay'?'답안 확인':'정답') : '오답'}</strong>
+            <div class="explain-box">${item.explain}</div>`;
+    });
+
+    document.getElementById('final-score').innerText = score;
+    document.getElementById('final-result').style.display = "block";
+    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+}
+
+window.onload = renderQuiz;
+</script>
+</body>
+</html>
