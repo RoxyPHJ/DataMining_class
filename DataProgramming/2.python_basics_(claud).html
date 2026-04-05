@@ -1,0 +1,1589 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2: Python Basics — Data Programming</title>
+<style>
+:root {
+  --bg: #0a0e1a;
+  --surface: #111827;
+  --surface2: #1a2236;
+  --surface3: #1e2d45;
+  --border: #1e3a5f;
+  --accent: #3b82f6;
+  --accent2: #06b6d4;
+  --accent3: #a78bfa;
+  --accent4: #f59e0b;
+  --green: #10b981;
+  --red: #ef4444;
+  --text: #e2e8f0;
+  --text-muted: #94a3b8;
+  --text-dim: #64748b;
+  --code-bg: #0d1526;
+  --code-keyword: #c084fc;
+  --code-string: #4ade80;
+  --code-comment: #64748b;
+  --code-func: #60a5fa;
+  --code-number: #f97316;
+  --code-builtin: #fb923c;
+  --font-body: 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', sans-serif;
+  --font-code: 'Menlo', 'Courier New', monospace;
+  --font-header: 'Impact', 'Arial Narrow', sans-serif;
+  --num-color: #3b82f6;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  line-height: 1.7;
+  display: flex;
+  min-height: 100vh;
+}
+
+/* ── SIDEBAR TOC ── */
+#toc {
+  width: 260px;
+  min-width: 260px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  padding: 24px 0;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+#toc::-webkit-scrollbar { width: 4px; }
+#toc::-webkit-scrollbar-track { background: transparent; }
+#toc::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+.toc-header {
+  padding: 0 20px 16px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 12px;
+}
+.toc-header .course-tag {
+  font-size: 10px;
+  color: var(--accent);
+  font-family: var(--font-code);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.toc-header h2 {
+  font-family: var(--font-header);
+  font-size: 15px;
+  color: var(--text);
+  letter-spacing: 0.5px;
+  line-height: 1.3;
+}
+
+.toc-section-group {
+  margin-bottom: 6px;
+}
+.toc-group-label {
+  font-size: 9px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  padding: 6px 20px 3px;
+  font-family: var(--font-code);
+}
+.toc-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 20px;
+  text-decoration: none;
+  color: var(--text-muted);
+  font-size: 13px;
+  transition: all 0.2s;
+  border-left: 2px solid transparent;
+  cursor: pointer;
+}
+.toc-link:hover {
+  color: var(--text);
+  background: var(--surface2);
+  border-left-color: var(--accent);
+}
+.toc-link.active {
+  color: var(--accent);
+  background: rgba(59,130,246,0.08);
+  border-left-color: var(--accent);
+}
+.toc-num {
+  font-family: var(--font-code);
+  font-size: 10px;
+  color: var(--num-color);
+  min-width: 22px;
+  opacity: 0.7;
+}
+
+/* ── MAIN CONTENT ── */
+main {
+  flex: 1;
+  max-width: 960px;
+  padding: 40px 48px 80px;
+  overflow-x: hidden;
+}
+
+/* ── HERO ── */
+.hero {
+  margin-bottom: 60px;
+  padding-bottom: 40px;
+  border-bottom: 1px solid var(--border);
+}
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(59,130,246,0.12);
+  border: 1px solid rgba(59,130,246,0.3);
+  border-radius: 20px;
+  padding: 4px 14px;
+  font-size: 12px;
+  color: var(--accent);
+  font-family: var(--font-code);
+  margin-bottom: 20px;
+}
+.hero-badge::before { content: ''; width: 6px; height: 6px; background: var(--accent); border-radius: 50%; }
+.hero h1 {
+  font-family: var(--font-header);
+  font-size: 42px;
+  letter-spacing: 1px;
+  line-height: 1.1;
+  margin-bottom: 12px;
+  background: linear-gradient(135deg, #e2e8f0 0%, #94a3b8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.hero-sub {
+  color: var(--text-muted);
+  font-size: 15px;
+}
+.hero-meta {
+  display: flex;
+  gap: 24px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+.hero-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-dim);
+  font-family: var(--font-code);
+}
+.hero-meta-item span { color: var(--text-muted); }
+
+/* ── SECTION ── */
+.section {
+  margin-bottom: 56px;
+  scroll-margin-top: 24px;
+}
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 24px;
+}
+.section-num {
+  font-family: var(--font-code);
+  font-size: 11px;
+  color: var(--accent);
+  background: rgba(59,130,246,0.1);
+  border: 1px solid rgba(59,130,246,0.25);
+  border-radius: 4px;
+  padding: 2px 8px;
+  min-width: 36px;
+  text-align: center;
+}
+.section h2 {
+  font-family: var(--font-header);
+  font-size: 22px;
+  letter-spacing: 0.5px;
+  color: var(--text);
+}
+.section-divider {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--border) 0%, transparent 100%);
+}
+
+/* ── CARD ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 24px;
+  margin-bottom: 16px;
+}
+.card-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent2);
+  margin-bottom: 12px;
+  font-family: var(--font-code);
+  letter-spacing: 0.5px;
+}
+.card p { font-size: 14px; color: var(--text-muted); margin-bottom: 8px; }
+.card ul { padding-left: 18px; }
+.card li { font-size: 14px; color: var(--text-muted); margin-bottom: 5px; }
+.card li strong { color: var(--text); }
+
+/* two-column */
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.split-card {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 24px;
+  margin-bottom: 16px;
+  align-items: start;
+}
+.split-left { font-size: 14px; color: var(--text-muted); }
+.split-left h4 { font-size: 13px; color: var(--accent2); font-family: var(--font-code); margin-bottom: 10px; }
+.split-left ul { padding-left: 16px; }
+.split-left li { margin-bottom: 5px; }
+.split-left li strong { color: var(--text); }
+
+/* ── CODE BLOCK ── */
+.code-block {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px 18px;
+  font-family: var(--font-code);
+  font-size: 12.5px;
+  line-height: 1.7;
+  overflow-x: auto;
+  white-space: pre;
+}
+.kw { color: var(--code-keyword); }
+.st { color: var(--code-string); }
+.cm { color: var(--code-comment); font-style: italic; }
+.fn { color: var(--code-func); }
+.nm { color: var(--code-number); }
+.bi { color: var(--code-builtin); }
+.id { color: var(--text); }
+.op { color: #94a3b8; }
+
+/* ── HIGHLIGHT TAGS ── */
+.tag {
+  display: inline-block;
+  font-family: var(--font-code);
+  font-size: 12px;
+  padding: 1px 7px;
+  border-radius: 4px;
+  margin: 1px 2px;
+}
+.tag-blue { background: rgba(59,130,246,0.15); color: #93c5fd; border: 1px solid rgba(59,130,246,0.3); }
+.tag-green { background: rgba(16,185,129,0.12); color: #6ee7b7; border: 1px solid rgba(16,185,129,0.25); }
+.tag-red { background: rgba(239,68,68,0.12); color: #fca5a5; border: 1px solid rgba(239,68,68,0.25); }
+.tag-yellow { background: rgba(245,158,11,0.12); color: #fcd34d; border: 1px solid rgba(245,158,11,0.25); }
+.tag-purple { background: rgba(167,139,250,0.12); color: #c4b5fd; border: 1px solid rgba(167,139,250,0.25); }
+
+/* ── TABLE ── */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+.data-table th {
+  background: var(--surface2);
+  color: var(--text-muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 10px 14px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  font-family: var(--font-code);
+}
+.data-table td {
+  padding: 9px 14px;
+  border-bottom: 1px solid rgba(30,58,95,0.4);
+  color: var(--text-muted);
+  font-family: var(--font-code);
+  font-size: 12.5px;
+}
+.data-table tr:nth-child(even) td { background: rgba(17,24,39,0.4); }
+.data-table tr:hover td { background: rgba(59,130,246,0.05); }
+.data-table td:first-child { color: var(--accent4); font-weight: 600; }
+
+/* ── DATA STRUCTURE COMPARE TABLE ── */
+.struct-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin-bottom: 16px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+.struct-table th {
+  padding: 12px 16px;
+  text-align: center;
+  font-family: var(--font-code);
+  font-size: 12px;
+}
+.struct-table th:nth-child(1) { background: var(--surface2); color: var(--text-dim); text-align: left; }
+.struct-table th:nth-child(2) { background: rgba(59,130,246,0.15); color: #93c5fd; }
+.struct-table th:nth-child(3) { background: rgba(16,185,129,0.12); color: #6ee7b7; }
+.struct-table th:nth-child(4) { background: rgba(167,139,250,0.12); color: #c4b5fd; }
+.struct-table th:nth-child(5) { background: rgba(245,158,11,0.12); color: #fcd34d; }
+.struct-table td {
+  padding: 10px 16px;
+  border-bottom: 1px solid rgba(30,58,95,0.4);
+  color: var(--text-muted);
+  text-align: center;
+  font-size: 13px;
+}
+.struct-table td:first-child { text-align: left; font-family: var(--font-code); color: var(--text-dim); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
+.struct-table .yes { color: var(--green); font-weight: 600; }
+.struct-table .no { color: var(--red); }
+.struct-table .partial { color: var(--accent4); font-size: 12px; }
+
+/* ── INFO BOXES ── */
+.info-box {
+  border-radius: 8px;
+  padding: 14px 18px;
+  margin-bottom: 12px;
+  font-size: 13.5px;
+  border-left: 3px solid;
+}
+.info-box.blue { background: rgba(59,130,246,0.07); border-color: var(--accent); color: #bfdbfe; }
+.info-box.yellow { background: rgba(245,158,11,0.07); border-color: var(--accent4); color: #fde68a; }
+.info-box.green { background: rgba(16,185,129,0.07); border-color: var(--green); color: #a7f3d0; }
+.info-box.red { background: rgba(239,68,68,0.07); border-color: var(--red); color: #fecaca; }
+.info-box strong { font-size: 12px; font-family: var(--font-code); letter-spacing: 0.5px; display: block; margin-bottom: 4px; opacity: 0.7; }
+
+/* ── SVG DIAGRAM ── */
+.diagram-wrap {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+.diagram-title {
+  font-family: var(--font-code);
+  font-size: 11px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 14px;
+}
+
+/* ── SUMMARY GRID ── */
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+.summary-item {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+}
+.summary-item h4 {
+  font-family: var(--font-code);
+  font-size: 12px;
+  color: var(--accent);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.summary-item ul { padding-left: 14px; }
+.summary-item li { font-size: 13px; color: var(--text-muted); margin-bottom: 4px; }
+
+/* ── SCROLL BEHAVIOR ── */
+html { scroll-behavior: smooth; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 900px) {
+  #toc { display: none; }
+  main { padding: 24px 20px 60px; }
+  .two-col, .split-card { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ════════════════ TOC SIDEBAR ════════════════ -->
+<nav id="toc">
+  <div class="toc-header">
+    <div class="course-tag">0011445001</div>
+    <h2>Data Programming<br>Python Basics</h2>
+  </div>
+
+  <div class="toc-section-group">
+    <div class="toc-group-label">Python for Beginners</div>
+    <a class="toc-link" onclick="scrollTo('s01')"><span class="toc-num">01</span> Python 소개</a>
+    <a class="toc-link" onclick="scrollTo('s02')"><span class="toc-num">02</span> Variables</a>
+    <a class="toc-link" onclick="scrollTo('s03')"><span class="toc-num">03</span> Data Types</a>
+    <a class="toc-link" onclick="scrollTo('s04')"><span class="toc-num">04</span> Numbers</a>
+    <a class="toc-link" onclick="scrollTo('s05')"><span class="toc-num">05</span> Casting</a>
+    <a class="toc-link" onclick="scrollTo('s06')"><span class="toc-num">06</span> String</a>
+    <a class="toc-link" onclick="scrollTo('s07')"><span class="toc-num">07</span> Operators</a>
+  </div>
+
+  <div class="toc-section-group">
+    <div class="toc-group-label">Data Structures</div>
+    <a class="toc-link" onclick="scrollTo('s08')"><span class="toc-num">08</span> List</a>
+    <a class="toc-link" onclick="scrollTo('s09')"><span class="toc-num">09</span> Tuple</a>
+    <a class="toc-link" onclick="scrollTo('s10')"><span class="toc-num">10</span> Set</a>
+    <a class="toc-link" onclick="scrollTo('s11')"><span class="toc-num">11</span> Dictionary</a>
+    <a class="toc-link" onclick="scrollTo('s12')"><span class="toc-num">12</span> 자료구조 비교</a>
+  </div>
+
+  <div class="toc-section-group">
+    <div class="toc-group-label">Control Flow</div>
+    <a class="toc-link" onclick="scrollTo('s13')"><span class="toc-num">13</span> If…Else</a>
+    <a class="toc-link" onclick="scrollTo('s14')"><span class="toc-num">14</span> While Loops</a>
+    <a class="toc-link" onclick="scrollTo('s15')"><span class="toc-num">15</span> For Loops</a>
+    <a class="toc-link" onclick="scrollTo('s16')"><span class="toc-num">16</span> Functions</a>
+  </div>
+
+  <div class="toc-section-group">
+    <div class="toc-group-label">OOP</div>
+    <a class="toc-link" onclick="scrollTo('s17')"><span class="toc-num">17</span> Classes / Objects</a>
+    <a class="toc-link" onclick="scrollTo('s18')"><span class="toc-num">18</span> Inheritance</a>
+  </div>
+
+  <div class="toc-section-group">
+    <div class="toc-group-label">정리</div>
+    <a class="toc-link" onclick="scrollTo('s19')"><span class="toc-num">19</span> Summary</a>
+  </div>
+</nav>
+
+<!-- ════════════════ MAIN ════════════════ -->
+<main>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-badge">Lecture 2</div>
+    <h1>Python Basics</h1>
+    <div class="hero-sub">Data Programming (0011445001) — Jangho Lee, CSE INU</div>
+    <div class="hero-meta">
+      <div class="hero-meta-item">📄 <span>39 slides</span></div>
+      <div class="hero-meta-item">🐍 <span>Python 3</span></div>
+      <div class="hero-meta-item">🏫 <span>Incheon National University</span></div>
+    </div>
+  </div>
+
+  <!-- ─── 01. Python 소개 ─── -->
+  <section class="section" id="s01">
+    <div class="section-header">
+      <span class="section-num">01</span>
+      <h2>Python 소개</h2>
+      <div class="section-divider"></div>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">What is Python?</div>
+        <ul>
+          <li>1991년 <strong>Guido van Rossum</strong>이 만든 인기 프로그래밍 언어</li>
+          <li>배우고 사용하기 쉽게 설계됨</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-title">Why Python?</div>
+        <ul>
+          <li><strong>단순한 문법</strong>과 가독성 (영어와 유사)</li>
+          <li><strong>크로스 플랫폼</strong> (Windows, macOS, Linux)</li>
+          <li><strong>인터프리터</strong> 방식 — 작성 즉시 실행 가능</li>
+          <li><strong>풍부한 오픈소스 라이브러리</strong></li>
+          <li><strong>강력한 커뮤니티</strong> 지원</li>
+          <li>다양한 도메인: 데이터 분석, 웹 개발, 게임 & GUI</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── 02. Variables ─── -->
+  <section class="section" id="s02">
+    <div class="section-header">
+      <span class="section-num">02</span>
+      <h2>Variables</h2>
+      <div class="section-divider"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">변수란?</div>
+      <p>데이터 값을 저장하는 컨테이너. 값을 처음 할당하는 순간 생성되며, <strong>특정 타입으로 선언할 필요 없음.</strong></p>
+    </div>
+
+    <div class="split-card">
+      <div class="split-left">
+        <h4>Naming Convention</h4>
+        <ul>
+          <li>문자 또는 <strong>_</strong>로 시작</li>
+          <li>숫자로 시작 불가</li>
+          <li>영숫자와 <strong>_</strong>만 포함 가능</li>
+          <li><strong>대소문자 구분</strong>: age, Age, AGE는 모두 다른 변수</li>
+        </ul>
+        <br>
+        <div class="info-box green"><strong>✅ Legal</strong>myvar, my_var, _my_var, myVar, MYVAR, myvar2</div>
+        <div class="info-box red"><strong>❌ Illegal</strong>2myvar, my-var, my var (공백/하이픈/숫자 시작 불가)</div>
+      </div>
+      <div class="code-block"><span class="id">x</span> <span class="op">=</span> <span class="nm">5</span>
+<span class="id">y</span> <span class="op">=</span> <span class="st">"John"</span>
+<span class="fn">print</span>(<span class="id">x</span>)
+<span class="fn">print</span>(<span class="id">y</span>)</div>
+    </div>
+  </section>
+
+  <!-- ─── 03. Data Types ─── -->
+  <section class="section" id="s03">
+    <div class="section-header">
+      <span class="section-num">03</span>
+      <h2>Data Types</h2>
+      <div class="section-divider"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">파이썬 내장 데이터 타입</div>
+      <p>변수는 다양한 내장 데이터 타입의 값을 저장할 수 있다. 값을 직접 할당하거나, 명시적으로 타입을 지정할 수 있다.</p>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">값 할당으로 타입 결정</div>
+        <div class="code-block"><span class="id">x</span> <span class="op">=</span> <span class="st">"Hello World"</span>   <span class="cm"># str</span>
+<span class="id">x</span> <span class="op">=</span> <span class="nm">20</span>              <span class="cm"># int</span>
+<span class="id">x</span> <span class="op">=</span> <span class="nm">20.5</span>            <span class="cm"># float</span>
+<span class="id">x</span> <span class="op">=</span> <span class="nm">1j</span>              <span class="cm"># complex</span>
+<span class="id">x</span> <span class="op">=</span> [<span class="st">"a"</span>, <span class="st">"b"</span>]      <span class="cm"># list</span>
+<span class="id">x</span> <span class="op">=</span> (<span class="st">"a"</span>, <span class="st">"b"</span>)      <span class="cm"># tuple</span>
+<span class="id">x</span> <span class="op">=</span> {<span class="st">"a"</span>, <span class="st">"b"</span>}      <span class="cm"># set</span>
+<span class="id">x</span> <span class="op">=</span> {<span class="st">"k"</span>: <span class="st">"v"</span>}     <span class="cm"># dict</span>
+<span class="id">x</span> <span class="op">=</span> <span class="kw">True</span>            <span class="cm"># bool</span>
+<span class="id">x</span> <span class="op">=</span> <span class="kw">None</span>            <span class="cm"># NoneType</span></div>
+      </div>
+      <div class="card">
+        <div class="card-title">명시적 타입 지정</div>
+        <div class="code-block"><span class="id">x</span> <span class="op">=</span> <span class="fn">str</span>(<span class="st">"Hello World"</span>)
+<span class="id">x</span> <span class="op">=</span> <span class="fn">int</span>(<span class="nm">20</span>)
+<span class="id">x</span> <span class="op">=</span> <span class="fn">float</span>(<span class="nm">20.5</span>)
+<span class="id">x</span> <span class="op">=</span> <span class="fn">complex</span>(<span class="nm">1j</span>)
+<span class="id">x</span> <span class="op">=</span> <span class="fn">list</span>((<span class="st">"a"</span>, <span class="st">"b"</span>))
+<span class="id">x</span> <span class="op">=</span> <span class="fn">tuple</span>((<span class="st">"a"</span>, <span class="st">"b"</span>))
+<span class="id">x</span> <span class="op">=</span> <span class="fn">set</span>((<span class="st">"a"</span>, <span class="st">"b"</span>))
+<span class="id">x</span> <span class="op">=</span> <span class="fn">dict</span>(<span class="id">k</span><span class="op">=</span><span class="st">"v"</span>)
+<span class="id">x</span> <span class="op">=</span> <span class="fn">bool</span>(<span class="nm">5</span>)
+<span class="id">x</span> <span class="op">=</span> <span class="kw">None</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── 04. Numbers ─── -->
+  <section class="section" id="s04">
+    <div class="section-header">
+      <span class="section-num">04</span>
+      <h2>Numbers</h2>
+      <div class="section-divider"></div>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">세 가지 숫자 타입</div>
+        <div class="code-block"><span class="id">x</span> <span class="op">=</span> <span class="nm">1</span>    <span class="cm"># int</span>
+<span class="id">y</span> <span class="op">=</span> <span class="nm">2.8</span>  <span class="cm"># float</span>
+<span class="id">z</span> <span class="op">=</span> <span class="nm">1j</span>   <span class="cm"># complex</span></div>
+        <br>
+        <div class="card-title">타입 변환</div>
+        <div class="code-block"><span class="id">a</span> <span class="op">=</span> <span class="fn">float</span>(<span class="id">x</span>)    <span class="cm"># int → float</span>
+<span class="id">b</span> <span class="op">=</span> <span class="fn">int</span>(<span class="id">y</span>)      <span class="cm"># float → int</span>
+<span class="id">c</span> <span class="op">=</span> <span class="fn">complex</span>(<span class="id">x</span>)  <span class="cm"># int → complex</span></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Random 모듈</div>
+        <div class="info-box yellow"><strong>⚠️ Note</strong>Python에는 random() 전역 함수가 없다. 내장 모듈 <code>random</code>을 import해서 사용해야 한다.</div>
+        <div class="code-block"><span class="kw">import</span> <span class="id">random</span>
+
+<span class="fn">print</span>(<span class="id">random</span>.<span class="fn">randrange</span>(<span class="nm">1</span>, <span class="nm">10</span>))</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── 05. Casting ─── -->
+  <section class="section" id="s05">
+    <div class="section-header">
+      <span class="section-num">05</span>
+      <h2>Casting</h2>
+      <div class="section-divider"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">변수 타입 명시적 지정</div>
+      <p>Python은 동적 타입 언어이지만, 캐스팅 함수로 타입을 명시적으로 변환할 수 있다.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">int() — 정수형 변환</div>
+      <div class="code-block"><span class="id">x</span> <span class="op">=</span> <span class="fn">int</span>(<span class="nm">1</span>)     <span class="cm"># x = 1</span>
+<span class="id">y</span> <span class="op">=</span> <span class="fn">int</span>(<span class="nm">2.8</span>)   <span class="cm"># y = 2  (소수점 버림)</span>
+<span class="id">z</span> <span class="op">=</span> <span class="fn">int</span>(<span class="st">"3"</span>)   <span class="cm"># z = 3  (문자열→정수)</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">float() — 실수형 변환</div>
+      <div class="code-block"><span class="id">x</span> <span class="op">=</span> <span class="fn">float</span>(<span class="nm">1</span>)      <span class="cm"># x = 1.0</span>
+<span class="id">y</span> <span class="op">=</span> <span class="fn">float</span>(<span class="nm">2.8</span>)    <span class="cm"># y = 2.8</span>
+<span class="id">z</span> <span class="op">=</span> <span class="fn">float</span>(<span class="st">"3"</span>)    <span class="cm"># z = 3.0</span>
+<span class="id">w</span> <span class="op">=</span> <span class="fn">float</span>(<span class="st">"4.2"</span>)  <span class="cm"># w = 4.2</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">str() — 문자열 변환</div>
+      <div class="code-block"><span class="id">x</span> <span class="op">=</span> <span class="fn">str</span>(<span class="st">"s1"</span>)  <span class="cm"># x = 's1'</span>
+<span class="id">y</span> <span class="op">=</span> <span class="fn">str</span>(<span class="nm">2</span>)     <span class="cm"># y = '2'</span>
+<span class="id">z</span> <span class="op">=</span> <span class="fn">str</span>(<span class="nm">3.0</span>)   <span class="cm"># z = '3.0'</span></div>
+    </div>
+  </section>
+
+  <!-- ─── 06. String ─── -->
+  <section class="section" id="s06">
+    <div class="section-header">
+      <span class="section-num">06</span>
+      <h2>String</h2>
+      <div class="section-divider"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">기본 개념</div>
+      <p>문자열은 단일/이중 따옴표로 감싸며 서로 동일: <code>'hello' == "hello"</code></p>
+      <p>문자열은 <strong>유니코드 문자 바이트 배열</strong>이므로 인덱스로 접근 가능.</p>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">기본 조작</div>
+        <div class="code-block"><span class="id">a</span> <span class="op">=</span> <span class="st">"Hello, World!"</span>
+<span class="fn">print</span>(<span class="id">a</span>[<span class="nm">1</span>])         <span class="cm"># 인덱스 접근</span>
+<span class="fn">print</span>(<span class="fn">len</span>(<span class="id">a</span>))       <span class="cm"># 문자열 길이</span>
+
+<span class="cm"># 포함 여부 확인</span>
+<span class="id">txt</span> <span class="op">=</span> <span class="st">"The best things in life are free!"</span>
+<span class="kw">if</span> <span class="st">"free"</span> <span class="kw">in</span> <span class="id">txt</span>:
+    <span class="fn">print</span>(<span class="st">"Yes, 'free' is present."</span>)</div>
+      </div>
+      <div class="card">
+        <div class="card-title">슬라이싱</div>
+        <div class="code-block"><span class="id">b</span> <span class="op">=</span> <span class="st">"Hello, World!"</span>
+<span class="fn">print</span>(<span class="id">b</span>[<span class="nm">2</span>:<span class="nm">5</span>])   <span class="cm"># "llo"</span>
+<span class="fn">print</span>(<span class="id">b</span>[:<span class="nm">5</span>])    <span class="cm"># "Hello"</span>
+<span class="fn">print</span>(<span class="id">b</span>[<span class="nm">2</span>:])    <span class="cm"># "llo, World!"</span>
+<span class="fn">print</span>(<span class="id">b</span>[<span class="nm">-5</span>:<span class="nm">-2</span>]) <span class="cm"># 음수 인덱스</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">문자열 메서드</div>
+      <div class="code-block"><span class="id">a</span> <span class="op">=</span> <span class="st">"Hello, World!"</span>
+<span class="fn">print</span>(<span class="id">a</span>.<span class="fn">upper</span>())          <span class="cm"># 대문자</span>
+<span class="fn">print</span>(<span class="id">a</span>.<span class="fn">lower</span>())          <span class="cm"># 소문자</span>
+<span class="fn">print</span>(<span class="id">a</span>.<span class="fn">strip</span>())          <span class="cm"># 앞뒤 공백 제거</span>
+<span class="fn">print</span>(<span class="id">a</span>.<span class="fn">replace</span>(<span class="st">"H"</span>, <span class="st">"J"</span>)) <span class="cm"># 치환</span>
+<span class="fn">print</span>(<span class="id">a</span>.<span class="fn">split</span>(<span class="st">","</span>))       <span class="cm"># 분할 → ['Hello', ' World!']</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">String Format — format() 메서드</div>
+      <div class="info-box red"><strong>❌ 오류 발생</strong>Python은 문자열과 숫자를 직접 합칠 수 없다: "name" + 36 → TypeError</div>
+      <div class="code-block"><span class="id">age</span> <span class="op">=</span> <span class="nm">36</span>
+<span class="id">txt</span> <span class="op">=</span> <span class="st">"My name is John, and I am {}"</span>
+<span class="fn">print</span>(<span class="id">txt</span>.<span class="fn">format</span>(<span class="id">age</span>))
+
+<span class="cm"># 여러 플레이스홀더</span>
+<span class="id">quantity</span> <span class="op">=</span> <span class="nm">3</span>
+<span class="id">itemno</span> <span class="op">=</span> <span class="nm">567</span>
+<span class="id">price</span> <span class="op">=</span> <span class="nm">49.95</span>
+<span class="id">myorder</span> <span class="op">=</span> <span class="st">"I want {} pieces of item {} for {} dollars."</span>
+<span class="fn">print</span>(<span class="id">myorder</span>.<span class="fn">format</span>(<span class="id">quantity</span>, <span class="id">itemno</span>, <span class="id">price</span>))</div>
+    </div>
+  </section>
+
+  <!-- ─── 07. Operators ─── -->
+  <section class="section" id="s07">
+    <div class="section-header">
+      <span class="section-num">07</span>
+      <h2>Operators</h2>
+      <div class="section-divider"></div>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">산술 연산자 (Arithmetic)</div>
+        <table class="data-table">
+          <tr><th>연산자</th><th>이름</th><th>예시</th></tr>
+          <tr><td>+</td><td style="color:var(--text-muted)">Addition</td><td style="color:var(--text-muted)">x + y</td></tr>
+          <tr><td>-</td><td style="color:var(--text-muted)">Subtraction</td><td style="color:var(--text-muted)">x - y</td></tr>
+          <tr><td>*</td><td style="color:var(--text-muted)">Multiplication</td><td style="color:var(--text-muted)">x * y</td></tr>
+          <tr><td>/</td><td style="color:var(--text-muted)">Division</td><td style="color:var(--text-muted)">x / y</td></tr>
+          <tr><td>%</td><td style="color:var(--text-muted)">Modulus</td><td style="color:var(--text-muted)">x % y</td></tr>
+          <tr><td>**</td><td style="color:var(--text-muted)">Exponentiation</td><td style="color:var(--text-muted)">x ** y</td></tr>
+          <tr><td>//</td><td style="color:var(--text-muted)">Floor division</td><td style="color:var(--text-muted)">x // y</td></tr>
+        </table>
+      </div>
+      <div class="card">
+        <div class="card-title">비교 연산자 (Comparison)</div>
+        <table class="data-table">
+          <tr><th>연산자</th><th>이름</th><th>예시</th></tr>
+          <tr><td>==</td><td style="color:var(--text-muted)">Equal</td><td style="color:var(--text-muted)">x == y</td></tr>
+          <tr><td>!=</td><td style="color:var(--text-muted)">Not equal</td><td style="color:var(--text-muted)">x != y</td></tr>
+          <tr><td>&gt;</td><td style="color:var(--text-muted)">Greater than</td><td style="color:var(--text-muted)">x &gt; y</td></tr>
+          <tr><td>&lt;</td><td style="color:var(--text-muted)">Less than</td><td style="color:var(--text-muted)">x &lt; y</td></tr>
+          <tr><td>&gt;=</td><td style="color:var(--text-muted)">Greater or equal</td><td style="color:var(--text-muted)">x &gt;= y</td></tr>
+          <tr><td>&lt;=</td><td style="color:var(--text-muted)">Less or equal</td><td style="color:var(--text-muted)">x &lt;= y</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">논리 연산자 (Logical)</div>
+        <table class="data-table">
+          <tr><th>연산자</th><th>설명</th></tr>
+          <tr><td>and</td><td style="color:var(--text-muted)">두 조건이 모두 참이면 True</td></tr>
+          <tr><td>or</td><td style="color:var(--text-muted)">하나라도 참이면 True</td></tr>
+          <tr><td>not</td><td style="color:var(--text-muted)">결과 반전, 참이면 False</td></tr>
+        </table>
+      </div>
+      <div class="card">
+        <div class="card-title">대입 연산자 (Assignment) — 주요</div>
+        <div class="code-block"><span class="id">x</span> <span class="op">+=</span> <span class="nm">3</span>   <span class="cm"># x = x + 3</span>
+<span class="id">x</span> <span class="op">-=</span> <span class="nm">3</span>   <span class="cm"># x = x - 3</span>
+<span class="id">x</span> <span class="op">*=</span> <span class="nm">3</span>   <span class="cm"># x = x * 3</span>
+<span class="id">x</span> <span class="op">/=</span> <span class="nm">3</span>   <span class="cm"># x = x / 3</span>
+<span class="id">x</span> <span class="op">%=</span> <span class="nm">3</span>   <span class="cm"># x = x % 3</span>
+<span class="id">x</span> <span class="op">**=</span> <span class="nm">3</span>  <span class="cm"># x = x ** 3</span>
+<span class="id">x</span> <span class="op">//=</span> <span class="nm">3</span>  <span class="cm"># x = x // 3</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── 08. List ─── -->
+  <section class="section" id="s08">
+    <div class="section-header">
+      <span class="section-num">08</span>
+      <h2>List</h2>
+      <div class="section-divider"></div>
+    </div>
+
+    <div class="info-box blue"><strong>특징</strong>Ordered(순서 있음) · Changeable(변경 가능) · Duplicates Allowed(중복 허용) — 대괄호 <code>[]</code> 사용</div>
+
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">생성 & 접근</div>
+        <div class="code-block"><span class="id">thislist</span> <span class="op">=</span> [<span class="st">"apple"</span>, <span class="st">"banana"</span>, <span class="st">"cherry"</span>]
+<span class="fn">print</span>(<span class="id">thislist</span>)
+<span class="fn">print</span>(<span class="id">thislist</span>[<span class="nm">1</span>])  <span class="cm"># "banana"</span>
+
+<span class="cm"># list() 생성자</span>
+<span class="id">thislist</span> <span class="op">=</span> <span class="fn">list</span>((<span class="st">"apple"</span>, <span class="st">"banana"</span>, <span class="st">"cherry"</span>))</div>
+      </div>
+      <div class="card">
+        <div class="card-title">항목 변경</div>
+        <div class="code-block"><span class="id">thislist</span>[<span class="nm">1</span>] <span class="op">=</span> <span class="st">"blackcurrant"</span>
+<span class="fn">print</span>(<span class="id">thislist</span>)</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">항목 추가</div>
+      <div class="code-block"><span class="cm"># append(): 끝에 추가</span>
+<span class="id">thislist</span>.<span class="fn">append</span>(<span class="st">"orange"</span>)
+
+<span class="cm"># insert(): 특정 인덱스에 삽입</span>
+<span class="id">thislist</span>.<span class="fn">insert</span>(<span class="nm">2</span>, <span class="st">"watermelon"</span>)
+
+<span class="cm"># extend(): 다른 리스트 요소 전체 추가</span>
+<span class="id">tropical</span> <span class="op">=</span> [<span class="st">"mango"</span>, <span class="st">"pineapple"</span>, <span class="st">"papaya"</span>]
+<span class="id">thislist</span>.<span class="fn">extend</span>(<span class="id">tropical</span>)</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">항목 제거</div>
+      <div class="code-block"><span class="id">thislist</span>.<span class="fn">remove</span>(<span class="st">"banana"</span>)  <span class="cm"># 특정 값 제거</span>
+<span class="id">thislist</span>.<span class="fn">pop</span>(<span class="nm">1</span>)           <span class="cm"># 특정 인덱스 제거</span>
+<span class="id">thislist</span>.<span class="fn">pop</span>()            <span class="cm"># 마지막 항목 제거</span>
+<span class="kw">del</span> <span class="id">thislist</span>[<span class="nm">0</span>]           <span class="cm"># del로 특정 인덱스 제거</span>
+<span class="kw">del</span> <span class="id">thislist</span>              <span class="cm"># 리스트 자체 삭제</span>
+<span class="id">thislist</span>.<span class="fn">clear</span>()          <span class="cm"># 리스트 비우기</span></div>
+    </div>
+  </section>
+
+  <!-- ─── 09. Tuple ─── -->
+  <section class="section" id="s09">
+    <div class="section-header">
+      <span class="section-num">09</span>
+      <h2>Tuple</h2>
+      <div class="section-divider"></div>
+    </div>
+
+    <div class="info-box green"><strong>특징</strong>Ordered(순서 있음) · Unchangeable(변경 불가, Immutable) · Duplicates Allowed(중복 허용) — 소괄호 <code>()</code> 사용</div>
+
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">생성 & 접근</div>
+        <div class="code-block"><span class="id">thistuple</span> <span class="op">=</span> (<span class="st">"apple"</span>, <span class="st">"banana"</span>, <span class="st">"cherry"</span>)
+<span class="fn">print</span>(<span class="id">thistuple</span>[<span class="nm">1</span>])
+
+<span class="cm"># tuple() 생성자</span>
+<span class="id">thistuple</span> <span class="op">=</span> <span class="fn">tuple</span>((<span class="st">"apple"</span>, <span class="st">"banana"</span>, <span class="st">"cherry"</span>))</div>
+      </div>
+      <div class="card">
+        <div class="card-title">값 변경 방법 (우회)</div>
+        <div class="info-box yellow"><strong>⚠️ Immutable</strong>직접 변경 불가. List로 변환 후 수정.</div>
+        <div class="code-block"><span class="id">x</span> <span class="op">=</span> (<span class="st">"apple"</span>, <span class="st">"banana"</span>, <span class="st">"cherry"</span>)
+<span class="id">y</span> <span class="op">=</span> <span class="fn">list</span>(<span class="id">x</span>)
+<span class="id">y</span>[<span class="nm">1</span>] <span class="op">=</span> <span class="st">"kiwi"</span>
+<span class="id">x</span> <span class="op">=</span> <span class="fn">tuple</span>(<span class="id">y</span>)
+<span class="fn">print</span>(<span class="id">x</span>)</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">항목 추가 (우회) & Tuple + Tuple</div>
+      <div class="code-block"><span class="cm"># 리스트 변환 후 추가</span>
+<span class="id">thistuple</span> <span class="op">=</span> (<span class="st">"apple"</span>, <span class="st">"banana"</span>, <span class="st">"cherry"</span>)
+<span class="id">y</span> <span class="op">=</span> <span class="fn">list</span>(<span class="id">thistuple</span>)
+<span class="id">y</span>.<span class="fn">append</span>(<span class="st">"orange"</span>)
+<span class="id">thistuple</span> <span class="op">=</span> <span class="fn">tuple</span>(<span class="id">y</span>)
+
+<span class="cm"># 튜플끼리 합치기</span>
+<span class="id">y</span> <span class="op">=</span> (<span class="st">"orange"</span>,)
+<span class="id">thistuple</span> <span class="op">+=</span> <span class="id">y</span></div>
+    </div>
+  </section>
+
+  <!-- ─── 10. Set ─── -->
+  <section class="section" id="s10">
+    <div class="section-header">
+      <span class="section-num">10</span>
+      <h2>Set</h2>
+      <div class="section-divider"></div>
+    </div>
+
+    <div class="info-box blue"><strong>특징</strong>Unordered(순서 없음) · Unchangeable(변경 불가) · No Duplicates(중복 불가) — 중괄호 <code>{}</code> 사용</div>
+
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">생성 & 순회</div>
+        <div class="code-block"><span class="id">thisset</span> <span class="op">=</span> {<span class="st">"apple"</span>, <span class="st">"banana"</span>, <span class="st">"cherry"</span>}
+<span class="fn">print</span>(<span class="id">thisset</span>)
+
+<span class="cm"># 인덱스로 접근 불가 → for 루프로 순회</span>
+<span class="kw">for</span> <span class="id">x</span> <span class="kw">in</span> <span class="id">thisset</span>:
+    <span class="fn">print</span>(<span class="id">x</span>)</div>
+      </div>
+      <div class="card">
+        <div class="card-title">항목 추가</div>
+        <div class="code-block"><span class="cm"># 단일 항목 추가</span>
+<span class="id">thisset</span>.<span class="fn">add</span>(<span class="st">"orange"</span>)
+
+<span class="cm"># 다른 set 병합</span>
+<span class="id">tropical</span> <span class="op">=</span> {<span class="st">"pineapple"</span>, <span class="st">"mango"</span>, <span class="st">"papaya"</span>}
+<span class="id">thisset</span>.<span class="fn">update</span>(<span class="id">tropical</span>)
+<span class="fn">print</span>(<span class="id">thisset</span>)</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">항목 제거</div>
+      <div class="code-block"><span class="id">thisset</span>.<span class="fn">remove</span>(<span class="st">"banana"</span>)   <span class="cm"># 없으면 오류 발생</span>
+<span class="id">thisset</span>.<span class="fn">discard</span>(<span class="st">"banana"</span>)  <span class="cm"># 없어도 오류 없음</span>
+<span class="id">x</span> <span class="op">=</span> <span class="id">thisset</span>.<span class="fn">pop</span>()           <span class="cm"># 랜덤 항목 제거 후 반환</span>
+<span class="id">thisset</span>.<span class="fn">clear</span>()             <span class="cm"># set 비우기</span>
+<span class="kw">del</span> <span class="id">thisset</span>                  <span class="cm"># set 완전 삭제</span></div>
+    </div>
+  </section>
+
+  <!-- ─── 11. Dictionary ─── -->
+  <section class="section" id="s11">
+    <div class="section-header">
+      <span class="section-num">11</span>
+      <h2>Dictionary</h2>
+      <div class="section-divider"></div>
+    </div>
+
+    <div class="info-box blue"><strong>특징</strong>Key:Value 쌍으로 데이터 저장 · Ordered/Unordered(Python 버전에 따라 다름) · Changeable · No Duplicates — 중괄호 <code>{}</code> 사용</div>
+
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">생성</div>
+        <div class="code-block"><span class="id">thisdict</span> <span class="op">=</span> {
+    <span class="st">"brand"</span>: <span class="st">"Ford"</span>,
+    <span class="st">"model"</span>: <span class="st">"Mustang"</span>,
+    <span class="st">"year"</span>: <span class="nm">1964</span>
+}
+<span class="fn">print</span>(<span class="id">thisdict</span>)
+
+<span class="cm"># dict() 생성자</span>
+<span class="id">thisdict</span> <span class="op">=</span> <span class="fn">dict</span>(<span class="id">name</span><span class="op">=</span><span class="st">"John"</span>, <span class="id">age</span><span class="op">=</span><span class="nm">36</span>, <span class="id">country</span><span class="op">=</span><span class="st">"Norway"</span>)</div>
+      </div>
+      <div class="card">
+        <div class="card-title">항목 접근</div>
+        <div class="code-block"><span class="id">x</span> <span class="op">=</span> <span class="id">thisdict</span>[<span class="st">"model"</span>]       <span class="cm"># 직접 접근</span>
+<span class="id">x</span> <span class="op">=</span> <span class="id">thisdict</span>.<span class="fn">get</span>(<span class="st">"model"</span>)  <span class="cm"># get()</span>
+<span class="id">x</span> <span class="op">=</span> <span class="id">thisdict</span>.<span class="fn">keys</span>()        <span class="cm"># 모든 키</span>
+<span class="id">x</span> <span class="op">=</span> <span class="id">thisdict</span>.<span class="fn">values</span>()      <span class="cm"># 모든 값</span>
+<span class="id">x</span> <span class="op">=</span> <span class="id">thisdict</span>.<span class="fn">items</span>()       <span class="cm"># 모든 key-value 쌍</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">항목 변경 · 추가 · 제거</div>
+      <div class="code-block"><span class="cm"># 값 변경</span>
+<span class="id">thisdict</span>[<span class="st">"year"</span>] <span class="op">=</span> <span class="nm">2018</span>
+<span class="id">thisdict</span>.<span class="fn">update</span>({<span class="st">"year"</span>: <span class="nm">2020</span>})
+
+<span class="cm"># 새 항목 추가</span>
+<span class="id">thisdict</span>[<span class="st">"color"</span>] <span class="op">=</span> <span class="st">"red"</span>
+
+<span class="cm"># 항목 제거</span>
+<span class="id">thisdict</span>.<span class="fn">pop</span>(<span class="st">"model"</span>)   <span class="cm"># 특정 키 제거</span>
+<span class="kw">del</span> <span class="id">thisdict</span>[<span class="st">"model"</span>]   <span class="cm"># del로 제거</span>
+<span class="id">thisdict</span>.<span class="fn">clear</span>()        <span class="cm"># 비우기</span></div>
+    </div>
+  </section>
+
+  <!-- ─── 12. 자료구조 비교 ─── -->
+  <section class="section" id="s12">
+    <div class="section-header">
+      <span class="section-num">12</span>
+      <h2>자료구조 비교</h2>
+      <div class="section-divider"></div>
+    </div>
+
+    <div class="diagram-wrap">
+      <div class="diagram-title">Python 자료구조 특성 비교</div>
+      <table class="struct-table">
+        <tr>
+          <th>특성</th>
+          <th>List [ ]</th>
+          <th>Tuple ( )</th>
+          <th>Set { }</th>
+          <th>Dict { : }</th>
+        </tr>
+        <tr>
+          <td>순서(Ordered)</td>
+          <td class="yes">✓ Yes</td>
+          <td class="yes">✓ Yes</td>
+          <td class="no">✗ No</td>
+          <td class="partial">버전마다 다름</td>
+        </tr>
+        <tr>
+          <td>변경(Mutable)</td>
+          <td class="yes">✓ Yes</td>
+          <td class="no">✗ No</td>
+          <td class="partial">항목 추가만</td>
+          <td class="yes">✓ Yes</td>
+        </tr>
+        <tr>
+          <td>중복(Duplicates)</td>
+          <td class="yes">✓ Yes</td>
+          <td class="yes">✓ Yes</td>
+          <td class="no">✗ No</td>
+          <td class="no">Key 중복 불가</td>
+        </tr>
+        <tr>
+          <td>인덱스 접근</td>
+          <td class="yes">✓ Yes</td>
+          <td class="yes">✓ Yes</td>
+          <td class="no">✗ No</td>
+          <td class="partial">Key로 접근</td>
+        </tr>
+        <tr>
+          <td>생성 기호</td>
+          <td style="color:#93c5fd">[ ]</td>
+          <td style="color:#6ee7b7">( )</td>
+          <td style="color:#c4b5fd">{ }</td>
+          <td style="color:#fcd34d">{ : }</td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- SVG 자료구조 다이어그램 -->
+    <div class="diagram-wrap">
+      <div class="diagram-title">자료구조 개념 다이어그램</div>
+      <svg viewBox="0 0 840 200" style="width:100%;display:block;" xmlns="http://www.w3.org/2000/svg">
+        <!-- List -->
+        <rect x="20" y="30" width="180" height="140" rx="8" fill="rgba(59,130,246,0.08)" stroke="#1e3a5f" stroke-width="1"/>
+        <text x="110" y="22" text-anchor="middle" font-family="Impact,Arial Narrow,sans-serif" font-size="13" fill="#60a5fa">List</text>
+        <rect x="35" y="50" width="150" height="28" rx="4" fill="rgba(59,130,246,0.2)" stroke="#3b82f6" stroke-width="1"/>
+        <text x="110" y="69" text-anchor="middle" font-family="Menlo,Courier New,monospace" font-size="11" fill="#93c5fd">[0] "apple"</text>
+        <rect x="35" y="85" width="150" height="28" rx="4" fill="rgba(59,130,246,0.12)" stroke="#2563eb" stroke-width="1"/>
+        <text x="110" y="104" text-anchor="middle" font-family="Menlo,Courier New,monospace" font-size="11" fill="#93c5fd">[1] "banana"</text>
+        <rect x="35" y="120" width="150" height="28" rx="4" fill="rgba(59,130,246,0.08)" stroke="#1d4ed8" stroke-width="1"/>
+        <text x="110" y="139" text-anchor="middle" font-family="Menlo,Courier New,monospace" font-size="11" fill="#93c5fd">[2] "cherry"</text>
+        <text x="110" y="165" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" fill="#64748b">순서 있음 · 변경 가능</text>
+
+        <!-- Tuple -->
+        <rect x="220" y="30" width="180" height="140" rx="8" fill="rgba(16,185,129,0.06)" stroke="#1e3a5f" stroke-width="1"/>
+        <text x="310" y="22" text-anchor="middle" font-family="Impact,Arial Narrow,sans-serif" font-size="13" fill="#34d399">Tuple</text>
+        <rect x="235" y="50" width="150" height="28" rx="4" fill="rgba(16,185,129,0.15)" stroke="#10b981" stroke-width="1"/>
+        <text x="310" y="69" text-anchor="middle" font-family="Menlo,Courier New,monospace" font-size="11" fill="#6ee7b7">(0) "apple"</text>
+        <rect x="235" y="85" width="150" height="28" rx="4" fill="rgba(16,185,129,0.09)" stroke="#059669" stroke-width="1"/>
+        <text x="310" y="104" text-anchor="middle" font-family="Menlo,Courier New,monospace" font-size="11" fill="#6ee7b7">(1) "banana"</text>
+        <rect x="235" y="120" width="150" height="28" rx="4" fill="rgba(16,185,129,0.06)" stroke="#047857" stroke-width="1"/>
+        <text x="310" y="139" text-anchor="middle" font-family="Menlo,Courier New,monospace" font-size="11" fill="#6ee7b7">(2) "cherry"</text>
+        <text x="310" y="165" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" fill="#64748b">순서 있음 · 변경 불가</text>
+        <!-- 자물쇠 아이콘 -->
+        <rect x="362" y="37" width="14" height="10" rx="2" fill="none" stroke="#6ee7b7" stroke-width="1.2"/>
+        <path d="M365 40 Q365 34 369 34 Q373 34 373 40" fill="none" stroke="#6ee7b7" stroke-width="1.2"/>
+        <circle cx="369" cy="43" r="1.5" fill="#6ee7b7"/>
+
+        <!-- Set -->
+        <rect x="420" y="30" width="180" height="140" rx="8" fill="rgba(167,139,250,0.06)" stroke="#1e3a5f" stroke-width="1"/>
+        <text x="510" y="22" text-anchor="middle" font-family="Impact,Arial Narrow,sans-serif" font-size="13" fill="#a78bfa">Set</text>
+        <!-- 무순서 표현 -->
+        <ellipse cx="475" cy="80" rx="38" ry="18" fill="rgba(167,139,250,0.15)" stroke="#7c3aed" stroke-width="1"/>
+        <text x="475" y="84" text-anchor="middle" font-family="Menlo,Courier New,monospace" font-size="10" fill="#c4b5fd">"cherry"</text>
+        <ellipse cx="545" cy="65" rx="35" ry="16" fill="rgba(167,139,250,0.1)" stroke="#6d28d9" stroke-width="1"/>
+        <text x="545" y="69" text-anchor="middle" font-family="Menlo,Courier New,monospace" font-size="10" fill="#c4b5fd">"apple"</text>
+        <ellipse cx="510" cy="115" rx="40" ry="18" fill="rgba(167,139,250,0.08)" stroke="#5b21b6" stroke-width="1"/>
+        <text x="510" y="119" text-anchor="middle" font-family="Menlo,Courier New,monospace" font-size="10" fill="#c4b5fd">"banana"</text>
+        <text x="510" y="165" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" fill="#64748b">순서 없음 · 중복 불가</text>
+
+        <!-- Dictionary -->
+        <rect x="620" y="30" width="200" height="140" rx="8" fill="rgba(245,158,11,0.06)" stroke="#1e3a5f" stroke-width="1"/>
+        <text x="720" y="22" text-anchor="middle" font-family="Impact,Arial Narrow,sans-serif" font-size="13" fill="#f59e0b">Dictionary</text>
+        <rect x="635" y="50" width="170" height="28" rx="4" fill="rgba(245,158,11,0.15)" stroke="#d97706" stroke-width="1"/>
+        <text x="640" y="69" font-family="Menlo,Courier New,monospace" font-size="10" fill="#f59e0b">  "brand":</text>
+        <text x="730" y="69" font-family="Menlo,Courier New,monospace" font-size="10" fill="#fcd34d">"Ford"</text>
+        <rect x="635" y="85" width="170" height="28" rx="4" fill="rgba(245,158,11,0.09)" stroke="#b45309" stroke-width="1"/>
+        <text x="640" y="104" font-family="Menlo,Courier New,monospace" font-size="10" fill="#f59e0b">  "model":</text>
+        <text x="730" y="104" font-family="Menlo,Courier New,monospace" font-size="10" fill="#fcd34d">"Mustang"</text>
+        <rect x="635" y="120" width="170" height="28" rx="4" fill="rgba(245,158,11,0.06)" stroke="#92400e" stroke-width="1"/>
+        <text x="640" y="139" font-family="Menlo,Courier New,monospace" font-size="10" fill="#f59e0b">  "year":</text>
+        <text x="730" y="139" font-family="Menlo,Courier New,monospace" font-size="10" fill="#fcd34d">1964</text>
+        <text x="720" y="165" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" fill="#64748b">Key:Value 쌍</text>
+      </svg>
+    </div>
+  </section>
+
+  <!-- ─── 13. If…Else ─── -->
+  <section class="section" id="s13">
+    <div class="section-header">
+      <span class="section-num">13</span>
+      <h2>Conditions & If…Else</h2>
+      <div class="section-divider"></div>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">기본 구조</div>
+        <div class="code-block"><span class="id">a</span> <span class="op">=</span> <span class="nm">200</span>
+<span class="id">b</span> <span class="op">=</span> <span class="nm">33</span>
+<span class="kw">if</span> <span class="id">b</span> <span class="op">&gt;</span> <span class="id">a</span>:
+    <span class="fn">print</span>(<span class="st">"b is greater than a"</span>)
+<span class="kw">elif</span> <span class="id">a</span> <span class="op">==</span> <span class="id">b</span>:
+    <span class="fn">print</span>(<span class="st">"a and b are equal"</span>)
+<span class="kw">else</span>:
+    <span class="fn">print</span>(<span class="st">"a is greater than b"</span>)</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Short hand & and/or/not</div>
+        <div class="code-block"><span class="cm"># Short hand</span>
+<span class="fn">print</span>(<span class="st">"A"</span>) <span class="kw">if</span> <span class="id">a</span> <span class="op">&gt;</span> <span class="id">b</span> <span class="kw">else</span> <span class="fn">print</span>(<span class="st">"B"</span>)
+
+<span class="cm"># and</span>
+<span class="kw">if</span> <span class="id">a</span> <span class="op">&gt;</span> <span class="id">b</span> <span class="kw">and</span> <span class="id">c</span> <span class="op">&gt;</span> <span class="id">a</span>:
+    <span class="fn">print</span>(<span class="st">"Both conditions are True"</span>)
+
+<span class="cm"># not + pass</span>
+<span class="kw">if</span> <span class="kw">not</span> <span class="id">a</span> <span class="op">&gt;</span> <span class="id">b</span>:
+    <span class="fn">print</span>(<span class="st">"a is NOT greater than b"</span>)
+
+<span class="kw">if</span> <span class="id">b</span> <span class="op">&gt;</span> <span class="id">a</span>:
+    <span class="kw">pass</span>  <span class="cm"># 빈 블록 오류 방지</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── 14. While Loops ─── -->
+  <section class="section" id="s14">
+    <div class="section-header">
+      <span class="section-num">14</span>
+      <h2>While Loops</h2>
+      <div class="section-divider"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">조건이 참인 동안 반복 실행</div>
+      <div class="code-block"><span class="cm"># 기본 while</span>
+<span class="id">i</span> <span class="op">=</span> <span class="nm">1</span>
+<span class="kw">while</span> <span class="id">i</span> <span class="op">&lt;</span> <span class="nm">6</span>:
+    <span class="fn">print</span>(<span class="id">i</span>)
+    <span class="id">i</span> <span class="op">+=</span> <span class="nm">1</span></div>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">break — 루프 강제 종료</div>
+        <div class="code-block"><span class="id">i</span> <span class="op">=</span> <span class="nm">1</span>
+<span class="kw">while</span> <span class="id">i</span> <span class="op">&lt;</span> <span class="nm">6</span>:
+    <span class="fn">print</span>(<span class="id">i</span>)
+    <span class="kw">if</span> <span class="id">i</span> <span class="op">==</span> <span class="nm">3</span>:
+        <span class="kw">break</span>
+    <span class="id">i</span> <span class="op">+=</span> <span class="nm">1</span></div>
+      </div>
+      <div class="card">
+        <div class="card-title">continue & else</div>
+        <div class="code-block"><span class="cm"># continue: 현재 반복 건너뜀</span>
+<span class="id">i</span> <span class="op">=</span> <span class="nm">0</span>
+<span class="kw">while</span> <span class="id">i</span> <span class="op">&lt;</span> <span class="nm">6</span>:
+    <span class="id">i</span> <span class="op">+=</span> <span class="nm">1</span>
+    <span class="kw">if</span> <span class="id">i</span> <span class="op">==</span> <span class="nm">3</span>:
+        <span class="kw">continue</span>
+    <span class="fn">print</span>(<span class="id">i</span>)
+
+<span class="cm"># else: 조건이 거짓이 될 때 실행</span>
+<span class="id">i</span> <span class="op">=</span> <span class="nm">1</span>
+<span class="kw">while</span> <span class="id">i</span> <span class="op">&lt;</span> <span class="nm">6</span>:
+    <span class="fn">print</span>(<span class="id">i</span>)
+    <span class="id">i</span> <span class="op">+=</span> <span class="nm">1</span>
+<span class="kw">else</span>:
+    <span class="fn">print</span>(<span class="st">"i is no longer less than 6"</span>)</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── 15. For Loops ─── -->
+  <section class="section" id="s15">
+    <div class="section-header">
+      <span class="section-num">15</span>
+      <h2>For Loops</h2>
+      <div class="section-divider"></div>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">시퀀스 순회</div>
+        <div class="code-block"><span class="id">fruits</span> <span class="op">=</span> [<span class="st">"apple"</span>, <span class="st">"banana"</span>, <span class="st">"cherry"</span>]
+<span class="kw">for</span> <span class="id">x</span> <span class="kw">in</span> <span class="id">fruits</span>:
+    <span class="fn">print</span>(<span class="id">x</span>)
+    <span class="kw">if</span> <span class="id">x</span> <span class="op">==</span> <span class="st">"banana"</span>:
+        <span class="kw">break</span>  <span class="cm"># "banana"에서 중단</span></div>
+      </div>
+      <div class="card">
+        <div class="card-title">range() 함수</div>
+        <div class="code-block"><span class="cm"># range(stop): 0부터 stop-1</span>
+<span class="kw">for</span> <span class="id">x</span> <span class="kw">in</span> <span class="fn">range</span>(<span class="nm">6</span>):
+    <span class="fn">print</span>(<span class="id">x</span>)
+
+<span class="cm"># range(start, stop, step)</span>
+<span class="kw">for</span> <span class="id">x</span> <span class="kw">in</span> <span class="fn">range</span>(<span class="nm">2</span>, <span class="nm">30</span>, <span class="nm">3</span>):
+    <span class="fn">print</span>(<span class="id">x</span>)
+
+<span class="cm"># else: 루프 완료 후 실행</span>
+<span class="kw">for</span> <span class="id">x</span> <span class="kw">in</span> <span class="fn">range</span>(<span class="nm">6</span>):
+    <span class="fn">print</span>(<span class="id">x</span>)
+<span class="kw">else</span>:
+    <span class="fn">print</span>(<span class="st">"Finally finished!"</span>)</div>
+      </div>
+    </div>
+
+    <!-- SVG: For Loop 흐름도 -->
+    <div class="diagram-wrap">
+      <div class="diagram-title">For Loop 실행 흐름</div>
+      <svg viewBox="0 0 700 160" style="width:100%;display:block;" xmlns="http://www.w3.org/2000/svg">
+        <!-- START -->
+        <rect x="20" y="55" width="90" height="36" rx="18" fill="rgba(59,130,246,0.2)" stroke="#3b82f6" stroke-width="1.5"/>
+        <text x="65" y="78" text-anchor="middle" font-family="Menlo,Courier New,monospace" font-size="11" fill="#93c5fd">START</text>
+        <!-- 화살표 -->
+        <line x1="110" y1="73" x2="145" y2="73" stroke="#475569" stroke-width="1.5" marker-end="url(#arr)"/>
+        <!-- 조건 다이아몬드 -->
+        <polygon points="185,45 245,73 185,101 125,73" fill="rgba(245,158,11,0.12)" stroke="#f59e0b" stroke-width="1.5"/>
+        <text x="185" y="70" text-anchor="middle" font-family="Menlo,Courier New,monospace" font-size="10" fill="#fcd34d">item in</text>
+        <text x="185" y="83" text-anchor="middle" font-family="Menlo,Courier New,monospace" font-size="10" fill="#fcd34d">sequence</text>
+        <!-- True 화살표 -->
+        <line x1="245" y1="73" x2="300" y2="73" stroke="#475569" stroke-width="1.5" marker-end="url(#arr)"/>
+        <text x="272" y="67" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" fill="#10b981">True</text>
+        <!-- 실행 박스 -->
+        <rect x="300" y="50" width="120" height="46" rx="6" fill="rgba(16,185,129,0.1)" stroke="#10b981" stroke-width="1.5"/>
+        <text x="360" y="70" text-anchor="middle" font-family="Menlo,Courier New,monospace" font-size="10" fill="#6ee7b7">루프 본문</text>
+        <text x="360" y="84" text-anchor="middle" font-family="Menlo,Courier New,monospace" font-size="10" fill="#6ee7b7">실행</text>
+        <!-- 루프백 화살표 -->
+        <path d="M420 73 Q490 73 490 120 Q490 145 360 145 Q230 145 185 101" fill="none" stroke="#475569" stroke-width="1.5" marker-end="url(#arr)" stroke-dasharray="4,3"/>
+        <!-- False 화살표 -->
+        <line x1="185" y1="45" x2="185" y2="15" stroke="#475569" stroke-width="1.5" marker-end="url(#arr2)"/>
+        <text x="192" y="30" font-family="Arial,sans-serif" font-size="10" fill="#ef4444">False</text>
+        <!-- else 박스 -->
+        <rect x="140" y="0" width="90" height="18" rx="4" fill="rgba(167,139,250,0.12)" stroke="#7c3aed" stroke-width="1"/>
+        <text x="185" y="13" text-anchor="middle" font-family="Menlo,Courier New,monospace" font-size="10" fill="#c4b5fd">else 블록</text>
+        <!-- break 표시 -->
+        <rect x="470" y="55" width="80" height="28" rx="4" fill="rgba(239,68,68,0.1)" stroke="#ef4444" stroke-width="1"/>
+        <text x="510" y="73" text-anchor="middle" font-family="Menlo,Courier New,monospace" font-size="10" fill="#fca5a5">break</text>
+        <line x1="420" y1="73" x2="470" y2="73" stroke="#ef4444" stroke-width="1" stroke-dasharray="3,2"/>
+        <!-- continue 표시 -->
+        <rect x="470" y="92" width="80" height="28" rx="4" fill="rgba(245,158,11,0.1)" stroke="#f59e0b" stroke-width="1"/>
+        <text x="510" y="110" text-anchor="middle" font-family="Menlo,Courier New,monospace" font-size="10" fill="#fcd34d">continue</text>
+        <!-- END -->
+        <rect x="590" y="55" width="90" height="36" rx="18" fill="rgba(100,116,139,0.15)" stroke="#475569" stroke-width="1.5"/>
+        <text x="635" y="78" text-anchor="middle" font-family="Menlo,Courier New,monospace" font-size="11" fill="#94a3b8">END</text>
+        <line x1="550" y1="69" x2="590" y2="69" stroke="#475569" stroke-width="1.5" marker-end="url(#arr)"/>
+        <!-- 화살표 마커 -->
+        <defs>
+          <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L8,3 z" fill="#475569"/>
+          </marker>
+          <marker id="arr2" markerWidth="8" markerHeight="8" refX="3" refY="6" orient="auto">
+            <path d="M0,8 L6,8 L3,0 z" fill="#475569"/>
+          </marker>
+        </defs>
+      </svg>
+    </div>
+  </section>
+
+  <!-- ─── 16. Functions ─── -->
+  <section class="section" id="s16">
+    <div class="section-header">
+      <span class="section-num">16</span>
+      <h2>Functions</h2>
+      <div class="section-divider"></div>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">함수 정의 & 인수</div>
+        <div class="code-block"><span class="cm"># 기본 함수 정의</span>
+<span class="kw">def</span> <span class="fn">my_function</span>():
+    <span class="fn">print</span>(<span class="st">"Hello from a function"</span>)
+
+<span class="fn">my_function</span>()
+
+<span class="cm"># 인수 전달</span>
+<span class="kw">def</span> <span class="fn">my_function</span>(<span class="id">fname</span>, <span class="id">lname</span>):
+    <span class="fn">print</span>(<span class="id">fname</span> <span class="op">+</span> <span class="st">" "</span> <span class="op">+</span> <span class="id">lname</span>)
+
+<span class="fn">my_function</span>(<span class="st">"Emil"</span>, <span class="st">"Refsnes"</span>)</div>
+      </div>
+      <div class="card">
+        <div class="card-title">기본값 & return</div>
+        <div class="code-block"><span class="cm"># 기본 파라미터 값</span>
+<span class="kw">def</span> <span class="fn">my_function</span>(<span class="id">country</span> <span class="op">=</span> <span class="st">"Norway"</span>):
+    <span class="fn">print</span>(<span class="st">"I am from "</span> <span class="op">+</span> <span class="id">country</span>)
+
+<span class="fn">my_function</span>()          <span class="cm"># → "I am from Norway"</span>
+<span class="fn">my_function</span>(<span class="st">"Sweden"</span>)  <span class="cm"># → "I am from Sweden"</span>
+
+<span class="cm"># return 값 반환</span>
+<span class="kw">def</span> <span class="fn">my_function</span>(<span class="id">x</span>):
+    <span class="kw">return</span> <span class="nm">5</span> <span class="op">*</span> <span class="id">x</span>
+
+<span class="fn">print</span>(<span class="fn">my_function</span>(<span class="nm">3</span>))  <span class="cm"># → 15</span></div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">*args — 가변 위치 인수 (tuple)</div>
+        <div class="code-block"><span class="kw">def</span> <span class="fn">my_function</span>(<span class="op">*</span><span class="id">kids</span>):
+    <span class="fn">print</span>(<span class="st">"The youngest child is "</span> <span class="op">+</span> <span class="id">kids</span>[<span class="nm">2</span>])
+
+<span class="fn">my_function</span>(<span class="st">"Emil"</span>, <span class="st">"Tobias"</span>, <span class="st">"Linus"</span>)
+<span class="cm"># args는 tuple → kids[2] = "Linus"</span></div>
+      </div>
+      <div class="card">
+        <div class="card-title">**kwargs — 가변 키워드 인수 (dict)</div>
+        <div class="code-block"><span class="kw">def</span> <span class="fn">my_function</span>(<span class="op">**</span><span class="id">kid</span>):
+    <span class="fn">print</span>(<span class="st">"His last name is "</span> <span class="op">+</span> <span class="id">kid</span>[<span class="st">"lname"</span>])
+
+<span class="fn">my_function</span>(<span class="id">fname</span><span class="op">=</span><span class="st">"Tobias"</span>, <span class="id">lname</span><span class="op">=</span><span class="st">"Refsnes"</span>)
+<span class="cm"># kwargs는 dict → kid["lname"]</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">재귀 (Recursion) — 주의 필요!</div>
+      <div class="info-box yellow"><strong>⚠️ 주의</strong>재귀는 무한 루프, 메모리/성능 문제를 일으킬 수 있다. 올바르게 작성했을 때 매우 효율적이다.</div>
+      <div class="code-block"><span class="kw">def</span> <span class="fn">tri_recursion</span>(<span class="id">k</span>):
+    <span class="kw">if</span>(<span class="id">k</span> <span class="op">&gt;</span> <span class="nm">0</span>):
+        <span class="id">result</span> <span class="op">=</span> <span class="id">k</span> <span class="op">+</span> <span class="fn">tri_recursion</span>(<span class="id">k</span> <span class="op">-</span> <span class="nm">1</span>)
+        <span class="fn">print</span>(<span class="id">result</span>)
+    <span class="kw">else</span>:
+        <span class="id">result</span> <span class="op">=</span> <span class="nm">0</span>
+    <span class="kw">return</span> <span class="id">result</span>
+
+<span class="fn">tri_recursion</span>(<span class="nm">6</span>)  <span class="cm"># 1, 3, 6, 10, 15, 21 출력</span></div>
+    </div>
+  </section>
+
+  <!-- ─── 17. Classes/Objects ─── -->
+  <section class="section" id="s17">
+    <div class="section-header">
+      <span class="section-num">17</span>
+      <h2>Classes / Objects</h2>
+      <div class="section-divider"></div>
+    </div>
+
+    <div class="info-box blue"><strong>OOP</strong>Python은 객체 지향 프로그래밍 언어. Class는 객체 생성을 위한 "청사진(blueprint)"이며, 데이터와 기능을 함께 묶는다.</div>
+
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">클래스 생성</div>
+        <div class="code-block"><span class="kw">class</span> <span class="fn">MyClass</span>:
+    <span class="id">x</span> <span class="op">=</span> <span class="nm">5</span>
+
+<span class="id">p1</span> <span class="op">=</span> <span class="fn">MyClass</span>()
+<span class="fn">print</span>(<span class="id">p1</span>.<span class="id">x</span>)</div>
+      </div>
+      <div class="card">
+        <div class="card-title">__init__() — 초기화</div>
+        <div class="code-block"><span class="kw">class</span> <span class="fn">Person</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">self</span>, <span class="id">name</span>, <span class="id">age</span>):
+        <span class="kw">self</span>.<span class="id">name</span> <span class="op">=</span> <span class="id">name</span>
+        <span class="kw">self</span>.<span class="id">age</span> <span class="op">=</span> <span class="id">age</span>
+
+<span class="id">p1</span> <span class="op">=</span> <span class="fn">Person</span>(<span class="st">"John"</span>, <span class="nm">36</span>)
+<span class="fn">print</span>(<span class="id">p1</span>.<span class="id">name</span>)
+<span class="fn">print</span>(<span class="id">p1</span>.<span class="id">age</span>)</div>
+      </div>
+    </div>
+
+    <!-- SVG: Class 개념도 -->
+    <div class="diagram-wrap">
+      <div class="diagram-title">Class → Object 관계</div>
+      <svg viewBox="0 0 700 160" style="width:100%;display:block;" xmlns="http://www.w3.org/2000/svg">
+        <!-- Class 박스 -->
+        <rect x="20" y="30" width="200" height="120" rx="8" fill="rgba(59,130,246,0.08)" stroke="#3b82f6" stroke-width="2"/>
+        <rect x="20" y="30" width="200" height="28" rx="8" fill="rgba(59,130,246,0.2)"/>
+        <text x="120" y="49" text-anchor="middle" font-family="Impact,Arial Narrow,sans-serif" font-size="14" fill="#60a5fa">class Person</text>
+        <text x="30" y="80" font-family="Menlo,Courier New,monospace" font-size="11" fill="#94a3b8">  Attributes:</text>
+        <text x="30" y="97" font-family="Menlo,Courier New,monospace" font-size="11" fill="#c4b5fd">  · name</text>
+        <text x="30" y="112" font-family="Menlo,Courier New,monospace" font-size="11" fill="#c4b5fd">  · age</text>
+        <text x="30" y="132" font-family="Menlo,Courier New,monospace" font-size="11" fill="#6ee7b7">  · __init__()</text>
+        <text x="120" y="162" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" fill="#64748b">Blueprint (청사진)</text>
+
+        <!-- 화살표 -->
+        <line x1="220" y1="75" x2="270" y2="65" stroke="#475569" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arr3)"/>
+        <line x1="220" y1="100" x2="270" y2="100" stroke="#475569" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arr3)"/>
+        <line x1="220" y1="125" x2="270" y2="135" stroke="#475569" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arr3)"/>
+        <text x="245" y="96" font-family="Arial,sans-serif" font-size="10" fill="#64748b">인스턴스화</text>
+
+        <!-- Object 1 -->
+        <rect x="270" y="20" width="130" height="70" rx="6" fill="rgba(16,185,129,0.1)" stroke="#10b981" stroke-width="1.5"/>
+        <text x="335" y="40" text-anchor="middle" font-family="Menlo,Courier New,monospace" font-size="10" fill="#34d399">p1 = Person()</text>
+        <text x="335" y="57" text-anchor="middle" font-family="Menlo,Courier New,monospace" font-size="10" fill="#94a3b8">name = "John"</text>
+        <text x="335" y="73" text-anchor="middle" font-family="Menlo,Courier New,monospace" font-size="10" fill="#94a3b8">age = 36</text>
+
+        <!-- Object 2 -->
+        <rect x="270" y="75" width="130" height="70" rx="6" fill="rgba(167,139,250,0.1)" stroke="#7c3aed" stroke-width="1.5"/>
+        <text x="335" y="95" text-anchor="middle" font-family="Menlo,Courier New,monospace" font-size="10" fill="#a78bfa">p2 = Person()</text>
+        <text x="335" y="112" text-anchor="middle" font-family="Menlo,Courier New,monospace" font-size="10" fill="#94a3b8">name = "Jane"</text>
+        <text x="335" y="128" text-anchor="middle" font-family="Menlo,Courier New,monospace" font-size="10" fill="#94a3b8">age = 28</text>
+
+        <!-- Object 3 -->
+        <rect x="270" y="130" width="130" height="25" rx="6" fill="rgba(245,158,11,0.08)" stroke="#d97706" stroke-width="1"/>
+        <text x="335" y="147" text-anchor="middle" font-family="Menlo,Courier New,monospace" font-size="10" fill="#94a3b8">p3 = Person() ...</text>
+
+        <!-- 설명 -->
+        <rect x="430" y="30" width="250" height="110" rx="8" fill="rgba(17,24,39,0.5)" stroke="#1e3a5f" stroke-width="1"/>
+        <text x="445" y="55" font-family="Arial,sans-serif" font-size="12" fill="#e2e8f0">self 키워드</text>
+        <text x="445" y="73" font-family="Arial,sans-serif" font-size="11" fill="#94a3b8">· 클래스 인스턴스 자신을 참조</text>
+        <text x="445" y="89" font-family="Arial,sans-serif" font-size="11" fill="#94a3b8">· 모든 메서드의 첫 번째 인수</text>
+        <text x="445" y="110" font-family="Arial,sans-serif" font-size="12" fill="#e2e8f0">__init__()</text>
+        <text x="445" y="128" font-family="Arial,sans-serif" font-size="11" fill="#94a3b8">· 객체 생성 시 자동 실행</text>
+
+        <defs>
+          <marker id="arr3" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L8,3 z" fill="#475569"/>
+          </marker>
+        </defs>
+      </svg>
+    </div>
+  </section>
+
+  <!-- ─── 18. Inheritance ─── -->
+  <section class="section" id="s18">
+    <div class="section-header">
+      <span class="section-num">18</span>
+      <h2>Inheritance</h2>
+      <div class="section-divider"></div>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">상속이란?</div>
+        <ul>
+          <li>OOP의 핵심 기능 — <strong>코드 재사용성</strong> 향상</li>
+          <li><strong>부모 클래스(Parent/Base/Superclass)</strong>: 속성과 메서드를 제공하는 클래스</li>
+          <li><strong>자식 클래스(Child/Derived/Subclass)</strong>: 부모로부터 상속받는 클래스</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-title">super() — 부모 __init__ 호출</div>
+        <div class="info-box blue"><strong>핵심</strong>자식 클래스에서 __init__을 재정의할 때 <code>super().__init__()</code>으로 부모 초기화를 유지해야 한다.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">상속 예제</div>
+      <div class="code-block"><span class="cm"># 부모 클래스 (Parent class / Base class / Superclass)</span>
+<span class="kw">class</span> <span class="fn">Animal</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">self</span>, <span class="id">name</span>):
+        <span class="kw">self</span>.<span class="id">name</span> <span class="op">=</span> <span class="id">name</span>
+
+    <span class="kw">def</span> <span class="fn">speak</span>(<span class="kw">self</span>):
+        <span class="fn">print</span>(<span class="id">f</span><span class="st">"{self.name} makes a sound"</span>)
+
+<span class="cm"># 자식 클래스 (Child class / Derived class / Subclass)</span>
+<span class="kw">class</span> <span class="fn">Dog</span>(<span class="fn">Animal</span>):
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">self</span>, <span class="id">name</span>, <span class="id">breed</span>):
+        <span class="fn">super</span>().<span class="fn">__init__</span>(<span class="id">name</span>)  <span class="cm"># 부모 생성자 호출</span>
+        <span class="kw">self</span>.<span class="id">breed</span> <span class="op">=</span> <span class="id">breed</span>
+
+    <span class="kw">def</span> <span class="fn">speak</span>(<span class="kw">self</span>):           <span class="cm"># 메서드 오버라이드</span>
+        <span class="fn">print</span>(<span class="id">f</span><span class="st">"{self.name} the {self.breed} barks!"</span>)</div>
+    </div>
+
+    <!-- SVG: 상속 다이어그램 -->
+    <div class="diagram-wrap">
+      <div class="diagram-title">상속 관계 다이어그램</div>
+      <svg viewBox="0 0 700 180" style="width:100%;display:block;" xmlns="http://www.w3.org/2000/svg">
+        <!-- Animal 부모 -->
+        <rect x="250" y="15" width="200" height="70" rx="8" fill="rgba(59,130,246,0.1)" stroke="#3b82f6" stroke-width="2"/>
+        <rect x="250" y="15" width="200" height="24" rx="8" fill="rgba(59,130,246,0.25)"/>
+        <text x="350" y="32" text-anchor="middle" font-family="Impact,Arial Narrow,sans-serif" font-size="13" fill="#60a5fa">Animal (부모)</text>
+        <text x="260" y="55" font-family="Menlo,Courier New,monospace" font-size="10" fill="#94a3b8">· name</text>
+        <text x="260" y="70" font-family="Menlo,Courier New,monospace" font-size="10" fill="#6ee7b7">· speak()</text>
+
+        <!-- 화살표 (상속) -->
+        <line x1="200" y1="120" x2="260" y2="85" stroke="#475569" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr4)"/>
+        <line x1="350" y1="120" x2="350" y2="85" stroke="#475569" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr4)"/>
+        <line x1="500" y1="120" x2="440" y2="85" stroke="#475569" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr4)"/>
+
+        <text x="350" y="107" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" fill="#64748b">상속 (Inheritance)</text>
+
+        <!-- Dog 자식 -->
+        <rect x="270" y="120" width="160" height="55" rx="6" fill="rgba(16,185,129,0.08)" stroke="#10b981" stroke-width="1.5"/>
+        <text x="350" y="138" text-anchor="middle" font-family="Impact,Arial Narrow,sans-serif" font-size="12" fill="#34d399">Dog (자식)</text>
+        <text x="280" y="153" font-family="Menlo,Courier New,monospace" font-size="10" fill="#94a3b8">+ breed</text>
+        <text x="280" y="167" font-family="Menlo,Courier New,monospace" font-size="10" fill="#fcd34d">+ speak() override</text>
+
+        <!-- Cat 자식 -->
+        <rect x="70" y="120" width="120" height="55" rx="6" fill="rgba(167,139,250,0.08)" stroke="#7c3aed" stroke-width="1.5"/>
+        <text x="130" y="138" text-anchor="middle" font-family="Impact,Arial Narrow,sans-serif" font-size="12" fill="#a78bfa">Cat (자식)</text>
+        <text x="80" y="153" font-family="Menlo,Courier New,monospace" font-size="10" fill="#94a3b8">+ color</text>
+        <text x="80" y="167" font-family="Menlo,Courier New,monospace" font-size="10" fill="#fcd34d">+ speak() override</text>
+
+        <!-- Bird 자식 -->
+        <rect x="450" y="120" width="150" height="55" rx="6" fill="rgba(245,158,11,0.08)" stroke="#d97706" stroke-width="1.5"/>
+        <text x="525" y="138" text-anchor="middle" font-family="Impact,Arial Narrow,sans-serif" font-size="12" fill="#f59e0b">Bird (자식)</text>
+        <text x="460" y="153" font-family="Menlo,Courier New,monospace" font-size="10" fill="#94a3b8">+ wingspan</text>
+        <text x="460" y="167" font-family="Menlo,Courier New,monospace" font-size="10" fill="#fcd34d">+ speak() override</text>
+
+        <defs>
+          <marker id="arr4" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L8,3 z" fill="#475569"/>
+          </marker>
+        </defs>
+      </svg>
+    </div>
+  </section>
+
+  <!-- ─── 19. Summary ─── -->
+  <section class="section" id="s19">
+    <div class="section-header">
+      <span class="section-num">19</span>
+      <h2>Summary</h2>
+      <div class="section-divider"></div>
+    </div>
+
+    <div class="summary-grid">
+      <div class="summary-item">
+        <h4>Why Python?</h4>
+        <ul>
+          <li>단순한 문법과 높은 가독성</li>
+          <li>크로스 플랫폼 호환성</li>
+          <li>인터프리터 방식 (즉시 실행)</li>
+          <li>풍부한 오픈소스 라이브러리</li>
+          <li>다양한 도메인 활용 가능</li>
+        </ul>
+      </div>
+      <div class="summary-item">
+        <h4>Python for Beginners</h4>
+        <ul>
+          <li>Variables: 동적 타입, 선언 불필요</li>
+          <li>Data Types: str, int, float, bool 등</li>
+          <li>Numbers: int, float, complex</li>
+          <li>Casting: int(), float(), str()</li>
+          <li>String: 슬라이싱, format() 등 다양한 메서드</li>
+          <li>Operators: 산술 / 비교 / 논리 / 대입</li>
+        </ul>
+      </div>
+      <div class="summary-item">
+        <h4>Data Structures</h4>
+        <ul>
+          <li>List [ ] — 순서, 변경 가능, 중복 허용</li>
+          <li>Tuple ( ) — 순서, 불변, 중복 허용</li>
+          <li>Set { } — 무순서, 중복 불가</li>
+          <li>Dictionary { : } — Key:Value, 변경 가능</li>
+        </ul>
+      </div>
+      <div class="summary-item">
+        <h4>Control Flow & OOP</h4>
+        <ul>
+          <li>If/Elif/Else — 조건 분기</li>
+          <li>While — 조건 기반 반복</li>
+          <li>For — 시퀀스 순회, range()</li>
+          <li>Functions — def, *args, **kwargs, return</li>
+          <li>Classes — 청사진, __init__, self</li>
+          <li>Inheritance — 상속, super()</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script>
+// TOC Active State 업데이트
+const sections = document.querySelectorAll('.section');
+const tocLinks = document.querySelectorAll('.toc-link');
+
+function scrollTo(id) {
+  const el = document.getElementById(id);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const id = entry.target.id;
+      tocLinks.forEach(link => {
+        link.classList.remove('active');
+        if (link.getAttribute('onclick') && link.getAttribute('onclick').includes(id)) {
+          link.classList.add('active');
+        }
+      });
+    }
+  });
+}, { threshold: 0.3, rootMargin: '-10% 0px -60% 0px' });
+
+sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>

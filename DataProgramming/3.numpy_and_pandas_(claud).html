@@ -1,0 +1,1257 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3: NumPy & Pandas — Data Programming</title>
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --surface: #111827;
+    --surface2: #1a2235;
+    --surface3: #1e2d42;
+    --border: #1f3050;
+    --accent-np: #e85d04;
+    --accent-pd: #5a67d8;
+    --accent-green: #10b981;
+    --accent-yellow: #f59e0b;
+    --accent-red: #ef4444;
+    --text: #e2e8f0;
+    --text-dim: #94a3b8;
+    --text-dimmer: #64748b;
+    --code-bg: #0d1b2e;
+    --code-border: #1a3050;
+    --keyword: #c792ea;
+    --string: #c3e88d;
+    --number: #f78c6c;
+    --comment: #546e7a;
+    --func: #82aaff;
+    --builtin: #ffcb6b;
+    --op: #89ddff;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', sans-serif;
+    line-height: 1.7;
+    display: flex;
+    min-height: 100vh;
+  }
+
+  /* ── TOC sidebar ── */
+  #toc {
+    position: fixed;
+    left: 0; top: 0;
+    width: 260px;
+    height: 100vh;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    padding: 0 0 40px 0;
+    z-index: 100;
+    transition: transform 0.3s;
+  }
+  #toc::-webkit-scrollbar { width: 4px; }
+  #toc::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  .toc-header {
+    padding: 24px 20px 16px;
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0;
+    background: var(--surface);
+    z-index: 2;
+  }
+  .toc-header .course { font-size: 10px; color: var(--text-dimmer); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 6px; }
+  .toc-header h2 { font-family: 'Impact', 'Arial Narrow', sans-serif; font-size: 16px; letter-spacing: 1px; color: var(--text); }
+  .toc-section { padding: 12px 0 4px 20px; font-size: 10px; letter-spacing: 2px; color: var(--text-dimmer); text-transform: uppercase; }
+  .toc-link {
+    display: flex; align-items: center; gap: 10px;
+    padding: 7px 20px 7px 20px;
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 13px;
+    transition: all 0.2s;
+    border-left: 2px solid transparent;
+    margin-left: 0;
+  }
+  .toc-link:hover { color: var(--text); background: var(--surface2); }
+  .toc-link.active-np { color: var(--accent-np); border-left-color: var(--accent-np); background: rgba(232,93,4,0.08); }
+  .toc-link.active-pd { color: var(--accent-pd); border-left-color: var(--accent-pd); background: rgba(90,103,216,0.08); }
+  .toc-link.active { color: var(--accent-green); border-left-color: var(--accent-green); background: rgba(16,185,129,0.08); }
+  .toc-num { font-family: 'Menlo','Courier New',monospace; font-size: 10px; color: var(--text-dimmer); min-width: 20px; }
+
+  /* ── main content ── */
+  #main {
+    margin-left: 260px;
+    flex: 1;
+    padding: 40px 48px 80px 48px;
+    max-width: calc(100% - 260px);
+  }
+
+  /* ── hero ── */
+  .hero {
+    background: linear-gradient(135deg, #0d1b2e 0%, #0a1628 50%, #0e1a2e 100%);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 48px 48px;
+    margin-bottom: 48px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute; right: -40px; top: -40px;
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(232,93,4,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero::after {
+    content: '';
+    position: absolute; left: 30%; bottom: -60px;
+    width: 200px; height: 200px;
+    background: radial-gradient(circle, rgba(90,103,216,0.1) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-badge { display: inline-block; background: rgba(232,93,4,0.15); color: var(--accent-np); border: 1px solid rgba(232,93,4,0.3); border-radius: 4px; padding: 4px 12px; font-size: 12px; letter-spacing: 2px; font-family: 'Menlo','Courier New',monospace; margin-bottom: 16px; }
+  .hero h1 { font-family: 'Impact','Arial Narrow',sans-serif; font-size: 48px; letter-spacing: 2px; line-height: 1.1; margin-bottom: 12px; }
+  .hero h1 span.np { color: var(--accent-np); }
+  .hero h1 span.pd { color: var(--accent-pd); }
+  .hero-sub { color: var(--text-dim); font-size: 14px; }
+  .hero-meta { display: flex; gap: 24px; margin-top: 24px; flex-wrap: wrap; }
+  .hero-tag { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 6px 14px; font-size: 12px; color: var(--text-dim); }
+
+  /* ── section cards ── */
+  .section {
+    margin-bottom: 48px;
+  }
+  .section-header {
+    display: flex; align-items: center; gap: 16px;
+    margin-bottom: 24px;
+  }
+  .section-num {
+    font-family: 'Impact','Arial Narrow',sans-serif;
+    font-size: 13px; letter-spacing: 3px;
+    color: var(--text-dimmer);
+    min-width: 28px;
+  }
+  .section-title {
+    font-family: 'Impact','Arial Narrow',sans-serif;
+    font-size: 26px; letter-spacing: 1px;
+  }
+  .section-title.np { color: var(--accent-np); }
+  .section-title.pd { color: var(--accent-pd); }
+  .section-divider {
+    flex: 1; height: 1px;
+    background: linear-gradient(to right, var(--border), transparent);
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+    margin-bottom: 20px;
+  }
+  .card h3 {
+    font-family: 'Menlo','Courier New',monospace;
+    font-size: 14px; color: var(--accent-green);
+    margin-bottom: 14px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .card h3::before { content: '▸'; color: var(--accent-green); }
+  .card p { color: var(--text-dim); font-size: 14px; margin-bottom: 10px; }
+
+  /* two-col layout */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .two-col-3 { display: grid; grid-template-columns: 1fr 1.6fr; gap: 20px; align-items: start; }
+
+  /* ── code blocks ── */
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--code-border);
+    border-radius: 8px;
+    padding: 16px;
+    overflow-x: auto;
+    font-family: 'Menlo','Courier New',monospace;
+    font-size: 12.5px;
+    line-height: 1.6;
+    margin-top: 10px;
+  }
+  .kw { color: var(--keyword); }
+  .str { color: var(--string); }
+  .num { color: var(--number); }
+  .cmt { color: var(--comment); }
+  .fn { color: var(--func); }
+  .bt { color: var(--builtin); }
+  .op { color: var(--op); }
+  .out { color: #546e7a; }
+  .prompt { color: var(--accent-green); }
+
+  /* ── table ── */
+  table {
+    width: 100%; border-collapse: collapse;
+    font-size: 13px; margin-top: 12px;
+  }
+  th {
+    background: var(--surface3); color: var(--text-dim);
+    padding: 10px 14px; text-align: left;
+    font-size: 11px; letter-spacing: 1px;
+    border-bottom: 1px solid var(--border);
+  }
+  td {
+    padding: 10px 14px;
+    border-bottom: 1px solid rgba(31,48,80,0.5);
+    color: var(--text-dim);
+    vertical-align: top;
+  }
+  td code {
+    font-family: 'Menlo','Courier New',monospace;
+    color: var(--accent-pd);
+    background: rgba(90,103,216,0.1);
+    padding: 2px 6px; border-radius: 3px;
+    font-size: 11px;
+  }
+  tr:hover td { background: var(--surface2); }
+
+  /* ── info boxes ── */
+  .info-box {
+    border-radius: 8px; padding: 14px 18px;
+    font-size: 13px; margin-top: 12px;
+    display: flex; gap: 10px;
+  }
+  .info-box.orange { background: rgba(232,93,4,0.08); border: 1px solid rgba(232,93,4,0.25); color: #fbbf7a; }
+  .info-box.blue { background: rgba(90,103,216,0.08); border: 1px solid rgba(90,103,216,0.25); color: #a5b4fc; }
+  .info-box.green { background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.25); color: #6ee7b7; }
+  .info-box.yellow { background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.25); color: #fcd34d; }
+  .info-box .icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+
+  /* ── pill tags ── */
+  .pill {
+    display: inline-block;
+    padding: 3px 10px; border-radius: 20px;
+    font-size: 11px; font-family: 'Menlo','Courier New',monospace;
+    margin: 2px;
+  }
+  .pill-np { background: rgba(232,93,4,0.15); color: var(--accent-np); border: 1px solid rgba(232,93,4,0.25); }
+  .pill-pd { background: rgba(90,103,216,0.15); color: #a5b4fc; border: 1px solid rgba(90,103,216,0.25); }
+  .pill-green { background: rgba(16,185,129,0.12); color: #6ee7b7; border: 1px solid rgba(16,185,129,0.2); }
+
+  /* ── SVG diagrams ── */
+  .svg-wrap { margin-top: 16px; }
+  svg text { font-family: 'Menlo','Courier New',monospace; }
+
+  /* ── sub-section ── */
+  .sub-title {
+    font-size: 13px; font-weight: 600;
+    color: var(--accent-yellow);
+    margin-bottom: 8px; margin-top: 16px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .sub-title::before { content: '◆'; font-size: 8px; color: var(--accent-yellow); }
+
+  /* ── summary section ── */
+  .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .summary-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+  }
+  .summary-card h4 {
+    font-family: 'Impact','Arial Narrow',sans-serif;
+    letter-spacing: 1px; font-size: 16px;
+    margin-bottom: 12px;
+  }
+  .summary-card ul { list-style: none; }
+  .summary-card ul li {
+    padding: 5px 0;
+    font-size: 13px; color: var(--text-dim);
+    display: flex; align-items: flex-start; gap: 8px;
+  }
+  .summary-card ul li::before { content: '→'; color: var(--text-dimmer); flex-shrink: 0; margin-top: 1px; }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--surface3); }
+
+  @media (max-width: 1100px) {
+    .two-col, .two-col-3 { grid-template-columns: 1fr; }
+    .summary-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 768px) {
+    #toc { transform: translateX(-260px); }
+    #main { margin-left: 0; max-width: 100%; padding: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ TOC ═══════════════ -->
+<nav id="toc">
+  <div class="toc-header">
+    <div class="course">DATA PROGRAMMING · 0011445001</div>
+    <h2>NUMPY & PANDAS</h2>
+  </div>
+
+  <div class="toc-section">NumPy</div>
+  <a href="#s01" class="toc-link" data-section="s01"><span class="toc-num">01</span> NumPy 개요</a>
+  <a href="#s02" class="toc-link" data-section="s02"><span class="toc-num">02</span> Array Creation</a>
+  <a href="#s03" class="toc-link" data-section="s03"><span class="toc-num">03</span> Array Indexing</a>
+  <a href="#s04" class="toc-link" data-section="s04"><span class="toc-num">04</span> Array Operation</a>
+  <a href="#s05" class="toc-link" data-section="s05"><span class="toc-num">05</span> Broadcasting</a>
+
+  <div class="toc-section">Pandas</div>
+  <a href="#s06" class="toc-link" data-section="s06"><span class="toc-num">06</span> Pandas 개요</a>
+  <a href="#s07" class="toc-link" data-section="s07"><span class="toc-num">07</span> Series</a>
+  <a href="#s08" class="toc-link" data-section="s08"><span class="toc-num">08</span> DataFrame</a>
+  <a href="#s09" class="toc-link" data-section="s09"><span class="toc-num">09</span> Basic Functions</a>
+  <a href="#s10" class="toc-link" data-section="s10"><span class="toc-num">10</span> Indexing & Selecting</a>
+  <a href="#s11" class="toc-link" data-section="s11"><span class="toc-num">11</span> Missing Data</a>
+
+  <div class="toc-section">마무리</div>
+  <a href="#s12" class="toc-link" data-section="s12"><span class="toc-num">12</span> Summary</a>
+</nav>
+
+<!-- ═══════════════ MAIN ═══════════════ -->
+<main id="main">
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-badge">LECTURE 03</div>
+    <h1><span class="np">NumPy</span> <span style="color:var(--text-dimmer)">&</span> <span class="pd">Pandas</span></h1>
+    <div class="hero-sub">Incheon National University · CSE · Jangho Lee · Data Programming</div>
+    <div class="hero-meta">
+      <span class="hero-tag">📦 ndarray</span>
+      <span class="hero-tag">📊 Series / DataFrame</span>
+      <span class="hero-tag">⚡ Broadcasting</span>
+      <span class="hero-tag">🔍 Indexing</span>
+      <span class="hero-tag">🧹 Missing Data</span>
+    </div>
+  </div>
+
+  <!-- ══ 01. NumPy 개요 ══ -->
+  <section class="section" id="s01">
+    <div class="section-header">
+      <span class="section-num">01</span>
+      <h2 class="section-title np">NumPy 개요</h2>
+      <div class="section-divider"></div>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <h3>What is NumPy?</h3>
+        <p><strong style="color:var(--accent-np)">Num</strong>erical <strong style="color:var(--accent-np)">Py</strong>thon의 약자. 배열(array) 작업을 위한 Python 라이브러리.</p>
+        <p>배열 객체 <span class="pill pill-np">ndarray</span>를 제공하며, 데이터 과학에서 속도와 메모리 효율이 중요할 때 핵심적으로 사용됩니다.</p>
+        <div class="info-box orange">
+          <span class="icon">⚡</span>
+          <span>NumPy 배열은 기존 Python 리스트보다 <strong>최대 50배 빠름</strong></span>
+        </div>
+      </div>
+      <div class="card">
+        <h3>왜 NumPy가 빠른가?</h3>
+        <!-- SVG: 메모리 비교 -->
+        <div class="svg-wrap">
+          <svg viewBox="0 0 340 160" width="100%" display="block">
+            <defs>
+              <linearGradient id="npGrad" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stop-color="#e85d04"/>
+                <stop offset="100%" stop-color="#f97316"/>
+              </linearGradient>
+              <linearGradient id="pyGrad" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stop-color="#3b82f6"/>
+                <stop offset="100%" stop-color="#6366f1"/>
+              </linearGradient>
+            </defs>
+            <!-- NumPy: 연속 메모리 -->
+            <text x="12" y="22" fill="#94a3b8" font-size="10">NumPy (연속 블록)</text>
+            <rect x="12" y="30" width="40" height="28" rx="3" fill="url(#npGrad)" opacity="0.9"/>
+            <rect x="54" y="30" width="40" height="28" rx="3" fill="url(#npGrad)" opacity="0.9"/>
+            <rect x="96" y="30" width="40" height="28" rx="3" fill="url(#npGrad)" opacity="0.9"/>
+            <rect x="138" y="30" width="40" height="28" rx="3" fill="url(#npGrad)" opacity="0.9"/>
+            <text x="32" y="49" fill="white" font-size="10" text-anchor="middle">0</text>
+            <text x="74" y="49" fill="white" font-size="10" text-anchor="middle">1</text>
+            <text x="116" y="49" fill="white" font-size="10" text-anchor="middle">2</text>
+            <text x="158" y="49" fill="white" font-size="10" text-anchor="middle">3</text>
+            <text x="200" y="49" fill="#6ee7b7" font-size="10">← 연속 배치</text>
+
+            <!-- Python list: 분산 -->
+            <text x="12" y="88" fill="#94a3b8" font-size="10">Python List (분산)</text>
+            <rect x="12" y="96" width="32" height="28" rx="3" fill="url(#pyGrad)" opacity="0.7"/>
+            <rect x="80" y="96" width="32" height="28" rx="3" fill="url(#pyGrad)" opacity="0.7"/>
+            <rect x="148" y="96" width="32" height="28" rx="3" fill="url(#pyGrad)" opacity="0.7"/>
+            <rect x="220" y="96" width="32" height="28" rx="3" fill="url(#pyGrad)" opacity="0.7"/>
+            <text x="28" y="115" fill="white" font-size="10" text-anchor="middle">0</text>
+            <text x="96" y="115" fill="white" font-size="10" text-anchor="middle">1</text>
+            <text x="164" y="115" fill="white" font-size="10" text-anchor="middle">2</text>
+            <text x="236" y="115" fill="white" font-size="10" text-anchor="middle">3</text>
+            <!-- 화살표 (포인터) -->
+            <line x1="44" y1="110" x2="78" y2="110" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="3,2"/>
+            <polygon points="78,107 83,110 78,113" fill="#f59e0b"/>
+            <line x1="112" y1="110" x2="146" y2="110" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="3,2"/>
+            <polygon points="146,107 151,110 146,113" fill="#f59e0b"/>
+            <line x1="180" y1="110" x2="218" y2="110" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="3,2"/>
+            <polygon points="218,107 223,110 218,113" fill="#f59e0b"/>
+            <text x="200" y="115" fill="#fcd34d" font-size="10">← 포인터 참조</text>
+
+            <text x="12" y="150" fill="#546e7a" font-size="9">* 연속 메모리 → CPU 캐시 효율 ↑ → 연산 속도 ↑</text>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- ndarray 차원 시각화 -->
+    <div class="card">
+      <h3>ndarray — 다차원 배열 구조</h3>
+      <div class="svg-wrap">
+        <svg viewBox="0 0 700 160" width="100%" display="block">
+          <!-- 1D -->
+          <text x="60" y="18" fill="#94a3b8" font-size="10" text-anchor="middle">1D array</text>
+          <text x="60" y="140" fill="#64748b" font-size="9" text-anchor="middle">shape: (4,)</text>
+          <rect x="10" y="28" width="30" height="28" rx="2" fill="#1a3050" stroke="#e85d04" stroke-width="1.2"/><text x="25" y="47" fill="#fbbf7a" font-size="11" text-anchor="middle">7</text>
+          <rect x="42" y="28" width="30" height="28" rx="2" fill="#1a3050" stroke="#e85d04" stroke-width="1.2"/><text x="57" y="47" fill="#fbbf7a" font-size="11" text-anchor="middle">2</text>
+          <rect x="74" y="28" width="30" height="28" rx="2" fill="#1a3050" stroke="#e85d04" stroke-width="1.2"/><text x="89" y="47" fill="#fbbf7a" font-size="11" text-anchor="middle">9</text>
+          <rect x="106" y="28" width="30" height="28" rx="2" fill="#1a3050" stroke="#e85d04" stroke-width="1.2"/><text x="121" y="47" fill="#fbbf7a" font-size="11" text-anchor="middle">10</text>
+          <text x="10" y="72" fill="#64748b" font-size="9">axis 0 →</text>
+
+          <!-- 2D -->
+          <text x="260" y="18" fill="#94a3b8" font-size="10" text-anchor="middle">2D array</text>
+          <text x="260" y="140" fill="#64748b" font-size="9" text-anchor="middle">shape: (2, 3)</text>
+          <rect x="200" y="28" width="30" height="28" rx="2" fill="#1a3050" stroke="#5a67d8" stroke-width="1.2"/><text x="215" y="47" fill="#a5b4fc" font-size="11" text-anchor="middle">5.2</text>
+          <rect x="232" y="28" width="30" height="28" rx="2" fill="#1a3050" stroke="#5a67d8" stroke-width="1.2"/><text x="247" y="47" fill="#a5b4fc" font-size="11" text-anchor="middle">3.0</text>
+          <rect x="264" y="28" width="30" height="28" rx="2" fill="#1a3050" stroke="#5a67d8" stroke-width="1.2"/><text x="279" y="47" fill="#a5b4fc" font-size="11" text-anchor="middle">4.5</text>
+          <rect x="200" y="58" width="30" height="28" rx="2" fill="#1a3050" stroke="#5a67d8" stroke-width="1.2"/><text x="215" y="77" fill="#a5b4fc" font-size="11" text-anchor="middle">9.1</text>
+          <rect x="232" y="58" width="30" height="28" rx="2" fill="#1a3050" stroke="#5a67d8" stroke-width="1.2"/><text x="247" y="77" fill="#a5b4fc" font-size="11" text-anchor="middle">0.1</text>
+          <rect x="264" y="58" width="30" height="28" rx="2" fill="#1a3050" stroke="#5a67d8" stroke-width="1.2"/><text x="279" y="77" fill="#a5b4fc" font-size="11" text-anchor="middle">0.3</text>
+          <text x="200" y="100" fill="#64748b" font-size="9">axis 1 →</text>
+          <text x="188" y="70" fill="#64748b" font-size="9">↓</text>
+          <text x="178" y="79" fill="#64748b" font-size="9">axis 0</text>
+
+          <!-- 3D -->
+          <text x="530" y="18" fill="#94a3b8" font-size="10" text-anchor="middle">3D array</text>
+          <text x="530" y="140" fill="#64748b" font-size="9" text-anchor="middle">shape: (4, 3, 2)</text>
+          <!-- Layer 0 (back) -->
+          <rect x="390" y="50" width="26" height="22" rx="2" fill="#131e34" stroke="#374151" stroke-width="1"/><text x="403" y="65" fill="#475569" font-size="9" text-anchor="middle">1</text>
+          <rect x="418" y="50" width="26" height="22" rx="2" fill="#131e34" stroke="#374151" stroke-width="1"/><text x="431" y="65" fill="#475569" font-size="9" text-anchor="middle">4</text>
+          <rect x="390" y="74" width="26" height="22" rx="2" fill="#131e34" stroke="#374151" stroke-width="1"/><text x="403" y="89" fill="#475569" font-size="9" text-anchor="middle">9</text>
+          <rect x="418" y="74" width="26" height="22" rx="2" fill="#131e34" stroke="#374151" stroke-width="1"/>
+          <!-- Layer 1 (mid) -->
+          <rect x="405" y="38" width="26" height="22" rx="2" fill="#1a2d47" stroke="#4b5563" stroke-width="1"/><text x="418" y="53" fill="#64748b" font-size="9" text-anchor="middle">4</text>
+          <rect x="433" y="38" width="26" height="22" rx="2" fill="#1a2d47" stroke="#4b5563" stroke-width="1"/>
+          <rect x="405" y="62" width="26" height="22" rx="2" fill="#1a2d47" stroke="#4b5563" stroke-width="1"/>
+          <rect x="433" y="62" width="26" height="22" rx="2" fill="#1a2d47" stroke="#4b5563" stroke-width="1"/>
+          <!-- Layer 2 (front) -->
+          <rect x="420" y="26" width="26" height="22" rx="2" fill="#1e3a5f" stroke="#10b981" stroke-width="1.2"/><text x="433" y="41" fill="#6ee7b7" font-size="9" text-anchor="middle">7</text>
+          <rect x="448" y="26" width="26" height="22" rx="2" fill="#1e3a5f" stroke="#10b981" stroke-width="1.2"/><text x="461" y="41" fill="#6ee7b7" font-size="9" text-anchor="middle">2</text>
+          <rect x="420" y="50" width="26" height="22" rx="2" fill="#1e3a5f" stroke="#10b981" stroke-width="1.2"/><text x="433" y="65" fill="#6ee7b7" font-size="9" text-anchor="middle">5</text>
+          <rect x="448" y="50" width="26" height="22" rx="2" fill="#1e3a5f" stroke="#10b981" stroke-width="1.2"/><text x="461" y="65" fill="#6ee7b7" font-size="9" text-anchor="middle">8</text>
+
+          <text x="460" y="85" fill="#10b981" font-size="9">← axis 0</text>
+          <text x="460" y="97" fill="#5a67d8" font-size="9">↗ axis 2</text>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ 02. Array Creation ══ -->
+  <section class="section" id="s02">
+    <div class="section-header">
+      <span class="section-num">02</span>
+      <h2 class="section-title np">Array Creation</h2>
+      <div class="section-divider"></div>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <h3>Python 시퀀스 → NumPy 배열</h3>
+        <div class="sub-title">np.array() with dtype</div>
+        <pre><span class="prompt">>>></span> a1D = np.<span class="fn">array</span>([<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>, <span class="num">4</span>])
+<span class="prompt">>>></span> a2D = np.<span class="fn">array</span>([[<span class="num">1</span>, <span class="num">2</span>], [<span class="num">3</span>, <span class="num">4</span>]])
+<span class="prompt">>>></span> a3D = np.<span class="fn">array</span>([[[<span class="num">1</span>,<span class="num">2</span>],[<span class="num">3</span>,<span class="num">4</span>]],[[<span class="num">5</span>,<span class="num">6</span>],[<span class="num">7</span>,<span class="num">8</span>]]])
+
+<span class="prompt">>>></span> a = np.<span class="fn">array</span>([<span class="num">127</span>, <span class="num">128</span>, <span class="num">129</span>], dtype=np.int8)
+<span class="prompt">>>></span> a
+<span class="out">array([ 127, -128, -127], dtype=int8)</span></pre>
+        <div class="info-box yellow"><span class="icon">⚠️</span><span>int8은 -128~127 범위. 오버플로우 발생에 주의!</span></div>
+      </div>
+      <div class="card">
+        <h3>1D 배열 생성 함수</h3>
+        <div class="sub-title">np.arange — 범위 지정</div>
+        <pre><span class="prompt">>>></span> np.<span class="fn">arange</span>(<span class="num">10</span>)
+<span class="out">array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])</span>
+<span class="prompt">>>></span> np.<span class="fn">arange</span>(<span class="num">2</span>, <span class="num">10</span>, dtype=<span class="bt">float</span>)
+<span class="out">array([2., 3., 4., 5., 6., 7., 8., 9.])</span>
+<span class="prompt">>>></span> np.<span class="fn">arange</span>(<span class="num">2</span>, <span class="num">3</span>, <span class="num">0.1</span>)
+<span class="out">array([2., 2.1, 2.2, ..., 2.9])</span></pre>
+        <div class="sub-title">np.linspace — 균등 분할</div>
+        <pre><span class="prompt">>>></span> np.<span class="fn">linspace</span>(<span class="num">1.</span>, <span class="num">4.</span>, <span class="num">6</span>)
+<span class="out">array([1. , 1.6, 2.2, 2.8, 3.4, 4. ])</span></pre>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <h3>2D 배열 생성 함수</h3>
+        <div class="sub-title">np.eye — 단위 행렬</div>
+        <pre><span class="prompt">>>></span> np.<span class="fn">eye</span>(<span class="num">3</span>)
+<span class="out">array([[1., 0., 0.],
+       [0., 1., 0.],
+       [0., 0., 1.]])</span>
+<span class="prompt">>>></span> np.<span class="fn">eye</span>(<span class="num">3</span>, <span class="num">5</span>)  <span class="cmt"># 3×5 직사각형 단위행렬</span></pre>
+        <div class="sub-title">np.diag — 대각 행렬</div>
+        <pre><span class="prompt">>>></span> np.<span class="fn">diag</span>([<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>])
+<span class="out">array([[1, 0, 0],
+       [0, 2, 0],
+       [0, 0, 3]])</span>
+<span class="prompt">>>></span> np.<span class="fn">diag</span>([<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>], <span class="num">1</span>)  <span class="cmt"># k=1 위 대각</span></pre>
+      </div>
+      <div class="card">
+        <h3>범용 ndarray 생성</h3>
+        <div class="sub-title">np.ones / np.zeros / np.random</div>
+        <pre><span class="prompt">>>></span> np.<span class="fn">ones</span>((<span class="num">2</span>, <span class="num">3</span>))
+<span class="out">array([[1., 1., 1.],
+       [1., 1., 1.]])</span>
+
+<span class="prompt">>>></span> np.<span class="fn">zeros</span>((<span class="num">2</span>, <span class="num">3</span>, <span class="num">2</span>))
+<span class="out">array([[[0., 0.],
+        [0., 0.],
+        [0., 0.]],
+       [[0., 0.], ...]])</span></pre>
+        <div class="info-box green"><span class="icon">💡</span><span><code>np.random.randn(n)</code> — 표준 정규분포 난수</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>배열 복제 · 합치기 · 조립</h3>
+      <div class="two-col">
+        <div>
+          <div class="sub-title">copy vs 슬라이스 참조</div>
+          <pre><span class="prompt">>>></span> a = np.<span class="fn">array</span>([<span class="num">1</span>,<span class="num">2</span>,<span class="num">3</span>,<span class="num">4</span>])
+<span class="prompt">>>></span> b = a[:<span class="num">2</span>]   <span class="cmt"># 뷰(참조)</span>
+<span class="prompt">>>></span> b += <span class="num">1</span>
+<span class="cmt"># a도 변경됨! → a = [2 3 3 4]</span>
+
+<span class="prompt">>>></span> b = a[:<span class="num">2</span>].<span class="fn">copy</span>()  <span class="cmt"># 독립 복사</span>
+<span class="prompt">>>></span> b += <span class="num">1</span>
+<span class="cmt"># a 변경 없음 → a = [1 2 3 4]</span></pre>
+          <div class="info-box orange"><span class="icon">⚠️</span><span>슬라이싱은 뷰(view)를 반환 → 원본 공유. 독립 사본이 필요하면 <code>.copy()</code> 사용</span></div>
+        </div>
+        <div>
+          <div class="sub-title">vstack / hstack / block</div>
+          <pre><span class="prompt">>>></span> A = np.<span class="fn">ones</span>((<span class="num">2</span>, <span class="num">2</span>))
+<span class="prompt">>>></span> B = np.<span class="fn">eye</span>(<span class="num">2</span>, <span class="num">2</span>)
+<span class="prompt">>>></span> C = np.<span class="fn">zeros</span>((<span class="num">2</span>, <span class="num">2</span>))
+<span class="prompt">>>></span> D = np.<span class="fn">diag</span>((-<span class="num">3</span>, -<span class="num">4</span>))
+<span class="prompt">>>></span> np.<span class="fn">block</span>([[A, B], [C, D]])
+<span class="out">array([[ 1.,  1.,  1.,  0.],
+       [ 1.,  1.,  0.,  1.],
+       [ 0.,  0., -3.,  0.],
+       [ 0.,  0.,  0., -4.]])</span></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ 03. Array Indexing ══ -->
+  <section class="section" id="s03">
+    <div class="section-header">
+      <span class="section-num">03</span>
+      <h2 class="section-title np">Array Indexing</h2>
+      <div class="section-divider"></div>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <h3>Basic Indexing</h3>
+        <div class="sub-title">단일 원소 접근</div>
+        <pre><span class="prompt">>>></span> x = np.<span class="fn">arange</span>(<span class="num">10</span>)
+<span class="prompt">>>></span> x[<span class="num">2</span>]    <span class="cmt"># → 2</span>
+<span class="prompt">>>></span> x[-<span class="num">2</span>]   <span class="cmt"># → 8 (뒤에서 2번째)</span>
+
+<span class="prompt">>>></span> x.shape = (<span class="num">2</span>, <span class="num">5</span>)  <span class="cmt"># 2D로 변경</span>
+<span class="prompt">>>></span> x[<span class="num">1</span>, <span class="num">3</span>]  <span class="cmt"># → 8   (== x[1][3])</span>
+<span class="prompt">>>></span> x[<span class="num">1</span>, -<span class="num">1</span>]  <span class="cmt"># → 9</span></pre>
+        <div class="sub-title">슬라이싱 [start:stop:step]</div>
+        <pre><span class="prompt">>>></span> x = np.<span class="fn">arange</span>(<span class="num">10</span>)
+<span class="prompt">>>></span> x[-<span class="num">2</span>:<span class="num">10</span>]   <span class="cmt"># → [8, 9]</span>
+<span class="prompt">>>></span> x[-<span class="num">3</span>:<span class="num">3</span>:-<span class="num">1</span>]  <span class="cmt"># → [7, 6, 5, 4]</span>
+<span class="prompt">>>></span> x[<span class="num">1</span>:<span class="num">7</span>:<span class="num">2</span>]    <span class="cmt"># → [1, 3, 5]</span></pre>
+      </div>
+      <div class="card">
+        <h3>Advanced Indexing</h3>
+        <div class="sub-title">정수 배열 인덱싱</div>
+        <pre><span class="prompt">>>></span> x = np.<span class="fn">arange</span>(<span class="num">10</span>, <span class="num">1</span>, -<span class="num">1</span>)
+<span class="prompt">>>></span> x
+<span class="out">array([10, 9, 8, 7, 6, 5, 4, 3, 2])</span>
+<span class="prompt">>>></span> x[np.<span class="fn">array</span>([<span class="num">3</span>, <span class="num">3</span>, <span class="num">1</span>, <span class="num">8</span>])]
+<span class="out">array([7, 7, 9, 2])</span></pre>
+        <div class="sub-title">불리언 배열 인덱싱</div>
+        <pre><span class="prompt">>>></span> x = np.<span class="fn">array</span>([<span class="num">1.</span>, -<span class="num">1.</span>, -<span class="num">2.</span>, <span class="num">3</span>])
+<span class="prompt">>>></span> x[x &lt; <span class="num">0</span>] += <span class="num">20</span>
+<span class="prompt">>>></span> x
+<span class="out">array([ 1., 19., 18., 3.])</span>
+
+<span class="cmt"># NaN 필터링</span>
+<span class="prompt">>>></span> x = np.<span class="fn">array</span>([[<span class="num">1.</span>, <span class="num">2.</span>], [np.nan, <span class="num">3.</span>], ...])
+<span class="prompt">>>></span> x[~np.<span class="fn">isnan</span>(x)]
+<span class="out">array([1., 2., 3.])</span></pre>
+        <div class="sub-title">차원 인덱싱 (...)</div>
+        <pre><span class="cmt"># x.shape == (2, 3, 1)</span>
+<span class="prompt">>>></span> x[..., <span class="num">0</span>]   <span class="cmt"># == x[:, :, 0]</span></pre>
+      </div>
+    </div>
+
+    <!-- 인덱싱 비교 표 -->
+    <div class="card">
+      <h3>인덱싱 방식 비교</h3>
+      <table>
+        <tr><th>방식</th><th>문법</th><th>특징</th><th>반환 타입</th></tr>
+        <tr><td>기본 인덱싱</td><td><code>x[0]</code>, <code>x[1,2]</code></td><td>단일 원소 또는 슬라이스</td><td>뷰(view)</td></tr>
+        <tr><td>슬라이싱</td><td><code>x[1:5:2]</code></td><td>start:stop:step</td><td>뷰(view)</td></tr>
+        <tr><td>정수 배열</td><td><code>x[np.array([0,2,4])]</code></td><td>임의 인덱스 선택</td><td>복사(copy)</td></tr>
+        <tr><td>불리언</td><td><code>x[x > 0]</code></td><td>조건 필터링</td><td>복사(copy)</td></tr>
+        <tr><td>Ellipsis</td><td><code>x[..., 0]</code></td><td>남은 축을 ':'로 채움</td><td>뷰(view)</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══ 04. Array Operation ══ -->
+  <section class="section" id="s04">
+    <div class="section-header">
+      <span class="section-num">04</span>
+      <h2 class="section-title np">Array Operation</h2>
+      <div class="section-divider"></div>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <h3>덧셈 · 뺄셈</h3>
+        <pre><span class="prompt">>>></span> x1 = np.<span class="fn">arange</span>(<span class="num">9.0</span>).<span class="fn">reshape</span>((<span class="num">3</span>,<span class="num">3</span>))
+<span class="prompt">>>></span> x2 = np.<span class="fn">arange</span>(<span class="num">3.0</span>)
+<span class="prompt">>>></span> np.<span class="fn">add</span>(x1, x2)  <span class="cmt"># == x1 + x2</span>
+<span class="out">array([[ 0.,  2.,  4.],
+       [ 3.,  5.,  7.],
+       [ 6.,  8., 10.]])</span>
+<span class="prompt">>>></span> np.<span class="fn">subtract</span>(x1, x2)  <span class="cmt"># == x1 - x2</span>
+<span class="out">array([[ 0.,  0.,  0.],
+       [ 3.,  3.,  3.],
+       [ 6.,  6.,  6.]])</span></pre>
+      </div>
+      <div class="card">
+        <h3>곱셈 · 나눗셈</h3>
+        <pre><span class="prompt">>>></span> np.<span class="fn">multiply</span>(x1, x2)  <span class="cmt"># == x1 * x2 (element-wise)</span>
+<span class="out">array([[ 0.,  1.,  4.],
+       [ 0.,  4., 10.],
+       [ 0.,  7., 16.]])</span>
+<span class="prompt">>>></span> np.<span class="fn">divide</span>(<span class="num">2.0</span>, <span class="num">4.0</span>)   <span class="cmt"># → 0.5</span></pre>
+
+        <!-- 곱셈 비교 표 -->
+        <table style="margin-top:12px">
+          <tr><th>연산</th><th>설명</th><th>차원</th></tr>
+          <tr><td><code>a * b</code></td><td>element-wise (Hadamard)</td><td>같은 shape 필요</td></tr>
+          <tr><td><code>np.dot(a,b)</code></td><td>벡터 내적 / 행렬곱</td><td>1D/2D 주로 사용</td></tr>
+          <tr><td><code>a @ b</code></td><td>행렬 곱 (matmul)</td><td>1D~고차원 지원</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <h3>Transformation — reshape / transpose</h3>
+        <pre><span class="prompt">>>></span> a = np.<span class="fn">array</span>([[<span class="num">1</span>, <span class="num">2</span>], [<span class="num">3</span>, <span class="num">4</span>]])
+<span class="prompt">>>></span> np.<span class="fn">transpose</span>(a)
+<span class="out">array([[1, 3],
+       [2, 4]])</span>
+<span class="prompt">>>></span> np.<span class="fn">ones</span>((<span class="num">2</span>, <span class="num">3</span>, <span class="num">4</span>, <span class="num">5</span>))
+<span class="prompt">>>></span> np.<span class="fn">transpose</span>(a).shape
+<span class="out">(5, 4, 3, 2)  # 축 순서 뒤집힘</span>
+
+<span class="prompt">>>></span> np.<span class="fn">arange</span>(<span class="num">6</span>).<span class="fn">reshape</span>((<span class="num">3</span>, <span class="num">2</span>))
+<span class="out">array([[0, 1],
+       [2, 3],
+       [4, 5]])</span></pre>
+        <div class="info-box blue"><span class="icon">💡</span><span><code>resize</code>는 더 큰 배열로 키울 때 반복 복사. <code>reshape</code>는 총 원소 수 유지.</span></div>
+      </div>
+      <div class="card">
+        <h3>Transformation — append / insert / delete / concatenate</h3>
+        <pre><span class="cmt"># append (항상 평탄화 주의!)</span>
+<span class="prompt">>>></span> np.<span class="fn">append</span>([[<span class="num">1</span>,<span class="num">2</span>,<span class="num">3</span>],[<span class="num">4</span>,<span class="num">5</span>,<span class="num">6</span>]], [[<span class="num">7</span>,<span class="num">8</span>,<span class="num">9</span>]], axis=<span class="num">0</span>)
+<span class="out">array([[1,2,3],[4,5,6],[7,8,9]])</span>
+
+<span class="cmt"># concatenate</span>
+<span class="prompt">>>></span> a = np.<span class="fn">array</span>([[<span class="num">1</span>,<span class="num">2</span>],[<span class="num">3</span>,<span class="num">4</span>]])
+<span class="prompt">>>></span> b = np.<span class="fn">array</span>([[<span class="num">5</span>,<span class="num">6</span>]])
+<span class="prompt">>>></span> np.<span class="fn">concatenate</span>((a, b), axis=<span class="num">0</span>)
+<span class="out">array([[1,2],[3,4],[5,6]])</span>
+
+<span class="cmt"># delete (axis=0: 행 삭제)</span>
+<span class="prompt">>>></span> np.<span class="fn">delete</span>(arr, <span class="num">1</span>, <span class="num">0</span>)  <span class="cmt"># 1번 행 삭제</span></pre>
+        <div class="info-box orange"><span class="icon">⚠️</span><span><code>append</code>에 axis 지정 시 모든 배열의 차원이 동일해야 함. 불일치 시 <code>ValueError</code></span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ 05. Broadcasting ══ -->
+  <section class="section" id="s05">
+    <div class="section-header">
+      <span class="section-num">05</span>
+      <h2 class="section-title np">Broadcasting</h2>
+      <div class="section-divider"></div>
+    </div>
+
+    <div class="card">
+      <h3>Broadcasting 개념</h3>
+      <p>다른 shape의 배열 간 연산 시 NumPy가 자동으로 shape을 맞춰주는 규칙. 오른쪽 차원부터 비교하며, 두 차원이 <strong style="color:var(--accent-green)">같거나</strong> 한 쪽이 <strong style="color:var(--accent-green)">1</strong>이면 호환.</p>
+      <!-- Broadcasting 시각화 -->
+      <div class="svg-wrap">
+        <svg viewBox="0 0 660 130" width="100%" display="block">
+          <!-- a(3) -->
+          <text x="50" y="18" fill="#94a3b8" font-size="10" text-anchor="middle">a (3)</text>
+          <rect x="10" y="26" width="30" height="28" rx="3" fill="#1e3a5f" stroke="#e85d04" stroke-width="1.2"/><text x="25" y="45" fill="#fbbf7a" font-size="11" text-anchor="middle">1</text>
+          <rect x="42" y="26" width="30" height="28" rx="3" fill="#1e3a5f" stroke="#e85d04" stroke-width="1.2"/><text x="57" y="45" fill="#fbbf7a" font-size="11" text-anchor="middle">2</text>
+          <rect x="74" y="26" width="30" height="28" rx="3" fill="#1e3a5f" stroke="#e85d04" stroke-width="1.2"/><text x="89" y="45" fill="#fbbf7a" font-size="11" text-anchor="middle">3</text>
+
+          <!-- * -->
+          <text x="118" y="45" fill="#94a3b8" font-size="18">✕</text>
+
+          <!-- b(1) stretch -->
+          <text x="175" y="18" fill="#94a3b8" font-size="10" text-anchor="middle">b (1) → stretch</text>
+          <rect x="142" y="26" width="30" height="28" rx="3" fill="#1a3050" stroke="#5a67d8" stroke-width="1" stroke-dasharray="4,2"/><text x="157" y="45" fill="#a5b4fc" font-size="11" text-anchor="middle">2</text>
+          <rect x="174" y="26" width="30" height="28" rx="3" fill="#1a3050" stroke="#5a67d8" stroke-width="1" stroke-dasharray="4,2"/><text x="189" y="45" fill="#a5b4fc" font-size="11" text-anchor="middle">2</text>
+          <rect x="206" y="26" width="30" height="28" rx="3" fill="#1a3050" stroke="#5a67d8" stroke-width="1" stroke-dasharray="4,2"/><text x="221" y="45" fill="#a5b4fc" font-size="11" text-anchor="middle">2</text>
+          <text x="248" y="45" fill="#64748b" font-size="10">→ stretch</text>
+
+          <!-- = -->
+          <text x="300" y="45" fill="#94a3b8" font-size="18">=</text>
+
+          <!-- result(3) -->
+          <text x="380" y="18" fill="#94a3b8" font-size="10" text-anchor="middle">result (3)</text>
+          <rect x="326" y="26" width="30" height="28" rx="3" fill="#1a3a2a" stroke="#10b981" stroke-width="1.2"/><text x="341" y="45" fill="#6ee7b7" font-size="11" text-anchor="middle">2</text>
+          <rect x="358" y="26" width="30" height="28" rx="3" fill="#1a3a2a" stroke="#10b981" stroke-width="1.2"/><text x="373" y="45" fill="#6ee7b7" font-size="11" text-anchor="middle">4</text>
+          <rect x="390" y="26" width="30" height="28" rx="3" fill="#1a3a2a" stroke="#10b981" stroke-width="1.2"/><text x="405" y="45" fill="#6ee7b7" font-size="11" text-anchor="middle">6</text>
+
+          <!-- 호환/불호환 설명 -->
+          <text x="10" y="90" fill="#94a3b8" font-size="10">호환 예시:</text>
+          <text x="10" y="105" fill="#6ee7b7" font-size="10">5×4 + 1   → 5×4  ✓</text>
+          <text x="10" y="118" fill="#6ee7b7" font-size="10">15×3×5 + 15×1×5 → 15×3×5  ✓</text>
+          <text x="200" y="90" fill="#94a3b8" font-size="10">불호환 예시:</text>
+          <text x="200" y="105" fill="#ef4444" font-size="10">3 + 4   → trailing dim 불일치  ✗</text>
+          <text x="200" y="118" fill="#ef4444" font-size="10">2×1 + 8×4×3 → 2nd from last 불일치  ✗</text>
+        </svg>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <h3>Broadcasting 규칙 요약</h3>
+        <table>
+          <tr><th>A shape</th><th>B shape</th><th>결과</th><th>가능?</th></tr>
+          <tr><td>5 × 4</td><td>1</td><td>5 × 4</td><td style="color:#6ee7b7">✓</td></tr>
+          <tr><td>5 × 4</td><td>4</td><td>5 × 4</td><td style="color:#6ee7b7">✓</td></tr>
+          <tr><td>15×3×5</td><td>15×1×5</td><td>15×3×5</td><td style="color:#6ee7b7">✓</td></tr>
+          <tr><td>15×3×5</td><td>3×5</td><td>15×3×5</td><td style="color:#6ee7b7">✓</td></tr>
+          <tr><td>3</td><td>4</td><td>—</td><td style="color:#ef4444">✗</td></tr>
+          <tr><td>2×1</td><td>8×4×3</td><td>—</td><td style="color:#ef4444">✗</td></tr>
+        </table>
+      </div>
+      <div class="card">
+        <h3>Broadcasting 예제 코드</h3>
+        <pre><span class="prompt">>>></span> a = np.<span class="fn">array</span>([[<span class="num">0.</span>, <span class="num">0.</span>, <span class="num">0.</span>],
+...              [<span class="num">10.</span>, <span class="num">10.</span>, <span class="num">10.</span>],
+...              [<span class="num">20.</span>, <span class="num">20.</span>, <span class="num">20.</span>],
+...              [<span class="num">30.</span>, <span class="num">30.</span>, <span class="num">30.</span>]])  <span class="cmt"># (4,3)</span>
+<span class="prompt">>>></span> b = np.<span class="fn">array</span>([<span class="num">1.</span>, <span class="num">2.</span>, <span class="num">3.</span>])           <span class="cmt"># (3,)</span>
+<span class="prompt">>>></span> a + b   <span class="cmt"># b가 (4,3)으로 stretch</span>
+<span class="out">array([[ 1.,  2.,  3.],
+       [11., 12., 13.],
+       [21., 22., 23.],
+       [31., 32., 33.]])</span></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ 06. Pandas 개요 ══ -->
+  <section class="section" id="s06">
+    <div class="section-header">
+      <span class="section-num">06</span>
+      <h2 class="section-title pd">Pandas 개요</h2>
+      <div class="section-divider"></div>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <h3>What is Pandas?</h3>
+        <p><strong style="color:var(--accent-pd)">Pan</strong>el <strong style="color:var(--accent-pd)">Da</strong>ta + Python Data Analy<strong style="color:var(--accent-pd)">s</strong>is의 약자. 데이터 분석 라이브러리.</p>
+        <div class="info-box blue"><span class="icon">📊</span><span>빅 데이터 분석, 통계 기반 합의 도출, 지저분한 데이터셋 정제에 사용</span></div>
+        <div style="margin-top:14px">
+          <div class="sub-title">핵심 자료구조</div>
+          <div style="display:flex;gap:10px;margin-top:8px">
+            <div style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px;text-align:center">
+              <div style="color:var(--accent-pd);font-family:'Menlo','Courier New',monospace;font-size:13px;margin-bottom:6px">Series</div>
+              <div style="color:var(--text-dimmer);font-size:12px">1D 레이블 배열</div>
+            </div>
+            <div style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px;text-align:center">
+              <div style="color:var(--accent-pd);font-family:'Menlo','Courier New',monospace;font-size:13px;margin-bottom:6px">DataFrame</div>
+              <div style="color:var(--text-dimmer);font-size:12px">2D 레이블 테이블</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Series + DataFrame 구조</h3>
+        <!-- SVG: Series→DataFrame -->
+        <div class="svg-wrap">
+          <svg viewBox="0 0 380 170" width="100%" display="block">
+            <!-- Series 1 - Mango -->
+            <text x="30" y="14" fill="#94a3b8" font-size="9" text-anchor="middle">Series 1</text>
+            <rect x="5" y="18" width="50" height="18" rx="2" fill="#e85d04" opacity="0.3"/><text x="30" y="31" fill="#fbbf7a" font-size="8" text-anchor="middle">Mango</text>
+            <rect x="5" y="38" width="20" height="14" rx="1" fill="none" stroke="#374151" stroke-width="1"/><text x="15" y="49" fill="#64748b" font-size="7" text-anchor="middle">0</text>
+            <rect x="27" y="38" width="28" height="14" rx="1" fill="#1e3a5f" stroke="#e85d04" stroke-width="0.8"/><text x="41" y="49" fill="#fbbf7a" font-size="8" text-anchor="middle">4</text>
+            <rect x="5" y="54" width="20" height="14" rx="1" fill="none" stroke="#374151" stroke-width="1"/><text x="15" y="65" fill="#64748b" font-size="7" text-anchor="middle">1</text>
+            <rect x="27" y="54" width="28" height="14" rx="1" fill="#1e3a5f" stroke="#e85d04" stroke-width="0.8"/><text x="41" y="65" fill="#fbbf7a" font-size="8" text-anchor="middle">5</text>
+            <rect x="5" y="70" width="20" height="14" rx="1" fill="none" stroke="#374151" stroke-width="1"/><text x="15" y="81" fill="#64748b" font-size="7" text-anchor="middle">2</text>
+            <rect x="27" y="70" width="28" height="14" rx="1" fill="#1e3a5f" stroke="#e85d04" stroke-width="0.8"/><text x="41" y="81" fill="#fbbf7a" font-size="8" text-anchor="middle">6</text>
+            <rect x="5" y="86" width="20" height="14" rx="1" fill="none" stroke="#374151" stroke-width="1"/><text x="15" y="97" fill="#64748b" font-size="7" text-anchor="middle">3</text>
+            <rect x="27" y="86" width="28" height="14" rx="1" fill="#1e3a5f" stroke="#e85d04" stroke-width="0.8"/><text x="41" y="97" fill="#fbbf7a" font-size="8" text-anchor="middle">3</text>
+            <rect x="5" y="102" width="20" height="14" rx="1" fill="none" stroke="#374151" stroke-width="1"/><text x="15" y="113" fill="#64748b" font-size="7" text-anchor="middle">4</text>
+            <rect x="27" y="102" width="28" height="14" rx="1" fill="#1e3a5f" stroke="#e85d04" stroke-width="0.8"/><text x="41" y="113" fill="#fbbf7a" font-size="8" text-anchor="middle">1</text>
+
+            <!-- + -->
+            <text x="70" y="72" fill="#64748b" font-size="14">+</text>
+
+            <!-- Series 2 - Apple -->
+            <text x="115" y="14" fill="#94a3b8" font-size="9" text-anchor="middle">Series 2</text>
+            <rect x="90" y="18" width="50" height="18" rx="2" fill="#5a67d8" opacity="0.3"/><text x="115" y="31" fill="#a5b4fc" font-size="8" text-anchor="middle">Apple</text>
+            <rect x="90" y="38" width="20" height="14" rx="1" fill="none" stroke="#374151" stroke-width="1"/><text x="100" y="49" fill="#64748b" font-size="7" text-anchor="middle">0</text>
+            <rect x="112" y="38" width="28" height="14" rx="1" fill="#1a2a4a" stroke="#5a67d8" stroke-width="0.8"/><text x="126" y="49" fill="#a5b4fc" font-size="8" text-anchor="middle">5</text>
+            <rect x="90" y="54" width="20" height="14" rx="1" fill="none" stroke="#374151" stroke-width="1"/><text x="100" y="65" fill="#64748b" font-size="7" text-anchor="middle">1</text>
+            <rect x="112" y="54" width="28" height="14" rx="1" fill="#1a2a4a" stroke="#5a67d8" stroke-width="0.8"/><text x="126" y="65" fill="#a5b4fc" font-size="8" text-anchor="middle">4</text>
+            <rect x="90" y="70" width="20" height="14" rx="1" fill="none" stroke="#374151" stroke-width="1"/><text x="100" y="81" fill="#64748b" font-size="7" text-anchor="middle">2</text>
+            <rect x="112" y="70" width="28" height="14" rx="1" fill="#1a2a4a" stroke="#5a67d8" stroke-width="0.8"/><text x="126" y="81" fill="#a5b4fc" font-size="8" text-anchor="middle">3</text>
+            <rect x="90" y="86" width="20" height="14" rx="1" fill="none" stroke="#374151" stroke-width="1"/><text x="100" y="97" fill="#64748b" font-size="7" text-anchor="middle">3</text>
+            <rect x="112" y="86" width="28" height="14" rx="1" fill="#1a2a4a" stroke="#5a67d8" stroke-width="0.8"/><text x="126" y="97" fill="#a5b4fc" font-size="8" text-anchor="middle">0</text>
+            <rect x="90" y="102" width="20" height="14" rx="1" fill="none" stroke="#374151" stroke-width="1"/><text x="100" y="113" fill="#64748b" font-size="7" text-anchor="middle">4</text>
+            <rect x="112" y="102" width="28" height="14" rx="1" fill="#1a2a4a" stroke="#5a67d8" stroke-width="0.8"/><text x="126" y="113" fill="#a5b4fc" font-size="8" text-anchor="middle">2</text>
+
+            <!-- + -->
+            <text x="152" y="72" fill="#64748b" font-size="14">+</text>
+
+            <!-- = DataFrame -->
+            <text x="220" y="72" fill="#64748b" font-size="16">=</text>
+
+            <text x="300" y="14" fill="#94a3b8" font-size="9" text-anchor="middle">DataFrame</text>
+            <rect x="250" y="18" width="100" height="18" rx="2" fill="#10b981" opacity="0.2"/>
+            <text x="283" y="31" fill="#6ee7b7" font-size="8">Mango</text>
+            <text x="320" y="31" fill="#6ee7b7" font-size="8">Apple</text>
+            <rect x="250" y="38" width="20" height="14" rx="1" fill="none" stroke="#374151" stroke-width="1"/><text x="260" y="49" fill="#64748b" font-size="7" text-anchor="middle">0</text>
+            <rect x="272" y="38" width="30" height="14" rx="1" fill="#1e3a5f" stroke="#e85d04" stroke-width="0.8"/><text x="287" y="49" fill="#fbbf7a" font-size="8" text-anchor="middle">4</text>
+            <rect x="304" y="38" width="30" height="14" rx="1" fill="#1a2a4a" stroke="#5a67d8" stroke-width="0.8"/><text x="319" y="49" fill="#a5b4fc" font-size="8" text-anchor="middle">5</text>
+            <rect x="250" y="54" width="20" height="14" rx="1" fill="none" stroke="#374151" stroke-width="1"/><text x="260" y="65" fill="#64748b" font-size="7" text-anchor="middle">1</text>
+            <rect x="272" y="54" width="30" height="14" rx="1" fill="#1e3a5f" stroke="#e85d04" stroke-width="0.8"/><text x="287" y="65" fill="#fbbf7a" font-size="8" text-anchor="middle">5</text>
+            <rect x="304" y="54" width="30" height="14" rx="1" fill="#1a2a4a" stroke="#5a67d8" stroke-width="0.8"/><text x="319" y="65" fill="#a5b4fc" font-size="8" text-anchor="middle">4</text>
+            <rect x="250" y="70" width="20" height="14" rx="1" fill="none" stroke="#374151" stroke-width="1"/><text x="260" y="81" fill="#64748b" font-size="7" text-anchor="middle">2</text>
+            <rect x="272" y="70" width="30" height="14" rx="1" fill="#1e3a5f" stroke="#e85d04" stroke-width="0.8"/><text x="287" y="81" fill="#fbbf7a" font-size="8" text-anchor="middle">6</text>
+            <rect x="304" y="70" width="30" height="14" rx="1" fill="#1a2a4a" stroke="#5a67d8" stroke-width="0.8"/><text x="319" y="81" fill="#a5b4fc" font-size="8" text-anchor="middle">3</text>
+            <rect x="250" y="86" width="20" height="14" rx="1" fill="none" stroke="#374151" stroke-width="1"/><text x="260" y="97" fill="#64748b" font-size="7" text-anchor="middle">3</text>
+            <rect x="272" y="86" width="30" height="14" rx="1" fill="#1e3a5f" stroke="#e85d04" stroke-width="0.8"/><text x="287" y="97" fill="#fbbf7a" font-size="8" text-anchor="middle">3</text>
+            <rect x="304" y="86" width="30" height="14" rx="1" fill="#1a2a4a" stroke="#5a67d8" stroke-width="0.8"/><text x="319" y="97" fill="#a5b4fc" font-size="8" text-anchor="middle">0</text>
+            <rect x="250" y="102" width="20" height="14" rx="1" fill="none" stroke="#374151" stroke-width="1"/><text x="260" y="113" fill="#64748b" font-size="7" text-anchor="middle">4</text>
+            <rect x="272" y="102" width="30" height="14" rx="1" fill="#1e3a5f" stroke="#e85d04" stroke-width="0.8"/><text x="287" y="113" fill="#fbbf7a" font-size="8" text-anchor="middle">1</text>
+            <rect x="304" y="102" width="30" height="14" rx="1" fill="#1a2a4a" stroke="#5a67d8" stroke-width="0.8"/><text x="319" y="113" fill="#a5b4fc" font-size="8" text-anchor="middle">2</text>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ 07. Series ══ -->
+  <section class="section" id="s07">
+    <div class="section-header">
+      <span class="section-num">07</span>
+      <h2 class="section-title pd">Series</h2>
+      <div class="section-divider"></div>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <h3>Series 생성</h3>
+        <div class="sub-title">기본 형식</div>
+        <pre><span class="prompt">>>></span> s = pd.<span class="fn">Series</span>(data, index=index)</pre>
+        <div class="sub-title">ndarray로부터</div>
+        <pre><span class="prompt">>>></span> s = pd.<span class="fn">Series</span>(np.random.<span class="fn">randn</span>(<span class="num">5</span>),
+...             index=[<span class="str">"a"</span>, <span class="str">"b"</span>, <span class="str">"c"</span>, <span class="str">"d"</span>, <span class="str">"e"</span>])
+<span class="out">a    0.469112
+b   -0.282863
+c   -1.509059
+d   -1.135632
+e    1.212112
+dtype: float64</span></pre>
+        <div class="sub-title">dict로부터</div>
+        <pre><span class="prompt">>>></span> d = {<span class="str">"a"</span>: <span class="num">0.0</span>, <span class="str">"b"</span>: <span class="num">1.0</span>, <span class="str">"c"</span>: <span class="num">2.0</span>}
+<span class="prompt">>>></span> pd.<span class="fn">Series</span>(d, index=[<span class="str">"b"</span>,<span class="str">"c"</span>,<span class="str">"d"</span>,<span class="str">"a"</span>])
+<span class="out">b    1.0
+c    2.0
+d    NaN   # 인덱스에 없는 키 → NaN
+a    0.0</span></pre>
+        <div class="sub-title">스칼라로부터</div>
+        <pre><span class="prompt">>>></span> pd.<span class="fn">Series</span>(<span class="num">5.0</span>, index=[<span class="str">"a"</span>,<span class="str">"b"</span>,<span class="str">"c"</span>])
+<span class="out">a    5.0
+b    5.0
+c    5.0  # 반복 복사
+dtype: float64</span></pre>
+      </div>
+      <div class="card">
+        <h3>Series 연산 & 특성</h3>
+        <div class="sub-title">ndarray처럼 동작</div>
+        <pre><span class="prompt">>>></span> s[<span class="num">0</span>]         <span class="cmt"># → 0.469112</span>
+<span class="prompt">>>></span> s[:<span class="num">3</span>]        <span class="cmt"># 슬라이싱</span>
+<span class="prompt">>>></span> s[s > s.<span class="fn">median</span>()]   <span class="cmt"># 불리언</span>
+<span class="prompt">>>></span> np.<span class="fn">exp</span>(s)    <span class="cmt"># NumPy 함수 사용 가능</span></pre>
+        <div class="sub-title">dict처럼 동작</div>
+        <pre><span class="prompt">>>></span> s[<span class="str">"a"</span>]       <span class="cmt"># → 0.469112</span>
+<span class="prompt">>>></span> s[<span class="str">"e"</span>] = <span class="num">12.0</span>  <span class="cmt"># 값 설정</span>
+<span class="prompt">>>></span> <span class="str">"e"</span> <span class="kw">in</span> s      <span class="cmt"># → True</span>
+<span class="prompt">>>></span> <span class="str">"f"</span> <span class="kw">in</span> s      <span class="cmt"># → False</span>
+<span class="prompt">>>></span> s.<span class="fn">get</span>(<span class="str">"f"</span>, np.nan)  <span class="cmt"># → nan (안전)</span></pre>
+        <div class="sub-title">⭐ 레이블 자동 정렬</div>
+        <pre><span class="prompt">>>></span> s[<span class="num">1</span>:] + s[:-<span class="num">1</span>]
+<span class="out">a     NaN   # 정렬 불가 → NaN
+b   -0.566
+c   -3.018
+d   -2.271
+e     NaN
+dtype: float64</span></pre>
+        <div class="info-box blue"><span class="icon">⭐</span><span>Series의 핵심: 연산 시 인덱스 레이블 기준으로 <strong>자동 정렬</strong>됨. 불일치 인덱스는 NaN.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ 08. DataFrame ══ -->
+  <section class="section" id="s08">
+    <div class="section-header">
+      <span class="section-num">08</span>
+      <h2 class="section-title pd">DataFrame</h2>
+      <div class="section-divider"></div>
+    </div>
+
+    <div class="card">
+      <h3>DataFrame 개념</h3>
+      <p>2차원 레이블 데이터 구조. 스프레드시트/SQL 테이블처럼 생각하면 됨. Pandas에서 가장 많이 쓰이는 객체.</p>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px">
+        <div class="info-box orange" style="flex-direction:column;gap:4px"><span style="font-size:12px;font-weight:600">데이터 소스</span><span>1D ndarray, list, dict</span></div>
+        <div class="info-box blue" style="flex-direction:column;gap:4px"><span style="font-size:12px;font-weight:600">2D ndarray</span><span>행렬 형태 직접 입력</span></div>
+        <div class="info-box green" style="flex-direction:column;gap:4px"><span style="font-size:12px;font-weight:600">Series</span><span>여러 Series 합치기</span></div>
+        <div class="info-box yellow" style="flex-direction:column;gap:4px"><span style="font-size:12px;font-weight:600">dict of dicts</span><span>중첩 딕셔너리</span></div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <h3>dict of Series로 생성</h3>
+        <pre><span class="prompt">>>></span> d = {
+...   <span class="str">"one"</span>: pd.<span class="fn">Series</span>([<span class="num">1.</span>,<span class="num">2.</span>,<span class="num">3.</span>], index=[<span class="str">"a"</span>,<span class="str">"b"</span>,<span class="str">"c"</span>]),
+...   <span class="str">"two"</span>: pd.<span class="fn">Series</span>([<span class="num">1.</span>,<span class="num">2.</span>,<span class="num">3.</span>,<span class="num">4.</span>], index=[<span class="str">"a"</span>,<span class="str">"b"</span>,<span class="str">"c"</span>,<span class="str">"d"</span>])
+... }
+<span class="prompt">>>></span> df = pd.<span class="fn">DataFrame</span>(d)
+<span class="out">   one  two
+a  1.0  1.0
+b  2.0  2.0
+c  3.0  3.0
+d  NaN  4.0   # 인덱스 없으면 NaN</span></pre>
+      </div>
+      <div class="card">
+        <h3>dict of list / list of dicts로 생성</h3>
+        <pre><span class="cmt"># dict of lists</span>
+<span class="prompt">>>></span> d = {<span class="str">"one"</span>: [<span class="num">1.0</span>,<span class="num">2.0</span>,<span class="num">3.0</span>,<span class="num">4.0</span>],
+...      <span class="str">"two"</span>: [<span class="num">4.0</span>,<span class="num">3.0</span>,<span class="num">2.0</span>,<span class="num">1.0</span>]}
+<span class="prompt">>>></span> pd.<span class="fn">DataFrame</span>(d, index=[<span class="str">"a"</span>,<span class="str">"b"</span>,<span class="str">"c"</span>,<span class="str">"d"</span>])
+
+<span class="cmt"># list of dicts</span>
+<span class="prompt">>>></span> data2 = [{<span class="str">"a"</span>:<span class="num">1</span>,<span class="str">"b"</span>:<span class="num">2</span>}, {<span class="str">"a"</span>:<span class="num">5</span>,<span class="str">"b"</span>:<span class="num">10</span>,<span class="str">"c"</span>:<span class="num">20</span>}]
+<span class="prompt">>>></span> pd.<span class="fn">DataFrame</span>(data2)
+<span class="out">   a   b     c
+0  1   2   NaN
+1  5  10  20.0</span>
+
+<span class="cmt"># From a Series</span>
+<span class="prompt">>>></span> ser = pd.<span class="fn">Series</span>(<span class="fn">range</span>(<span class="num">3</span>), index=<span class="fn">list</span>(<span class="str">"abc"</span>), name=<span class="str">"ser"</span>)
+<span class="prompt">>>></span> pd.<span class="fn">DataFrame</span>(ser)</pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ 09. Basic Functions ══ -->
+  <section class="section" id="s09">
+    <div class="section-header">
+      <span class="section-num">09</span>
+      <h2 class="section-title pd">Basic Functions</h2>
+      <div class="section-divider"></div>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <h3>shape / info</h3>
+        <pre><span class="prompt">>>></span> df.<span class="fn">shape</span>
+<span class="out">(2, 2)  # (행, 열) 튜플</span>
+
+<span class="prompt">>>></span> df.<span class="fn">info</span>()
+<span class="cmt"># 컬럼명, dtype, non-null count 요약</span></pre>
+        <h3 style="margin-top:16px">head / tail</h3>
+        <pre><span class="prompt">>>></span> long_series.<span class="fn">head</span>()    <span class="cmt"># 상위 5행</span>
+<span class="prompt">>>></span> long_series.<span class="fn">tail</span>(<span class="num">3</span>)  <span class="cmt"># 하위 3행</span></pre>
+        <h3 style="margin-top:16px">index / columns</h3>
+        <pre><span class="prompt">>>></span> df.<span class="fn">index</span>    <span class="cmt"># 행 레이블</span>
+<span class="prompt">>>></span> df.<span class="fn">columns</span>  <span class="cmt"># 열 레이블</span>
+<span class="out">Index(['A', 'B', 'C', 'D'], dtype='object')</span></pre>
+      </div>
+      <div class="card">
+        <h3>describe / nunique</h3>
+        <pre><span class="prompt">>>></span> df.<span class="fn">describe</span>()
+<span class="out">       numeric
+count      3.0
+mean       2.0
+std        1.0
+min        1.0
+25%        1.5
+50%        2.0
+75%        2.5
+max        3.0</span>
+
+<span class="prompt">>>></span> df.<span class="fn">nunique</span>()   <span class="cmt"># 각 컬럼 고유값 개수</span>
+<span class="out">A    3
+B    2
+dtype: int64</span></pre>
+        <h3 style="margin-top:16px">sort_index / sort_values / value_counts / to_numpy</h3>
+        <pre><span class="prompt">>>></span> df.<span class="fn">sort_index</span>(axis=<span class="num">1</span>, ascending=<span class="kw">False</span>)
+<span class="prompt">>>></span> df.<span class="fn">sort_values</span>(by=<span class="str">"B"</span>)
+<span class="prompt">>>></span> df.<span class="fn">value_counts</span>()
+<span class="prompt">>>></span> pd.<span class="fn">DataFrame</span>({<span class="str">"A"</span>:[<span class="num">1</span>,<span class="num">2</span>],<span class="str">"B"</span>:[<span class="num">3</span>,<span class="num">4</span>]}).<span class="fn">to_numpy</span>()
+<span class="out">array([[1, 3],
+       [2, 4]])</span></pre>
+      </div>
+    </div>
+
+    <!-- 함수 빠른 참조 표 -->
+    <div class="card">
+      <h3>주요 함수 빠른 참조</h3>
+      <table>
+        <tr><th>함수</th><th>반환</th><th>용도</th></tr>
+        <tr><td><code>df.shape</code></td><td>tuple</td><td>(행 수, 열 수)</td></tr>
+        <tr><td><code>df.info()</code></td><td>None (출력)</td><td>컬럼·dtype·null count 요약</td></tr>
+        <tr><td><code>df.head(n)</code></td><td>DataFrame</td><td>상위 n행 (기본 5)</td></tr>
+        <tr><td><code>df.tail(n)</code></td><td>DataFrame</td><td>하위 n행 (기본 5)</td></tr>
+        <tr><td><code>df.describe()</code></td><td>DataFrame</td><td>count/mean/std/min/25%/50%/75%/max</td></tr>
+        <tr><td><code>df.nunique()</code></td><td>Series</td><td>각 컬럼 고유값 개수</td></tr>
+        <tr><td><code>df.sort_index()</code></td><td>DataFrame</td><td>인덱스 기준 정렬</td></tr>
+        <tr><td><code>df.sort_values(by=)</code></td><td>DataFrame</td><td>값 기준 정렬</td></tr>
+        <tr><td><code>df.value_counts()</code></td><td>Series</td><td>고유 행 카운트</td></tr>
+        <tr><td><code>df.to_numpy()</code></td><td>ndarray</td><td>NumPy 배열로 변환</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══ 10. Indexing & Selecting ══ -->
+  <section class="section" id="s10">
+    <div class="section-header">
+      <span class="section-num">10</span>
+      <h2 class="section-title pd">Indexing & Selecting Data</h2>
+      <div class="section-divider"></div>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <h3>df.loc — 레이블 기반</h3>
+        <p style="color:var(--text-dim);font-size:13px">행/열을 <strong style="color:var(--accent-green)">레이블</strong>로 선택. Boolean 배열도 사용 가능.</p>
+        <pre><span class="prompt">>>></span> df = pd.<span class="fn">DataFrame</span>([[<span class="num">1</span>,<span class="num">2</span>],[<span class="num">4</span>,<span class="num">5</span>],[<span class="num">7</span>,<span class="num">8</span>]],
+...   index=[<span class="str">'cobra'</span>,<span class="str">'viper'</span>,<span class="str">'sidewinder'</span>],
+...   columns=[<span class="str">'max_speed'</span>, <span class="str">'shield'</span>])
+
+<span class="prompt">>>></span> df.loc[<span class="str">'viper'</span>]
+<span class="out">max_speed    4
+shield       5
+Name: viper, dtype: int64</span>
+
+<span class="prompt">>>></span> df.loc[[<span class="str">'viper'</span>, <span class="str">'sidewinder'</span>]]
+<span class="out">            max_speed  shield
+viper               4       5
+sidewinder          7       8</span></pre>
+      </div>
+      <div class="card">
+        <h3>df.iloc — 정수 위치 기반</h3>
+        <p style="color:var(--text-dim);font-size:13px">행/열을 <strong style="color:var(--accent-pd)">정수 위치(0-based)</strong>로 선택.</p>
+        <pre><span class="prompt">>>></span> df = pd.<span class="fn">DataFrame</span>(mydict)
+<span class="out">      a     b     c     d
+0     1     2     3     4
+1   100   200   300   400
+2  1000  2000  3000  4000</span>
+
+<span class="prompt">>>></span> df.iloc[<span class="num">0</span>]    <span class="cmt"># 0번 행 → Series</span>
+<span class="out">a    1
+b    2
+c    3
+d    4</span>
+
+<span class="prompt">>>></span> df.iloc[[<span class="num">0</span>, <span class="num">2</span>], [<span class="num">1</span>, <span class="num">3</span>]]  <span class="cmt"># 행[0,2] × 열[1,3]</span>
+<span class="out">      b     d
+0     2     4
+2  2000  4000</span></pre>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>loc vs iloc 비교</h3>
+      <table>
+        <tr><th>항목</th><th>df.loc[]</th><th>df.iloc[]</th></tr>
+        <tr><td>기준</td><td>레이블 (문자열 인덱스 가능)</td><td>정수 위치 (0-based)</td></tr>
+        <tr><td>슬라이싱 end</td><td><strong>포함(inclusive)</strong></td><td>미포함(exclusive)</td></tr>
+        <tr><td>Boolean 사용</td><td>가능</td><td>가능</td></tr>
+        <tr><td>주요 사용</td><td>이름이 있는 인덱스/컬럼</td><td>위치로만 접근할 때</td></tr>
+      </table>
+      <div class="info-box yellow" style="margin-top:12px"><span class="icon">⚠️</span><span><code>loc</code>의 슬라이싱은 끝값 포함, <code>iloc</code>의 슬라이싱은 끝값 미포함. Python 리스트와 같은 방식은 <code>iloc</code>.</span></div>
+    </div>
+  </section>
+
+  <!-- ══ 11. Missing Data ══ -->
+  <section class="section" id="s11">
+    <div class="section-header">
+      <span class="section-num">11</span>
+      <h2 class="section-title pd">Working with Missing Data</h2>
+      <div class="section-divider"></div>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <h3>isna() — 결측값 감지</h3>
+        <pre><span class="prompt">>>></span> df = pd.<span class="fn">DataFrame</span>(dict(
+...   age=[<span class="num">5</span>, <span class="num">6</span>, np.nan],
+...   born=[pd.NaT, pd.<span class="fn">Timestamp</span>(<span class="str">'1939-05-27'</span>), pd.<span class="fn">Timestamp</span>(<span class="str">'1940-04-25'</span>)],
+...   name=[<span class="str">'Alfred'</span>, <span class="str">'Batman'</span>, <span class="str">''</span>],
+...   toy=[<span class="kw">None</span>, <span class="str">'Batmobile'</span>, <span class="str">'Joker'</span>]
+... ))
+<span class="prompt">>>></span> df.<span class="fn">isna</span>()
+<span class="out">     age   born   name    toy
+0  False   True  False   True
+1  False  False  False  False
+2   True  False  False  False</span></pre>
+        <div class="info-box yellow"><span class="icon">📌</span><span>NaN, NaT, None 모두 isna()로 탐지 가능. 빈 문자열 <code>''</code>은 결측값이 아님!</span></div>
+      </div>
+      <div class="card">
+        <h3>dropna() / fillna()</h3>
+        <pre><span class="cmt"># dropna: 결측값 있는 행 제거</span>
+<span class="prompt">>>></span> df.<span class="fn">dropna</span>()
+<span class="out">     name        toy        born
+1  Batman  Batmobile  1940-04-25</span>
+
+<span class="cmt"># fillna: 결측값을 지정값으로 채우기</span>
+<span class="prompt">>>></span> df2 = pd.<span class="fn">DataFrame</span>([[np.nan, <span class="num">2</span>, np.nan, <span class="num">0</span>],
+...                     [<span class="num">3</span>, <span class="num">4</span>, np.nan, <span class="num">1</span>],
+...                     [np.nan]*<span class="num">4</span>,
+...                     [np.nan, <span class="num">3</span>, np.nan, <span class="num">4</span>]],
+...                    columns=<span class="fn">list</span>(<span class="str">"ABCD"</span>))
+<span class="prompt">>>></span> df2.<span class="fn">fillna</span>(<span class="num">0</span>)
+<span class="out">     A    B    C    D
+0  0.0  2.0  0.0  0.0
+1  3.0  4.0  0.0  1.0
+2  0.0  0.0  0.0  0.0
+3  0.0  3.0  0.0  4.0</span></pre>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>결측 데이터 처리 전략 비교</h3>
+      <table>
+        <tr><th>메서드</th><th>설명</th><th>주의사항</th></tr>
+        <tr><td><code>df.isna()</code></td><td>결측값 여부 Boolean 반환</td><td>빈 문자열은 False</td></tr>
+        <tr><td><code>df.dropna()</code></td><td>결측값 포함 행(또는 열) 제거</td><td>데이터 손실 발생 가능</td></tr>
+        <tr><td><code>df.fillna(value)</code></td><td>결측값을 특정 값으로 대체</td><td>method='ffill'/'bfill' 옵션도 활용 가능</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══ 12. Summary ══ -->
+  <section class="section" id="s12">
+    <div class="section-header">
+      <span class="section-num">12</span>
+      <h2 class="section-title" style="color:var(--accent-green)">Summary</h2>
+      <div class="section-divider"></div>
+    </div>
+
+    <div class="summary-grid">
+      <div class="summary-card">
+        <h4 style="color:var(--accent-np)">📦 NumPy</h4>
+        <ul>
+          <li>파이썬 과학 계산의 핵심 패키지</li>
+          <li>ndarray — 다차원 배열, 연속 메모리 저장</li>
+          <li>Python 리스트 대비 최대 50배 빠름</li>
+          <li>arange / linspace / eye / diag / ones / zeros</li>
+          <li>기본·슬라이싱·정수·불리언 인덱싱</li>
+          <li>사칙연산, 행렬곱(dot/@), 변환(reshape/transpose)</li>
+          <li>Broadcasting으로 다른 shape 배열 연산 가능</li>
+        </ul>
+      </div>
+      <div class="summary-card">
+        <h4 style="color:var(--accent-pd)">🐼 Pandas</h4>
+        <ul>
+          <li>빠르고 강력한 데이터 분석 라이브러리</li>
+          <li>Series: 1D 레이블 배열, 인덱스 자동 정렬</li>
+          <li>DataFrame: 2D 테이블, 가장 많이 쓰이는 객체</li>
+          <li>shape / info / head / tail / describe / nunique</li>
+          <li>loc (레이블) vs iloc (정수 위치) 인덱싱</li>
+          <li>isna / dropna / fillna 결측 데이터 처리</li>
+          <li>sort_index / sort_values / value_counts</li>
+        </ul>
+      </div>
+      <div class="summary-card">
+        <h4 style="color:var(--accent-yellow)">⭐ 핵심 비교 포인트</h4>
+        <ul>
+          <li>슬라이스 → 뷰(view), 팬시 인덱싱 → 복사(copy)</li>
+          <li>loc 슬라이스 끝 포함 / iloc 끝 미포함</li>
+          <li>Series 연산 시 레이블 자동 정렬 (불일치 → NaN)</li>
+          <li>*, dot(), @ — 용도에 따른 곱셈 선택</li>
+          <li>빈 문자열 ≠ 결측값(NaN)</li>
+        </ul>
+      </div>
+      <div class="summary-card">
+        <h4 style="color:var(--accent-green)">🔑 자주 쓰는 패턴</h4>
+        <ul>
+          <li><code style="font-size:11px;color:#6ee7b7">x[x > 0]</code> — 조건 필터링</li>
+          <li><code style="font-size:11px;color:#6ee7b7">df.loc['a':'c', 'A':'C']</code> — 범위 선택</li>
+          <li><code style="font-size:11px;color:#6ee7b7">df.dropna().reset_index()</code> — 결측 제거 후 재인덱싱</li>
+          <li><code style="font-size:11px;color:#6ee7b7">np.arange(n).reshape(r,c)</code> — 행렬 생성</li>
+          <li><code style="font-size:11px;color:#6ee7b7">a @ b</code> — 행렬 곱 (권장)</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script>
+  // TOC 활성화 (IntersectionObserver)
+  const sections = document.querySelectorAll('section[id]');
+  const links = document.querySelectorAll('.toc-link');
+  const npIds = ['s01','s02','s03','s04','s05'];
+  const pdIds = ['s06','s07','s08','s09','s10','s11'];
+
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        const id = e.target.id;
+        links.forEach(l => {
+          l.classList.remove('active', 'active-np', 'active-pd');
+          if (l.dataset.section === id) {
+            if (npIds.includes(id)) l.classList.add('active-np');
+            else if (pdIds.includes(id)) l.classList.add('active-pd');
+            else l.classList.add('active');
+          }
+        });
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+
+  sections.forEach(s => obs.observe(s));
+</script>
+</body>
+</html>
