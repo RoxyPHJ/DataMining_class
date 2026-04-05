@@ -1,0 +1,1293 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>5: Data Understanding — Quiz</title>
+<style>
+:root {
+  --bg: #0a0e1a;
+  --surface: #111827;
+  --surface2: #1a2235;
+  --surface3: #1f2d42;
+  --border: #2a3a55;
+  --accent: #38bdf8;
+  --accent2: #818cf8;
+  --accent3: #34d399;
+  --accent4: #f472b6;
+  --accent5: #fb923c;
+  --text: #e2e8f0;
+  --text-muted: #94a3b8;
+  --text-dim: #64748b;
+  --red: #f87171;
+  --yellow: #fbbf24;
+  --green: #34d399;
+  --font-body: 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', sans-serif;
+  --font-code: 'Menlo', 'Courier New', monospace;
+  --font-head: 'Impact', 'Arial Narrow', sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  line-height: 1.7;
+  min-height: 100vh;
+}
+
+/* ── HEADER ── */
+.site-header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 20px 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+.header-left .course {
+  font-size: 10px;
+  color: var(--text-dim);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.header-left .title {
+  font-family: var(--font-head);
+  font-size: 20px;
+  color: var(--accent);
+  letter-spacing: 0.04em;
+}
+.score-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.score-display {
+  font-family: var(--font-head);
+  font-size: 22px;
+  color: var(--accent3);
+  letter-spacing: 0.04em;
+}
+.score-label {
+  font-size: 11px;
+  color: var(--text-dim);
+}
+#btn-grade {
+  background: var(--accent);
+  color: #0a0e1a;
+  border: none;
+  padding: 10px 22px;
+  border-radius: 8px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.18s, transform 0.12s;
+  letter-spacing: 0.04em;
+}
+#btn-grade:hover { opacity: 0.85; transform: translateY(-1px); }
+#btn-reset {
+  background: transparent;
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.18s;
+}
+#btn-reset:hover { color: var(--text); border-color: var(--text-muted); }
+
+/* ── LAYOUT ── */
+.container {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 40px 28px 100px;
+}
+
+/* ── SECTION DIVIDER ── */
+.section-divider {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 44px 0 24px;
+}
+.section-divider .s-tag {
+  background: rgba(56,189,248,0.12);
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 4px 14px;
+  border-radius: 20px;
+  border: 1px solid rgba(56,189,248,0.3);
+  white-space: nowrap;
+}
+.section-divider .s-line {
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+.section-divider .s-count {
+  font-size: 11px;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+/* ── QUIZ CARD ── */
+.quiz-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 26px 28px;
+  margin-bottom: 18px;
+  transition: border-color 0.2s;
+}
+.quiz-card.correct { border-color: var(--green); }
+.quiz-card.wrong   { border-color: var(--red); }
+
+.quiz-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.q-num {
+  font-family: var(--font-head);
+  font-size: 13px;
+  color: var(--accent);
+  background: rgba(56,189,248,0.1);
+  border: 1px solid rgba(56,189,248,0.25);
+  padding: 2px 10px;
+  border-radius: 4px;
+  letter-spacing: 0.06em;
+}
+.difficulty {
+  font-size: 12px;
+}
+.slide-ref {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-left: auto;
+  background: var(--surface2);
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+}
+
+.quiz-question {
+  font-size: 15.5px;
+  color: var(--text);
+  font-weight: 600;
+  line-height: 1.55;
+  margin-bottom: 18px;
+}
+.quiz-question .code {
+  font-family: var(--font-code);
+  background: #0d1520;
+  color: var(--accent3);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 13.5px;
+}
+
+/* ── MCQ OPTIONS ── */
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  margin-bottom: 16px;
+}
+.option-btn {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 11px 16px;
+  color: var(--text-muted);
+  font-family: var(--font-body);
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.option-btn:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--text);
+  background: rgba(56,189,248,0.06);
+}
+.option-btn.selected {
+  border-color: var(--accent2);
+  background: rgba(129,140,248,0.1);
+  color: var(--text);
+}
+.option-btn.correct-ans {
+  border-color: var(--green);
+  background: rgba(52,211,153,0.1);
+  color: var(--green);
+}
+.option-btn.wrong-ans {
+  border-color: var(--red);
+  background: rgba(248,113,113,0.08);
+  color: var(--red);
+}
+.option-btn:disabled { cursor: default; }
+.opt-label {
+  width: 22px;
+  height: 22px;
+  background: var(--surface3);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+  color: var(--text-dim);
+}
+.option-btn.selected .opt-label { background: var(--accent2); color: #fff; }
+.option-btn.correct-ans .opt-label { background: var(--green); color: #0a0e1a; }
+.option-btn.wrong-ans .opt-label { background: var(--red); color: #fff; }
+
+/* ── OX BUTTONS ── */
+.ox-buttons {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.ox-btn {
+  flex: 1;
+  padding: 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  font-family: var(--font-head);
+  font-size: 28px;
+  cursor: pointer;
+  transition: all 0.15s;
+  color: var(--text-muted);
+}
+.ox-btn:hover:not(:disabled) { transform: scale(1.03); }
+.ox-btn.o-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+.ox-btn.x-btn:hover:not(:disabled) { border-color: var(--red); color: var(--red); }
+.ox-btn.selected-o { border-color: var(--accent2); background: rgba(129,140,248,0.1); color: var(--accent2); }
+.ox-btn.selected-x { border-color: var(--accent4); background: rgba(244,114,182,0.08); color: var(--accent4); }
+.ox-btn.correct-ans { border-color: var(--green); background: rgba(52,211,153,0.1); color: var(--green); }
+.ox-btn.wrong-ans   { border-color: var(--red); background: rgba(248,113,113,0.08); color: var(--red); }
+.ox-btn:disabled { cursor: default; }
+
+/* ── SHORT ANSWER ── */
+.short-input-wrap {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+  align-items: center;
+}
+.short-input {
+  flex: 1;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 11px 14px;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.short-input:focus { border-color: var(--accent2); }
+.short-input.correct-ans { border-color: var(--green); background: rgba(52,211,153,0.08); }
+.short-input.wrong-ans   { border-color: var(--red); background: rgba(248,113,113,0.06); }
+.short-input:disabled { cursor: default; opacity: 0.8; }
+
+/* ── ANSWER TOGGLE ── */
+.toggle-btn {
+  background: none;
+  border: 1px dashed var(--border);
+  color: var(--text-dim);
+  padding: 7px 14px;
+  border-radius: 6px;
+  font-family: var(--font-body);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.toggle-btn:hover { border-color: var(--accent); color: var(--accent); }
+.answer-box {
+  display: none;
+  margin-top: 14px;
+  background: linear-gradient(135deg, rgba(52,211,153,0.06), rgba(56,189,248,0.04));
+  border: 1px solid rgba(52,211,153,0.2);
+  border-radius: 10px;
+  padding: 16px 18px;
+}
+.answer-box.show { display: block; }
+.answer-label {
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent3);
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.answer-text {
+  font-size: 14px;
+  color: var(--text);
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.answer-explain {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.65;
+}
+
+/* ── RESULT MODAL ── */
+#result-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+}
+#result-modal.show { display: flex; }
+.modal-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 44px 48px;
+  text-align: center;
+  max-width: 420px;
+  width: 90%;
+  position: relative;
+}
+.modal-score-big {
+  font-family: var(--font-head);
+  font-size: 72px;
+  line-height: 1;
+  margin-bottom: 8px;
+}
+.modal-score-label {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-bottom: 24px;
+}
+.modal-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 28px;
+  text-align: left;
+}
+.modal-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.modal-bar-bg {
+  flex: 1;
+  height: 8px;
+  background: var(--surface3);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.modal-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.6s ease;
+}
+.modal-bar-row .cnt {
+  width: 36px;
+  text-align: right;
+  font-weight: 700;
+}
+.modal-close {
+  background: var(--accent);
+  color: #0a0e1a;
+  border: none;
+  padding: 12px 32px;
+  border-radius: 10px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  width: 100%;
+}
+.modal-close:hover { opacity: 0.85; }
+
+/* ── RESULT BADGE on card ── */
+.result-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 10px;
+  border-radius: 20px;
+  margin-left: 8px;
+}
+.result-badge.ok  { background: rgba(52,211,153,0.15); color: var(--green); }
+.result-badge.no  { background: rgba(248,113,113,0.15); color: var(--red); }
+
+@media (max-width: 640px) {
+  .site-header { padding: 14px 16px; flex-wrap: wrap; gap: 10px; }
+  .container { padding: 24px 14px 80px; }
+  .quiz-card { padding: 18px 16px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<header class="site-header">
+  <div class="header-left">
+    <div class="course">Data Programming · 5: Data Understanding</div>
+    <div class="title">QUIZ — 30문제</div>
+  </div>
+  <div class="score-bar">
+    <div>
+      <div class="score-label">채점 결과</div>
+      <div class="score-display" id="live-score">—</div>
+    </div>
+    <button id="btn-reset" onclick="resetAll()">초기화</button>
+    <button id="btn-grade" onclick="gradeAll()">최종 채점</button>
+  </div>
+</header>
+
+<div class="container">
+
+<!-- ════════════════════════════════
+     PART 1: 객관식 (12문제)
+════════════════════════════════ -->
+<div class="section-divider">
+  <div class="s-tag">객관식</div>
+  <div class="s-line"></div>
+  <div class="s-count">Q1 – Q12 · 12문제</div>
+</div>
+
+<!-- Q1 -->
+<div class="quiz-card" id="card-1">
+  <div class="quiz-meta">
+    <span class="q-num">Q01</span>
+    <span class="difficulty">⭐</span>
+    <span class="slide-ref">p.4</span>
+  </div>
+  <div class="quiz-question">"data"라는 단어의 어원으로 올바른 것은?</div>
+  <div class="options">
+    <button class="option-btn" onclick="selectMCQ(this,1,'A')"><span class="opt-label">A</span>라틴어 "dare"의 현재형</button>
+    <button class="option-btn" onclick="selectMCQ(this,1,'B')"><span class="opt-label">B</span>라틴어 "datum"의 복수형</button>
+    <button class="option-btn" onclick="selectMCQ(this,1,'C')"><span class="opt-label">C</span>그리스어 "datas"의 단수형</button>
+    <button class="option-btn" onclick="selectMCQ(this,1,'D')"><span class="opt-label">D</span>영어 "digit"의 약어</button>
+  </div>
+  <button class="toggle-btn" onclick="toggleAns(1)">▾ 정답 보기</button>
+  <div class="answer-box" id="ans-1">
+    <div class="answer-label">정답</div>
+    <div class="answer-text">B — 라틴어 "datum"의 복수형</div>
+    <div class="answer-explain">data는 datum(주어진 것)의 복수형으로, 컴퓨터 분야에서 transmissible and storable computer information을 의미하는 말로 처음 사용되었습니다.</div>
+  </div>
+</div>
+
+<!-- Q2 -->
+<div class="quiz-card" id="card-2">
+  <div class="quiz-meta">
+    <span class="q-num">Q02</span>
+    <span class="difficulty">⭐</span>
+    <span class="slide-ref">p.4</span>
+  </div>
+  <div class="quiz-question">"data processing"이라는 표현이 처음 사용된 연도는?</div>
+  <div class="options">
+    <button class="option-btn" onclick="selectMCQ(this,2,'A')"><span class="opt-label">A</span>1944년</button>
+    <button class="option-btn" onclick="selectMCQ(this,2,'B')"><span class="opt-label">B</span>1950년</button>
+    <button class="option-btn" onclick="selectMCQ(this,2,'C')"><span class="opt-label">C</span>1954년</button>
+    <button class="option-btn" onclick="selectMCQ(this,2,'D')"><span class="opt-label">D</span>1960년</button>
+  </div>
+  <button class="toggle-btn" onclick="toggleAns(2)">▾ 정답 보기</button>
+  <div class="answer-box" id="ans-2">
+    <div class="answer-label">정답</div>
+    <div class="answer-text">C — 1954년</div>
+    <div class="answer-explain">슬라이드 p.4에 명시된 내용으로, "the expression data processing was first used in 1954"입니다.</div>
+  </div>
+</div>
+
+<!-- Q3 -->
+<div class="quiz-card" id="card-3">
+  <div class="quiz-meta">
+    <span class="q-num">Q03</span>
+    <span class="difficulty">⭐</span>
+    <span class="slide-ref">p.5</span>
+  </div>
+  <div class="quiz-question">데이터셋에서 각 행(row)을 나타내며, 단일 개체를 설명하는 요소를 무엇이라 하는가?</div>
+  <div class="options">
+    <button class="option-btn" onclick="selectMCQ(this,3,'A')"><span class="opt-label">A</span>Attribute</button>
+    <button class="option-btn" onclick="selectMCQ(this,3,'B')"><span class="opt-label">B</span>Feature</button>
+    <button class="option-btn" onclick="selectMCQ(this,3,'C')"><span class="opt-label">C</span>Instance</button>
+    <button class="option-btn" onclick="selectMCQ(this,3,'D')"><span class="opt-label">D</span>Dimension</button>
+  </div>
+  <button class="toggle-btn" onclick="toggleAns(3)">▾ 정답 보기</button>
+  <div class="answer-box" id="ans-3">
+    <div class="answer-label">정답</div>
+    <div class="answer-text">C — Instance</div>
+    <div class="answer-explain">Instance는 데이터셋의 각 행을 나타내며 object, record, point, vector, sample 등의 별칭도 가집니다. Attribute는 각 열(column)을 나타냅니다.</div>
+  </div>
+</div>
+
+<!-- Q4 -->
+<div class="quiz-card" id="card-4">
+  <div class="quiz-meta">
+    <span class="q-num">Q04</span>
+    <span class="difficulty">⭐⭐</span>
+    <span class="slide-ref">p.6</span>
+  </div>
+  <div class="quiz-question">다음 중 Ordinal 데이터의 예로 가장 적절한 것은?</div>
+  <div class="options">
+    <button class="option-btn" onclick="selectMCQ(this,4,'A')"><span class="opt-label">A</span>혈액형 (A, B, O, AB)</button>
+    <button class="option-btn" onclick="selectMCQ(this,4,'B')"><span class="opt-label">B</span>눈 색깔 (파랑, 갈색, 녹색)</button>
+    <button class="option-btn" onclick="selectMCQ(this,4,'C')"><span class="opt-label">C</span>통증 강도 (경미, 보통, 심각)</button>
+    <button class="option-btn" onclick="selectMCQ(this,4,'D')"><span class="opt-label">D</span>자녀 수 (0, 1, 2, 3 …)</button>
+  </div>
+  <button class="toggle-btn" onclick="toggleAns(4)">▾ 정답 보기</button>
+  <div class="answer-box" id="ans-4">
+    <div class="answer-label">정답</div>
+    <div class="answer-text">C — 통증 강도 (경미, 보통, 심각)</div>
+    <div class="answer-explain">Ordinal은 순서(hierarchy)가 존재하는 범주형 데이터입니다. 통증 강도·만족도·등급 등이 해당됩니다. 혈액형·눈 색깔은 Nominal, 자녀 수는 Discrete(수치형)입니다.</div>
+  </div>
+</div>
+
+<!-- Q5 -->
+<div class="quiz-card" id="card-5">
+  <div class="quiz-meta">
+    <span class="q-num">Q05</span>
+    <span class="difficulty">⭐⭐</span>
+    <span class="slide-ref">p.7</span>
+  </div>
+  <div class="quiz-question">ImageNet에 대한 설명으로 옳지 않은 것은?</div>
+  <div class="options">
+    <button class="option-btn" onclick="selectMCQ(this,5,'A')"><span class="opt-label">A</span>약 1,400만 장의 이미지로 구성된다.</button>
+    <button class="option-btn" onclick="selectMCQ(this,5,'B')"><span class="opt-label">B</span>이미지는 WordNet 계층에 따라 레이블링된다.</button>
+    <button class="option-btn" onclick="selectMCQ(this,5,'C')"><span class="opt-label">C</span>ILSVRC 대회는 분류(classification) 태스크에 활용된다.</button>
+    <button class="option-btn" onclick="selectMCQ(this,5,'D')"><span class="opt-label">D</span>1,000개 카테고리로 구성되며 주로 비디오 이해에 사용된다.</button>
+  </div>
+  <button class="toggle-btn" onclick="toggleAns(5)">▾ 정답 보기</button>
+  <div class="answer-box" id="ans-5">
+    <div class="answer-label">정답</div>
+    <div class="answer-text">D — 비디오 이해에 사용된다 (틀림)</div>
+    <div class="answer-explain">ImageNet은 이미지 분류(visual object recognition) 벤치마크 데이터셋입니다. 비디오 이해(action recognition)에 사용되는 데이터셋은 Kinetics입니다.</div>
+  </div>
+</div>
+
+<!-- Q6 -->
+<div class="quiz-card" id="card-6">
+  <div class="quiz-meta">
+    <span class="q-num">Q06</span>
+    <span class="difficulty">⭐⭐</span>
+    <span class="slide-ref">p.8</span>
+  </div>
+  <div class="quiz-question">MS COCO 데이터셋이 지원하는 태스크로 옳지 않은 것은?</div>
+  <div class="options">
+    <button class="option-btn" onclick="selectMCQ(this,6,'A')"><span class="opt-label">A</span>Object Detection</button>
+    <button class="option-btn" onclick="selectMCQ(this,6,'B')"><span class="opt-label">B</span>Image Captioning</button>
+    <button class="option-btn" onclick="selectMCQ(this,6,'C')"><span class="opt-label">C</span>3D Point Cloud Labeling</button>
+    <button class="option-btn" onclick="selectMCQ(this,6,'D')"><span class="opt-label">D</span>Keypoint Detection</button>
+  </div>
+  <button class="toggle-btn" onclick="toggleAns(6)">▾ 정답 보기</button>
+  <div class="answer-box" id="ans-6">
+    <div class="answer-label">정답</div>
+    <div class="answer-text">C — 3D Point Cloud Labeling</div>
+    <div class="answer-explain">MS COCO는 Object Detection, Segmentation, Keypoint Detection, Image Captioning을 지원합니다. 3D Point Cloud Labeling은 자율주행 어노테이션(LiDAR) 기법으로 COCO의 지원 태스크가 아닙니다.</div>
+  </div>
+</div>
+
+<!-- Q7 -->
+<div class="quiz-card" id="card-7">
+  <div class="quiz-meta">
+    <span class="q-num">Q07</span>
+    <span class="difficulty">⭐⭐</span>
+    <span class="slide-ref">p.10</span>
+  </div>
+  <div class="quiz-question">Kinetics 데이터셋에 대한 설명으로 옳은 것은?</div>
+  <div class="options">
+    <button class="option-btn" onclick="selectMCQ(this,7,'A')"><span class="opt-label">A</span>의미론적 분할(semantic segmentation)을 위한 데이터셋이다.</button>
+    <button class="option-btn" onclick="selectMCQ(this,7,'B')"><span class="opt-label">B</span>600개 행동 클래스에 각각 최소 600개 클립을 포함한다.</button>
+    <button class="option-btn" onclick="selectMCQ(this,7,'C')"><span class="opt-label">C</span>정지 이미지 10만 장으로 구성된다.</button>
+    <button class="option-btn" onclick="selectMCQ(this,7,'D')"><span class="opt-label">D</span>20개의 객체 카테고리를 포함하는 이미지 데이터셋이다.</button>
+  </div>
+  <button class="toggle-btn" onclick="toggleAns(7)">▾ 정답 보기</button>
+  <div class="answer-box" id="ans-7">
+    <div class="answer-label">정답</div>
+    <div class="answer-text">B — 600개 행동 클래스에 각각 최소 600개 클립</div>
+    <div class="answer-explain">Kinetics는 인간 행동 인식(action recognition) 및 비디오 이해를 위한 데이터셋으로, 총 60만 개 비디오 클립, 600개 클래스, 클래스당 최소 600 클립으로 구성됩니다.</div>
+  </div>
+</div>
+
+<!-- Q8 -->
+<div class="quiz-card" id="card-8">
+  <div class="quiz-meta">
+    <span class="q-num">Q08</span>
+    <span class="difficulty">⭐⭐</span>
+    <span class="slide-ref">p.17</span>
+  </div>
+  <div class="quiz-question">CVAT(Computer Vision Annotation Tool)의 특징으로 옳지 않은 것은?</div>
+  <div class="options">
+    <button class="option-btn" onclick="selectMCQ(this,8,'A')"><span class="opt-label">A</span>웹 기반 인터페이스를 제공한다.</button>
+    <button class="option-btn" onclick="selectMCQ(this,8,'B')"><span class="opt-label">B</span>COCO, PASCAL VOC, YOLO 포맷 내보내기를 지원한다.</button>
+    <button class="option-btn" onclick="selectMCQ(this,8,'C')"><span class="opt-label">C</span>오직 바운딩 박스(Bounding Box) 어노테이션만 지원한다.</button>
+    <button class="option-btn" onclick="selectMCQ(this,8,'D')"><span class="opt-label">D</span>객체 추적(Tracking) 기능을 지원한다.</button>
+  </div>
+  <button class="toggle-btn" onclick="toggleAns(8)">▾ 정답 보기</button>
+  <div class="answer-box" id="ans-8">
+    <div class="answer-label">정답</div>
+    <div class="answer-text">C — Bounding Box만 지원한다 (틀림)</div>
+    <div class="answer-explain">CVAT는 Object Detection, Semantic Segmentation, Instance Segmentation, Tracking 등 다양한 태스크를 지원합니다. Bounding Box만 지원한다는 설명은 틀렸습니다.</div>
+  </div>
+</div>
+
+<!-- Q9 -->
+<div class="quiz-card" id="card-9">
+  <div class="quiz-meta">
+    <span class="q-num">Q09</span>
+    <span class="difficulty">⭐⭐⭐</span>
+    <span class="slide-ref">p.23</span>
+  </div>
+  <div class="quiz-question">EDA의 4원칙 중 "Resistance"에 해당하는 실천 방법으로 가장 적절한 것은?</div>
+  <div class="options">
+    <button class="option-btn" onclick="selectMCQ(this,9,'A')"><span class="opt-label">A</span>히스토그램과 산점도를 그려 분포를 시각화한다.</button>
+    <button class="option-btn" onclick="selectMCQ(this,9,'B')"><span class="opt-label">B</span>평균과 표준편차 대신 중앙값(median)과 IQR을 사용한다.</button>
+    <button class="option-btn" onclick="selectMCQ(this,9,'C')"><span class="opt-label">C</span>왜도가 큰 데이터에 로그 변환을 적용한다.</button>
+    <button class="option-btn" onclick="selectMCQ(this,9,'D')"><span class="opt-label">D</span>관측값과 예측값의 차이를 계산하여 모델을 평가한다.</button>
+  </div>
+  <button class="toggle-btn" onclick="toggleAns(9)">▾ 정답 보기</button>
+  <div class="answer-box" id="ans-9">
+    <div class="answer-label">정답</div>
+    <div class="answer-text">B — median과 IQR 사용</div>
+    <div class="answer-explain">Resistance는 분석이 이상치·오류에 강건해야 한다는 원칙입니다. 평균·표준편차는 이상치에 민감하므로 중앙값(median)과 사분위범위(IQR)를 사용합니다. A는 Revelation, C는 Re-expression, D는 Residuals에 해당합니다.</div>
+  </div>
+</div>
+
+<!-- Q10 -->
+<div class="quiz-card" id="card-10">
+  <div class="quiz-meta">
+    <span class="q-num">Q10</span>
+    <span class="difficulty">⭐⭐⭐</span>
+    <span class="slide-ref">p.26</span>
+  </div>
+  <div class="quiz-question">다음 데이터 전처리 기법과 그 목적이 바르게 연결된 것은?</div>
+  <div class="options">
+    <button class="option-btn" onclick="selectMCQ(this,10,'A')"><span class="opt-label">A</span>정규화(Normalization) — 여러 소스의 데이터를 통합</button>
+    <button class="option-btn" onclick="selectMCQ(this,10,'B')"><span class="opt-label">B</span>결측값 처리(Imputation) — 데이터 볼륨 축소</button>
+    <button class="option-btn" onclick="selectMCQ(this,10,'C')"><span class="opt-label">C</span>One-hot Encoding — 범주형 변수를 수치형으로 변환</button>
+    <button class="option-btn" onclick="selectMCQ(this,10,'D')"><span class="opt-label">D</span>PCA — 노이즈 제거 및 이상치 수정</button>
+  </div>
+  <button class="toggle-btn" onclick="toggleAns(10)">▾ 정답 보기</button>
+  <div class="answer-box" id="ans-10">
+    <div class="answer-label">정답</div>
+    <div class="answer-text">C — One-hot Encoding → 범주형 변수를 수치형으로 변환</div>
+    <div class="answer-explain">One-hot Encoding은 범주형 변수를 0/1의 이진 벡터로 변환하는 Data Transformation 기법입니다. 정규화는 스케일 조정, 결측값 처리는 Data Cleansing, PCA는 Data Reduction에 해당합니다.</div>
+  </div>
+</div>
+
+<!-- Q11 -->
+<div class="quiz-card" id="card-11">
+  <div class="quiz-meta">
+    <span class="q-num">Q11</span>
+    <span class="difficulty">⭐⭐⭐</span>
+    <span class="slide-ref">p.8–9</span>
+  </div>
+  <div class="quiz-question">다음 데이터셋 중 이미지 수가 가장 많은 것은?</div>
+  <div class="options">
+    <button class="option-btn" onclick="selectMCQ(this,11,'A')"><span class="opt-label">A</span>PASCAL VOC</button>
+    <button class="option-btn" onclick="selectMCQ(this,11,'B')"><span class="opt-label">B</span>MS COCO</button>
+    <button class="option-btn" onclick="selectMCQ(this,11,'C')"><span class="opt-label">C</span>ADE 20k</button>
+    <button class="option-btn" onclick="selectMCQ(this,11,'D')"><span class="opt-label">D</span>ImageNet</button>
+  </div>
+  <button class="toggle-btn" onclick="toggleAns(11)">▾ 정답 보기</button>
+  <div class="answer-box" id="ans-11">
+    <div class="answer-label">정답</div>
+    <div class="answer-text">D — ImageNet (약 1,400만 장)</div>
+    <div class="answer-explain">ImageNet ≈ 1,400만 장 &gt; MS COCO ≈ 330,000장 &gt; ADE 20k ≈ 20,210장 &gt; PASCAL VOC ≈ 10,000장 순입니다.</div>
+  </div>
+</div>
+
+<!-- Q12 -->
+<div class="quiz-card" id="card-12">
+  <div class="quiz-meta">
+    <span class="q-num">Q12</span>
+    <span class="difficulty">⭐⭐⭐</span>
+    <span class="slide-ref">p.26–27</span>
+  </div>
+  <div class="quiz-question">Data Preprocessing의 4가지 핵심 작업을 올바르게 나열한 것은?</div>
+  <div class="options">
+    <button class="option-btn" onclick="selectMCQ(this,12,'A')"><span class="opt-label">A</span>Cleansing / Integration / Transformation / Reduction</button>
+    <button class="option-btn" onclick="selectMCQ(this,12,'B')"><span class="opt-label">B</span>Filtering / Merging / Encoding / Sampling</button>
+    <button class="option-btn" onclick="selectMCQ(this,12,'C')"><span class="opt-label">C</span>Normalization / Imputation / PCA / One-hot</button>
+    <button class="option-btn" onclick="selectMCQ(this,12,'D')"><span class="opt-label">D</span>Mining / Visualization / Modeling / Evaluation</button>
+  </div>
+  <button class="toggle-btn" onclick="toggleAns(12)">▾ 정답 보기</button>
+  <div class="answer-box" id="ans-12">
+    <div class="answer-label">정답</div>
+    <div class="answer-text">A — Cleansing / Integration / Transformation / Reduction</div>
+    <div class="answer-explain">Data Preprocessing의 4가지 핵심 작업은 Data Cleansing(결측·노이즈 처리), Data Integration(소스 통합), Data Transformation(정규화·인코딩), Data Reduction(차원 축소)입니다. B~D는 세부 기법이거나 다른 단계입니다.</div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════
+     PART 2: OX 문제 (10문제)
+════════════════════════════════ -->
+<div class="section-divider">
+  <div class="s-tag">OX 문제</div>
+  <div class="s-line"></div>
+  <div class="s-count">Q13 – Q22 · 10문제</div>
+</div>
+
+<!-- Q13 -->
+<div class="quiz-card" id="card-13">
+  <div class="quiz-meta">
+    <span class="q-num">Q13</span>
+    <span class="difficulty">⭐</span>
+    <span class="slide-ref">p.4</span>
+  </div>
+  <div class="quiz-question">big data 문맥에서 "data"는 일반적으로 "information"의 동의어로 사용된다.</div>
+  <div class="ox-buttons">
+    <button class="ox-btn o-btn" onclick="selectOX(this,13,'O')">O</button>
+    <button class="ox-btn x-btn" onclick="selectOX(this,13,'X')">X</button>
+  </div>
+  <button class="toggle-btn" onclick="toggleAns(13)">▾ 정답 보기</button>
+  <div class="answer-box" id="ans-13">
+    <div class="answer-label">정답</div>
+    <div class="answer-text">O (참)</div>
+    <div class="answer-explain">슬라이드 p.4에 "in the term big data, data is generally used as a synonym for information"이라고 명시되어 있습니다.</div>
+  </div>
+</div>
+
+<!-- Q14 -->
+<div class="quiz-card" id="card-14">
+  <div class="quiz-meta">
+    <span class="q-num">Q14</span>
+    <span class="difficulty">⭐</span>
+    <span class="slide-ref">p.5</span>
+  </div>
+  <div class="quiz-question">데이터셋에서 Attribute는 각 행(row)을 나타내며, 단일 개체의 특성을 설명한다.</div>
+  <div class="ox-buttons">
+    <button class="ox-btn o-btn" onclick="selectOX(this,14,'O')">O</button>
+    <button class="ox-btn x-btn" onclick="selectOX(this,14,'X')">X</button>
+  </div>
+  <button class="toggle-btn" onclick="toggleAns(14)">▾ 정답 보기</button>
+  <div class="answer-box" id="ans-14">
+    <div class="answer-label">정답</div>
+    <div class="answer-text">X (거짓)</div>
+    <div class="answer-explain">Attribute는 각 열(column)을 나타냅니다. 각 행(row)을 나타내는 것은 Instance입니다.</div>
+  </div>
+</div>
+
+<!-- Q15 -->
+<div class="quiz-card" id="card-15">
+  <div class="quiz-meta">
+    <span class="q-num">Q15</span>
+    <span class="difficulty">⭐</span>
+    <span class="slide-ref">p.6</span>
+  </div>
+  <div class="quiz-question">Continuous 데이터는 유한한(finite) 옵션을 가지는 수치형 데이터이다.</div>
+  <div class="ox-buttons">
+    <button class="ox-btn o-btn" onclick="selectOX(this,15,'O')">O</button>
+    <button class="ox-btn x-btn" onclick="selectOX(this,15,'X')">X</button>
+  </div>
+  <button class="toggle-btn" onclick="toggleAns(15)">▾ 정답 보기</button>
+  <div class="answer-box" id="ans-15">
+    <div class="answer-label">정답</div>
+    <div class="answer-text">X (거짓)</div>
+    <div class="answer-explain">Continuous 데이터는 무한한(infinite) 옵션을 갖습니다. 유한한(finite) 옵션을 갖는 것은 Discrete 데이터입니다. (예: 나이·체중·혈압 vs 신발 사이즈·자녀 수)</div>
+  </div>
+</div>
+
+<!-- Q16 -->
+<div class="quiz-card" id="card-16">
+  <div class="quiz-meta">
+    <span class="q-num">Q16</span>
+    <span class="difficulty">⭐⭐</span>
+    <span class="slide-ref">p.8</span>
+  </div>
+  <div class="quiz-question">MS COCO는 현재 딥러닝에서 가장 영향력 있고 널리 사용되는 데이터셋 중 하나로, 80개의 카테고리와 150만 개의 객체 인스턴스를 포함한다.</div>
+  <div class="ox-buttons">
+    <button class="ox-btn o-btn" onclick="selectOX(this,16,'O')">O</button>
+    <button class="ox-btn x-btn" onclick="selectOX(this,16,'X')">X</button>
+  </div>
+  <button class="toggle-btn" onclick="toggleAns(16)">▾ 정답 보기</button>
+  <div class="answer-box" id="ans-16">
+    <div class="answer-label">정답</div>
+    <div class="answer-text">O (참)</div>
+    <div class="answer-explain">슬라이드 p.8에 MS COCO는 "one of the most influential and widely used datasets", 80 categories, 1.5M object instances라고 명시되어 있습니다.</div>
+  </div>
+</div>
+
+<!-- Q17 -->
+<div class="quiz-card" id="card-17">
+  <div class="quiz-meta">
+    <span class="q-num">Q17</span>
+    <span class="difficulty">⭐⭐</span>
+    <span class="slide-ref">p.18</span>
+  </div>
+  <div class="quiz-question">LabelMe는 labelme2coco 도구를 통해 어노테이션 데이터를 COCO 포맷으로 변환·내보낼 수 있다.</div>
+  <div class="ox-buttons">
+    <button class="ox-btn o-btn" onclick="selectOX(this,17,'O')">O</button>
+    <button class="ox-btn x-btn" onclick="selectOX(this,17,'X')">X</button>
+  </div>
+  <button class="toggle-btn" onclick="toggleAns(17)">▾ 정답 보기</button>
+  <div class="answer-box" id="ans-17">
+    <div class="answer-label">정답</div>
+    <div class="answer-text">O (참)</div>
+    <div class="answer-explain">슬라이드 p.18에 "labelme2coco helps to export data annotation as COCO format"이라고 명시되어 있습니다.</div>
+  </div>
+</div>
+
+<!-- Q18 -->
+<div class="quiz-card" id="card-18">
+  <div class="quiz-meta">
+    <span class="q-num">Q18</span>
+    <span class="difficulty">⭐⭐</span>
+    <span class="slide-ref">p.23</span>
+  </div>
+  <div class="quiz-question">EDA는 일반적으로 공식적인 모델링(formal modeling) 이후에 적용되는 단계이다.</div>
+  <div class="ox-buttons">
+    <button class="ox-btn o-btn" onclick="selectOX(this,18,'O')">O</button>
+    <button class="ox-btn x-btn" onclick="selectOX(this,18,'X')">X</button>
+  </div>
+  <button class="toggle-btn" onclick="toggleAns(18)">▾ 정답 보기</button>
+  <div class="answer-box" id="ans-18">
+    <div class="answer-label">정답</div>
+    <div class="answer-text">X (거짓)</div>
+    <div class="answer-explain">EDA는 공식적인 모델링 이전(before formal modeling)에 적용됩니다. 데이터를 먼저 탐색·이해한 후 모델링에 들어갑니다.</div>
+  </div>
+</div>
+
+<!-- Q19 -->
+<div class="quiz-card" id="card-19">
+  <div class="quiz-meta">
+    <span class="q-num">Q19</span>
+    <span class="difficulty">⭐⭐</span>
+    <span class="slide-ref">p.23</span>
+  </div>
+  <div class="quiz-question">EDA의 Re-expression 원칙은 왜도가 큰 데이터에 로그 변환을 적용하여 패턴을 더 명확하게 드러내는 것을 포함한다.</div>
+  <div class="ox-buttons">
+    <button class="ox-btn o-btn" onclick="selectOX(this,19,'O')">O</button>
+    <button class="ox-btn x-btn" onclick="selectOX(this,19,'X')">X</button>
+  </div>
+  <button class="toggle-btn" onclick="toggleAns(19)">▾ 정답 보기</button>
+  <div class="answer-box" id="ans-19">
+    <div class="answer-label">정답</div>
+    <div class="answer-text">O (참)</div>
+    <div class="answer-explain">Re-expression은 데이터를 변환·재구성하여 패턴을 더 명확히 드러내는 것입니다. 로그 변환으로 왜곡된 데이터를 정규화하는 것이 대표적인 예입니다.</div>
+  </div>
+</div>
+
+<!-- Q20 -->
+<div class="quiz-card" id="card-20">
+  <div class="quiz-meta">
+    <span class="q-num">Q20</span>
+    <span class="difficulty">⭐⭐⭐</span>
+    <span class="slide-ref">p.28</span>
+  </div>
+  <div class="quiz-question">실세계 데이터의 특성 중 "Noisy"란 데이터에 오류나 이상치(outlier)가 포함된 상태를 의미한다.</div>
+  <div class="ox-buttons">
+    <button class="ox-btn o-btn" onclick="selectOX(this,20,'O')">O</button>
+    <button class="ox-btn x-btn" onclick="selectOX(this,20,'X')">X</button>
+  </div>
+  <button class="toggle-btn" onclick="toggleAns(20)">▾ 정답 보기</button>
+  <div class="answer-box" id="ans-20">
+    <div class="answer-label">정답</div>
+    <div class="answer-text">O (참)</div>
+    <div class="answer-explain">슬라이드 p.28에서 Noisy는 "data contains errors or outliers"로 정의됩니다. Incomplete는 결측, Inconsistent는 코드·이름 불일치를 의미합니다.</div>
+  </div>
+</div>
+
+<!-- Q21 -->
+<div class="quiz-card" id="card-21">
+  <div class="quiz-meta">
+    <span class="q-num">Q21</span>
+    <span class="difficulty">⭐⭐⭐</span>
+    <span class="slide-ref">p.29</span>
+  </div>
+  <div class="quiz-question">설문 결과에 따르면 데이터 과학자들이 가장 즐겁지 않다고 꼽은 작업 1위와 실제 가장 많은 시간을 소비하는 작업 1위가 모두 데이터 정제(Cleaning)이다.</div>
+  <div class="ox-buttons">
+    <button class="ox-btn o-btn" onclick="selectOX(this,21,'O')">O</button>
+    <button class="ox-btn x-btn" onclick="selectOX(this,21,'X')">X</button>
+  </div>
+  <button class="toggle-btn" onclick="toggleAns(21)">▾ 정답 보기</button>
+  <div class="answer-box" id="ans-21">
+    <div class="answer-label">정답</div>
+    <div class="answer-text">O (참)</div>
+    <div class="answer-explain">슬라이드 p.29의 두 차트 모두에서 "Cleaning and organizing data"가 1위(각각 57%, 60%)를 차지합니다. 가장 즐겁지 않으면서도 가장 많은 시간이 소요되는 아이러니한 현실입니다.</div>
+  </div>
+</div>
+
+<!-- Q22 -->
+<div class="quiz-card" id="card-22">
+  <div class="quiz-meta">
+    <span class="q-num">Q22</span>
+    <span class="difficulty">⭐⭐⭐</span>
+    <span class="slide-ref">p.9</span>
+  </div>
+  <div class="quiz-question">ADE 20k 데이터셋은 주로 객체 탐지(Object Detection)를 위한 데이터셋으로, 20,210장의 이미지와 20개의 카테고리를 포함한다.</div>
+  <div class="ox-buttons">
+    <button class="ox-btn o-btn" onclick="selectOX(this,22,'O')">O</button>
+    <button class="ox-btn x-btn" onclick="selectOX(this,22,'X')">X</button>
+  </div>
+  <button class="toggle-btn" onclick="toggleAns(22)">▾ 정답 보기</button>
+  <div class="answer-box" id="ans-22">
+    <div class="answer-label">정답</div>
+    <div class="answer-text">X (거짓)</div>
+    <div class="answer-explain">ADE 20k는 주로 의미론적 분할(Semantic Segmentation)을 위한 데이터셋입니다. 이미지 수 20,210장은 맞지만, 카테고리는 20개가 아니라 150개 이상(150+ categories)입니다. 20개 카테고리는 PASCAL VOC의 수치입니다.</div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════
+     PART 3: 단답형 (8문제)
+════════════════════════════════ -->
+<div class="section-divider">
+  <div class="s-tag">단답형</div>
+  <div class="s-line"></div>
+  <div class="s-count">Q23 – Q30 · 8문제</div>
+</div>
+
+<!-- Q23 -->
+<div class="quiz-card" id="card-23">
+  <div class="quiz-meta">
+    <span class="q-num">Q23</span>
+    <span class="difficulty">⭐</span>
+    <span class="slide-ref">p.4</span>
+  </div>
+  <div class="quiz-question">DIKW 피라미드에서 가장 하위 단계(가장 기초적인 레벨)는 무엇인가?</div>
+  <div class="short-input-wrap">
+    <input class="short-input" type="text" id="si-23" placeholder="정답 입력...">
+  </div>
+  <button class="toggle-btn" onclick="toggleAns(23)">▾ 정답 보기</button>
+  <div class="answer-box" id="ans-23">
+    <div class="answer-label">정답</div>
+    <div class="answer-text">Data</div>
+    <div class="answer-explain">DIKW 피라미드는 Data → Information → Knowledge → Wisdom 순으로 계층을 이룹니다. Data가 가장 하위 단계이며, 원시적인 이산값들로 구성됩니다.</div>
+  </div>
+</div>
+
+<!-- Q24 -->
+<div class="quiz-card" id="card-24">
+  <div class="quiz-meta">
+    <span class="q-num">Q24</span>
+    <span class="difficulty">⭐</span>
+    <span class="slide-ref">p.6</span>
+  </div>
+  <div class="quiz-question">혈액형(A, B, O, AB)처럼 순서(계층)가 없는 범주형 데이터를 무엇이라 하는가?</div>
+  <div class="short-input-wrap">
+    <input class="short-input" type="text" id="si-24" placeholder="정답 입력...">
+  </div>
+  <button class="toggle-btn" onclick="toggleAns(24)">▾ 정답 보기</button>
+  <div class="answer-box" id="ans-24">
+    <div class="answer-label">정답</div>
+    <div class="answer-text">Nominal (명목형)</div>
+    <div class="answer-explain">Nominal 데이터는 순서(hierarchy)가 없는 범주형 데이터입니다. 순서가 있으면 Ordinal입니다. 예: 혈액형, 눈 색깔, 강아지 품종 등.</div>
+  </div>
+</div>
+
+<!-- Q25 -->
+<div class="quiz-card" id="card-25">
+  <div class="quiz-meta">
+    <span class="q-num">Q25</span>
+    <span class="difficulty">⭐</span>
+    <span class="slide-ref">p.7</span>
+  </div>
+  <div class="quiz-question">ImageNet 기반으로 개최되는 대규모 이미지 분류 챌린지의 약어(4글자)는?</div>
+  <div class="short-input-wrap">
+    <input class="short-input" type="text" id="si-25" placeholder="정답 입력...">
+  </div>
+  <button class="toggle-btn" onclick="toggleAns(25)">▾ 정답 보기</button>
+  <div class="answer-box" id="ans-25">
+    <div class="answer-label">정답</div>
+    <div class="answer-text">ILSVRC</div>
+    <div class="answer-explain">ImageNet Large Scale Visual Recognition Challenge의 약어입니다. 딥러닝 모델의 이미지 분류 성능을 벤치마킹하는 대회로, AlexNet(2012) 등 주요 모델들이 이 대회를 통해 발표되었습니다.</div>
+  </div>
+</div>
+
+<!-- Q26 -->
+<div class="quiz-card" id="card-26">
+  <div class="quiz-meta">
+    <span class="q-num">Q26</span>
+    <span class="difficulty">⭐⭐</span>
+    <span class="slide-ref">p.17</span>
+  </div>
+  <div class="quiz-question">웹 기반 컴퓨터 비전 어노테이션 도구로, COCO·PASCAL VOC·YOLO 포맷 내보내기를 지원하는 툴의 이름은? (영문 약어)</div>
+  <div class="short-input-wrap">
+    <input class="short-input" type="text" id="si-26" placeholder="정답 입력...">
+  </div>
+  <button class="toggle-btn" onclick="toggleAns(26)">▾ 정답 보기</button>
+  <div class="answer-box" id="ans-26">
+    <div class="answer-label">정답</div>
+    <div class="answer-text">CVAT</div>
+    <div class="answer-explain">Computer Vision Annotation Tool의 약어입니다. 웹 기반 인터페이스를 제공하며 object detection, semantic segmentation, instance segmentation, tracking을 지원합니다.</div>
+  </div>
+</div>
+
+<!-- Q27 -->
+<div class="quiz-card" id="card-27">
+  <div class="quiz-meta">
+    <span class="q-num">Q27</span>
+    <span class="difficulty">⭐⭐</span>
+    <span class="slide-ref">p.23</span>
+  </div>
+  <div class="quiz-question">EDA(탐색적 데이터 분석)의 개념을 정립한 통계학자의 이름은? (성(last name)만 작성)</div>
+  <div class="short-input-wrap">
+    <input class="short-input" type="text" id="si-27" placeholder="정답 입력...">
+  </div>
+  <button class="toggle-btn" onclick="toggleAns(27)">▾ 정답 보기</button>
+  <div class="answer-box" id="ans-27">
+    <div class="answer-label">정답</div>
+    <div class="answer-text">Tukey</div>
+    <div class="answer-explain">John Wilder Tukey (1915–2000)가 EDA를 정립했습니다. 그는 Box Plot을 발명하고 데이터를 먼저 탐색한 후 모델링에 들어가는 패러다임을 확립했습니다.</div>
+  </div>
+</div>
+
+<!-- Q28 -->
+<div class="quiz-card" id="card-28">
+  <div class="quiz-meta">
+    <span class="q-num">Q28</span>
+    <span class="difficulty">⭐⭐</span>
+    <span class="slide-ref">p.23</span>
+  </div>
+  <div class="quiz-question">EDA의 4원칙 중, 관측값과 예측값의 차이를 분석하여 모델의 적합도를 평가하는 원칙은?</div>
+  <div class="short-input-wrap">
+    <input class="short-input" type="text" id="si-28" placeholder="정답 입력...">
+  </div>
+  <button class="toggle-btn" onclick="toggleAns(28)">▾ 정답 보기</button>
+  <div class="answer-box" id="ans-28">
+    <div class="answer-label">정답</div>
+    <div class="answer-text">Residuals (잔차)</div>
+    <div class="answer-explain">Residuals는 관측값(observed values)과 예측값(predicted values)의 차이를 분석하여 모델이 데이터에 얼마나 잘 맞는지(goodness of fit) 평가합니다.</div>
+  </div>
+</div>
+
+<!-- Q29 -->
+<div class="quiz-card" id="card-29">
+  <div class="quiz-meta">
+    <span class="q-num">Q29</span>
+    <span class="difficulty">⭐⭐⭐</span>
+    <span class="slide-ref">p.26</span>
+  </div>
+  <div class="quiz-question">Data Preprocessing에서 여러 소스의 데이터를 하나의 통합된 데이터셋으로 결합하는 작업을 무엇이라 하는가?</div>
+  <div class="short-input-wrap">
+    <input class="short-input" type="text" id="si-29" placeholder="정답 입력...">
+  </div>
+  <button class="toggle-btn" onclick="toggleAns(29)">▾ 정답 보기</button>
+  <div class="answer-box" id="ans-29">
+    <div class="answer-label">정답</div>
+    <div class="answer-text">Data Integration</div>
+    <div class="answer-explain">Data Integration은 여러 소스(databases, flat files 등)의 데이터를 하나의 통합된 데이터셋으로 결합하는 작업입니다. 이는 전처리의 4가지 핵심 작업 중 하나입니다.</div>
+  </div>
+</div>
+
+<!-- Q30 -->
+<div class="quiz-card" id="card-30">
+  <div class="quiz-meta">
+    <span class="q-num">Q30</span>
+    <span class="difficulty">⭐⭐⭐</span>
+    <span class="slide-ref">p.28</span>
+  </div>
+  <div class="quiz-question">EDA의 Resistance 원칙에서 평균(mean) 대신 사용하는 대표값과, 표준편차(std) 대신 사용하는 산포 지표를 각각 쓰시오. (형식: A, B)</div>
+  <div class="short-input-wrap">
+    <input class="short-input" type="text" id="si-30" placeholder="예: 중앙값, 사분위범위">
+  </div>
+  <button class="toggle-btn" onclick="toggleAns(30)">▾ 정답 보기</button>
+  <div class="answer-box" id="ans-30">
+    <div class="answer-label">정답</div>
+    <div class="answer-text">median (중앙값), IQR (사분위범위 / Interquartile Range)</div>
+    <div class="answer-explain">Resistance 원칙은 이상치·오류에 강건한 분석을 요구합니다. 평균(mean)과 표준편차(std)는 이상치에 민감하므로, 이상치에 강건한 중앙값(median)과 IQR(Interquartile Range = Q3 - Q1)을 사용합니다.</div>
+  </div>
+</div>
+
+</div><!-- /container -->
+
+<!-- ── RESULT MODAL ── -->
+<div id="result-modal">
+  <div class="modal-box">
+    <div class="modal-score-big" id="modal-score-big">—</div>
+    <div class="modal-score-label" id="modal-score-label">채점 결과</div>
+    <div class="modal-bars">
+      <div class="modal-bar-row">
+        <span style="color:var(--accent)">객관식</span>
+        <div class="modal-bar-bg"><div class="modal-bar-fill" id="bar-mcq" style="background:var(--accent); width:0%"></div></div>
+        <span class="cnt" id="cnt-mcq">—</span>
+      </div>
+      <div class="modal-bar-row">
+        <span style="color:var(--accent3)">OX 문제</span>
+        <div class="modal-bar-bg"><div class="modal-bar-fill" id="bar-ox" style="background:var(--accent3); width:0%"></div></div>
+        <span class="cnt" id="cnt-ox">—</span>
+      </div>
+      <div class="modal-bar-row">
+        <span style="color:var(--accent2)">단답형</span>
+        <div class="modal-bar-bg"><div class="modal-bar-fill" id="bar-sa" style="background:var(--accent2); width:0%"></div></div>
+        <span class="cnt" id="cnt-sa">—</span>
+      </div>
+    </div>
+    <button class="modal-close" onclick="closeModal()">확인</button>
+  </div>
+</div>
+
+<script>
+// ── 정답 데이터 ──
+const ANSWERS = {
+  // MCQ: 1~12
+  1:'B', 2:'C', 3:'C', 4:'C', 5:'D', 6:'C',
+  7:'B', 8:'C', 9:'B', 10:'C', 11:'D', 12:'A',
+  // OX: 13~22
+  13:'O', 14:'X', 15:'X', 16:'O', 17:'O', 18:'X',
+  19:'O', 20:'O', 21:'O', 22:'X',
+  // 단답형 키워드: 23~30
+  23:['data'],
+  24:['nominal','명목'],
+  25:['ilsvrc'],
+  26:['cvat'],
+  27:['tukey'],
+  28:['residual'],
+  29:['integration'],
+  30:['median','iqr','중앙값','사분위']
+};
+
+const userAnswers = {};
+
+// ── MCQ ──
+function selectMCQ(btn, qNum, val) {
+  const opts = btn.closest('.options').querySelectorAll('.option-btn');
+  opts.forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  userAnswers[qNum] = val;
+  updateLiveScore();
+}
+
+// ── OX ──
+function selectOX(btn, qNum, val) {
+  const btns = btn.closest('.ox-buttons').querySelectorAll('.ox-btn');
+  btns.forEach(b => { b.classList.remove('selected-o','selected-x'); });
+  btn.classList.add(val === 'O' ? 'selected-o' : 'selected-x');
+  userAnswers[qNum] = val;
+  updateLiveScore();
+}
+
+// ── 정답 토글 ──
+function toggleAns(qNum) {
+  const box = document.getElementById('ans-' + qNum);
+  box.classList.toggle('show');
+}
+
+// ── 실시간 점수 ──
+function updateLiveScore() {
+  const answered = Object.keys(userAnswers).length;
+  document.getElementById('live-score').textContent = answered + ' / 30 답변';
+}
+
+// ── 최종 채점 ──
+function gradeAll() {
+  let total = 0, mcqC = 0, oxC = 0, saC = 0;
+
+  for (let q = 1; q <= 30; q++) {
+    const card = document.getElementById('card-' + q);
+    const ua = userAnswers[q];
+    let isCorrect = false;
+
+    if (q <= 12) {
+      // MCQ
+      if (ua) {
+        isCorrect = (ua === ANSWERS[q]);
+        const opts = card.querySelectorAll('.option-btn');
+        opts.forEach(btn => {
+          btn.disabled = true;
+          const lbl = btn.querySelector('.opt-label').textContent.trim();
+          if (lbl === ANSWERS[q]) btn.classList.add('correct-ans');
+          if (lbl === ua && !isCorrect) btn.classList.add('wrong-ans');
+        });
+        if (isCorrect) mcqC++;
+      } else {
+        // 미답변 — 정답만 표시
+        const opts = card.querySelectorAll('.option-btn');
+        opts.forEach(btn => {
+          btn.disabled = true;
+          if (btn.querySelector('.opt-label').textContent.trim() === ANSWERS[q])
+            btn.classList.add('correct-ans');
+        });
+      }
+    } else if (q <= 22) {
+      // OX
+      const oxBtns = card.querySelectorAll('.ox-btn');
+      oxBtns.forEach(b => b.disabled = true);
+      if (ua) {
+        isCorrect = (ua === ANSWERS[q]);
+        oxBtns.forEach(b => {
+          const bVal = b.classList.contains('o-btn') ? 'O' : 'X';
+          if (bVal === ANSWERS[q]) b.classList.add('correct-ans');
+          if (bVal === ua && !isCorrect) b.classList.add('wrong-ans');
+        });
+        if (isCorrect) oxC++;
+      } else {
+        oxBtns.forEach(b => {
+          if ((b.classList.contains('o-btn') && ANSWERS[q]==='O') ||
+              (b.classList.contains('x-btn') && ANSWERS[q]==='X'))
+            b.classList.add('correct-ans');
+        });
+      }
+    } else {
+      // 단답형
+      const inp = document.getElementById('si-' + q);
+      const userVal = (inp ? inp.value.trim().toLowerCase() : '');
+      inp && (inp.disabled = true);
+      const keywords = ANSWERS[q];
+      isCorrect = keywords.some(kw => userVal.includes(kw.toLowerCase()));
+      if (inp) {
+        inp.classList.add(isCorrect ? 'correct-ans' : 'wrong-ans');
+      }
+      if (isCorrect) saC++;
+      // 정답 박스 자동 열기
+      const ansBox = document.getElementById('ans-' + q);
+      if (ansBox) ansBox.classList.add('show');
+    }
+
+    card.classList.add(isCorrect ? 'correct' : 'wrong');
+    total += isCorrect ? 1 : 0;
+  }
+
+  // 모달
+  const pct = Math.round((total / 30) * 100);
+  const scoreEl = document.getElementById('modal-score-big');
+  scoreEl.textContent = total + ' / 30';
+  scoreEl.style.color = pct >= 80 ? 'var(--accent3)' : pct >= 60 ? 'var(--accent)' : 'var(--red)';
+  document.getElementById('modal-score-label').textContent = pct + '% 정답 · ' + (pct >= 80 ? '🎉 훌륭합니다!' : pct >= 60 ? '👍 잘 했습니다!' : '📚 복습이 필요합니다');
+  document.getElementById('cnt-mcq').textContent = mcqC + '/12';
+  document.getElementById('cnt-ox').textContent  = oxC  + '/10';
+  document.getElementById('cnt-sa').textContent  = saC  + '/8';
+  document.getElementById('bar-mcq').style.width = (mcqC/12*100) + '%';
+  document.getElementById('bar-ox').style.width  = (oxC/10*100)  + '%';
+  document.getElementById('bar-sa').style.width  = (saC/8*100)   + '%';
+  document.getElementById('live-score').textContent = total + ' / 30';
+  document.getElementById('result-modal').classList.add('show');
+}
+
+function closeModal() {
+  document.getElementById('result-modal').classList.remove('show');
+}
+
+function resetAll() {
+  if (!confirm('모든 답변을 초기화하시겠습니까?')) return;
+  location.reload();
+}
+</script>
+</body>
+</html>
