@@ -1,0 +1,1620 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>기계학습 7 — 지도학습과 비지도학습</title>
+<style>
+:root {
+  --bg: #0a0e1a;
+  --surface: #111827;
+  --surface2: #1a2235;
+  --surface3: #1e2d42;
+  --border: #2a3a52;
+  --text: #e2e8f0;
+  --text-dim: #94a3b8;
+  --text-mute: #64748b;
+  --accent-blue: #3b82f6;
+  --accent-cyan: #06b6d4;
+  --accent-green: #10b981;
+  --accent-orange: #f59e0b;
+  --accent-red: #ef4444;
+  --accent-purple: #8b5cf6;
+  --knn-color: #3b82f6;
+  --kmeans-color: #f59e0b;
+  --supervised-color: #10b981;
+  --unsupervised-color: #8b5cf6;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', sans-serif;
+  line-height: 1.7;
+  min-height: 100vh;
+}
+
+/* ── 레이아웃 ── */
+.layout { display: flex; min-height: 100vh; }
+
+/* ── 사이드바 TOC ── */
+.sidebar {
+  width: 260px;
+  min-width: 260px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  padding: 24px 0;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+.sidebar-title {
+  font-family: 'Impact', 'Arial Narrow', sans-serif;
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: var(--text-mute);
+  text-transform: uppercase;
+  padding: 0 20px 16px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 12px;
+}
+.toc-item {
+  display: block;
+  padding: 8px 20px;
+  color: var(--text-dim);
+  text-decoration: none;
+  font-size: 13px;
+  border-left: 3px solid transparent;
+  transition: all .2s;
+  line-height: 1.4;
+}
+.toc-item:hover { color: var(--text); background: var(--surface2); }
+.toc-item.active {
+  color: var(--accent-blue);
+  border-left-color: var(--accent-blue);
+  background: rgba(59,130,246,.08);
+}
+.toc-num {
+  font-family: 'Menlo', 'Courier New', monospace;
+  font-size: 10px;
+  color: var(--text-mute);
+  display: block;
+  margin-bottom: 2px;
+}
+.toc-sub {
+  padding-left: 32px;
+  font-size: 12px;
+}
+
+/* ── 메인 콘텐츠 ── */
+.main {
+  flex: 1;
+  max-width: 900px;
+  padding: 40px 48px;
+  overflow-x: hidden;
+}
+
+/* ── 헤더 ── */
+.page-header {
+  margin-bottom: 48px;
+  padding-bottom: 32px;
+  border-bottom: 1px solid var(--border);
+}
+.page-badge {
+  font-family: 'Menlo', 'Courier New', monospace;
+  font-size: 11px;
+  color: var(--accent-blue);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.page-title {
+  font-family: 'Impact', 'Arial Narrow', sans-serif;
+  font-size: 40px;
+  letter-spacing: -1px;
+  color: var(--text);
+  line-height: 1.1;
+  margin-bottom: 8px;
+}
+.page-sub {
+  color: var(--text-dim);
+  font-size: 14px;
+}
+.page-meta { display: flex; gap: 16px; margin-top: 16px; }
+.meta-tag {
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  background: var(--surface2);
+  color: var(--text-mute);
+  border: 1px solid var(--border);
+}
+
+/* ── 섹션 ── */
+.section { margin-bottom: 60px; scroll-margin-top: 24px; }
+.section-header {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  margin-bottom: 24px;
+}
+.section-num {
+  font-family: 'Impact', 'Arial Narrow', sans-serif;
+  font-size: 13px;
+  color: var(--accent-blue);
+  letter-spacing: 2px;
+  min-width: 28px;
+}
+.section-title {
+  font-family: 'Impact', 'Arial Narrow', sans-serif;
+  font-size: 24px;
+  letter-spacing: -0.5px;
+  color: var(--text);
+}
+
+/* ── 카드 ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 24px;
+  margin-bottom: 16px;
+}
+.card-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-dim);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+
+/* ── 2-컬럼 그리드 ── */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+
+/* ── 컨셉 배지 ── */
+.concept-box {
+  background: var(--surface2);
+  border-left: 4px solid var(--accent-blue);
+  border-radius: 0 8px 8px 0;
+  padding: 16px 20px;
+  margin-bottom: 16px;
+  font-size: 14px;
+  font-style: italic;
+  color: var(--text);
+}
+.concept-box.green { border-left-color: var(--accent-green); }
+.concept-box.orange { border-left-color: var(--accent-orange); }
+.concept-box.red { border-left-color: var(--accent-red); }
+.concept-box.purple { border-left-color: var(--accent-purple); }
+
+/* ── 수식 ── */
+.formula {
+  font-family: 'Menlo', 'Courier New', monospace;
+  font-size: 14px;
+  background: #0d1525;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 12px 16px;
+  color: var(--accent-cyan);
+  margin: 10px 0;
+  overflow-x: auto;
+}
+
+/* ── 테이블 ── */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin: 12px 0;
+}
+.data-table th {
+  background: var(--surface3);
+  color: var(--text-dim);
+  font-weight: 600;
+  padding: 10px 14px;
+  text-align: left;
+  border-bottom: 2px solid var(--border);
+  font-size: 12px;
+  letter-spacing: .5px;
+}
+.data-table td {
+  padding: 9px 14px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+.data-table tr:last-child td { border-bottom: none; }
+.data-table tr:hover td { background: rgba(59,130,246,.04); }
+.tag-yes { color: var(--accent-green); font-weight: 700; }
+.tag-no { color: var(--accent-red); font-weight: 700; }
+.tag-check { color: var(--accent-cyan); }
+
+/* ── 레이블 칩 ── */
+.chip {
+  display: inline-block;
+  padding: 3px 9px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .5px;
+}
+.chip-blue { background: rgba(59,130,246,.2); color: #93c5fd; border: 1px solid rgba(59,130,246,.3); }
+.chip-green { background: rgba(16,185,129,.2); color: #6ee7b7; border: 1px solid rgba(16,185,129,.3); }
+.chip-orange { background: rgba(245,158,11,.2); color: #fcd34d; border: 1px solid rgba(245,158,11,.3); }
+.chip-red { background: rgba(239,68,68,.2); color: #fca5a5; border: 1px solid rgba(239,68,68,.3); }
+.chip-purple { background: rgba(139,92,246,.2); color: #c4b5fd; border: 1px solid rgba(139,92,246,.3); }
+
+/* ── 단계 박스 ── */
+.step-list { display: flex; flex-direction: column; gap: 10px; }
+.step-item {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  background: var(--surface2);
+  border-radius: 8px;
+  padding: 14px 18px;
+  border: 1px solid var(--border);
+}
+.step-num {
+  font-family: 'Impact', 'Arial Narrow', sans-serif;
+  font-size: 18px;
+  color: var(--accent-blue);
+  min-width: 24px;
+  line-height: 1;
+  padding-top: 2px;
+}
+.step-content { flex: 1; }
+.step-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent-cyan);
+  margin-bottom: 4px;
+}
+.step-desc { font-size: 13px; color: var(--text-dim); }
+
+/* ── 경고 박스 ── */
+.alert {
+  background: rgba(239,68,68,.08);
+  border: 1px solid rgba(239,68,68,.25);
+  border-radius: 8px;
+  padding: 14px 18px;
+  font-size: 13px;
+  color: #fca5a5;
+  margin: 12px 0;
+}
+.alert-icon { margin-right: 6px; }
+.note {
+  background: rgba(245,158,11,.07);
+  border: 1px solid rgba(245,158,11,.2);
+  border-radius: 8px;
+  padding: 14px 18px;
+  font-size: 13px;
+  color: #fcd34d;
+  margin: 12px 0;
+}
+.info {
+  background: rgba(59,130,246,.07);
+  border: 1px solid rgba(59,130,246,.2);
+  border-radius: 8px;
+  padding: 14px 18px;
+  font-size: 13px;
+  color: #93c5fd;
+  margin: 12px 0;
+}
+.success {
+  background: rgba(16,185,129,.07);
+  border: 1px solid rgba(16,185,129,.2);
+  border-radius: 8px;
+  padding: 14px 18px;
+  font-size: 13px;
+  color: #6ee7b7;
+  margin: 12px 0;
+}
+
+/* ── 그래프 카드 ── */
+.graph-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 24px;
+  margin-bottom: 16px;
+}
+.graph-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-dim);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+  text-align: center;
+}
+.graph-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: center;
+}
+
+/* ── SVG 공통 ── */
+svg text { font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; }
+
+/* ── 비교 표 ── */
+.compare-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.compare-header {
+  display: grid;
+  grid-template-columns: 160px 1fr 1fr;
+  background: var(--surface3);
+  border-bottom: 2px solid var(--border);
+}
+.compare-header > div {
+  padding: 12px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .5px;
+}
+.compare-header .h-knn { color: var(--knn-color); }
+.compare-header .h-km { color: var(--kmeans-color); }
+.compare-row {
+  display: grid;
+  grid-template-columns: 160px 1fr 1fr;
+  border-bottom: 1px solid var(--border);
+}
+.compare-row:last-child { border-bottom: none; }
+.compare-row:hover { background: rgba(255,255,255,.02); }
+.compare-row > div { padding: 11px 16px; font-size: 13px; }
+.compare-row .key { color: var(--text-mute); font-size: 12px; font-weight: 600; }
+.compare-row .val { color: var(--text-dim); }
+
+/* ── 장단점 카드 ── */
+.pros-cons { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.pros-card {
+  background: rgba(16,185,129,.06);
+  border: 1px solid rgba(16,185,129,.2);
+  border-radius: 10px;
+  padding: 20px;
+}
+.cons-card {
+  background: rgba(239,68,68,.06);
+  border: 1px solid rgba(239,68,68,.2);
+  border-radius: 10px;
+  padding: 20px;
+}
+.pc-title {
+  font-weight: 700;
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+.pc-title.pros { color: var(--accent-green); }
+.pc-title.cons { color: var(--accent-red); }
+.pc-item {
+  font-size: 13px;
+  color: var(--text-dim);
+  padding: 5px 0;
+  border-bottom: 1px solid rgba(255,255,255,.05);
+  line-height: 1.5;
+}
+.pc-item:last-child { border-bottom: none; }
+
+/* ── 체크리스트 ── */
+.checklist { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+.check-item {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  gap: 12px;
+  background: var(--surface2);
+  border-radius: 6px;
+  padding: 10px 14px;
+  font-size: 13px;
+  align-items: center;
+  border: 1px solid var(--border);
+}
+.check-key {
+  font-weight: 700;
+  font-size: 11px;
+  color: var(--accent-blue);
+  letter-spacing: .5px;
+  text-transform: uppercase;
+}
+.check-val { color: var(--text-dim); }
+
+/* ── 요약 섹션 ── */
+.summary-grid { display: flex; flex-direction: column; gap: 12px; }
+.summary-item {
+  display: grid;
+  grid-template-columns: 130px 1fr;
+  gap: 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.summary-label {
+  padding: 16px;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  letter-spacing: .5px;
+}
+.summary-label.sl-blue { background: rgba(59,130,246,.15); color: #93c5fd; }
+.summary-label.sl-cyan { background: rgba(6,182,212,.15); color: #67e8f9; }
+.summary-label.sl-red { background: rgba(239,68,68,.15); color: #fca5a5; }
+.summary-label.sl-orange { background: rgba(245,158,11,.15); color: #fcd34d; }
+.summary-label.sl-purple { background: rgba(139,92,246,.15); color: #c4b5fd; }
+.summary-text {
+  padding: 16px;
+  font-size: 13px;
+  color: var(--text-dim);
+  display: flex;
+  align-items: center;
+}
+
+/* ── 파이프라인 SVG ── */
+.pipeline-wrap { overflow-x: auto; }
+
+/* ── K 값 영향 카드 ── */
+.k-effect { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+.k-card {
+  border-radius: 8px;
+  padding: 16px;
+  border: 1px solid var(--border);
+}
+.k-card.k1 { background: rgba(239,68,68,.07); border-color: rgba(239,68,68,.25); }
+.k-card.kn { background: rgba(100,116,139,.07); border-color: rgba(100,116,139,.25); }
+.k-card.kopt { background: rgba(16,185,129,.07); border-color: rgba(16,185,129,.25); }
+.k-card-title { font-weight: 700; font-size: 16px; margin-bottom: 8px; }
+.k-card.k1 .k-card-title { color: #fca5a5; }
+.k-card.kn .k-card-title { color: var(--text-mute); }
+.k-card.kopt .k-card-title { color: #6ee7b7; }
+.k-badge { font-size: 11px; margin-top: 10px; padding: 4px 8px; border-radius: 4px; display: inline-block; }
+.k-card.k1 .k-badge { background: rgba(239,68,68,.2); color: #fca5a5; }
+.k-card.kn .k-badge { background: rgba(100,116,139,.2); color: var(--text-dim); }
+.k-card.kopt .k-badge { background: rgba(16,185,129,.2); color: #6ee7b7; }
+.k-card p { font-size: 12px; color: var(--text-dim); line-height: 1.6; margin-top: 6px; }
+
+/* ── 한계 카드 그리드 ── */
+.limit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.limit-item {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+}
+.limit-num { font-family: 'Impact', 'Arial Narrow', sans-serif; font-size: 24px; color: var(--accent-orange); margin-bottom: 6px; }
+.limit-title { font-weight: 700; font-size: 13px; color: var(--text); margin-bottom: 6px; }
+.limit-desc { font-size: 12px; color: var(--text-dim); line-height: 1.6; }
+.limit-sol { font-size: 11px; color: var(--accent-cyan); margin-top: 6px; }
+
+/* ── 스크롤바 스타일 ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* ── 반응형 ── */
+@media (max-width: 900px) {
+  .sidebar { display: none; }
+  .main { padding: 24px 20px; }
+  .two-col, .three-col, .pros-cons, .k-effect, .limit-grid { grid-template-columns: 1fr; }
+  .compare-header, .compare-row { grid-template-columns: 120px 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+<div class="layout">
+
+<!-- ══════════════════════════════════════════
+     사이드바 TOC
+══════════════════════════════════════════ -->
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-title">목차</div>
+  <a class="toc-item active" href="#s01" id="toc-s01">
+    <span class="toc-num">01</span>지도학습 vs 비지도학습
+  </a>
+  <a class="toc-item" href="#s02" id="toc-s02">
+    <span class="toc-num">02</span>KNN — 직관과 개념
+  </a>
+  <a class="toc-item toc-sub" href="#s02b">거리 측도</a>
+  <a class="toc-item toc-sub" href="#s02c">알고리즘 단계</a>
+  <a class="toc-item toc-sub" href="#s02d">수치 예시</a>
+  <a class="toc-item toc-sub" href="#s02e">K 값의 영향</a>
+  <a class="toc-item toc-sub" href="#s02f">차원의 저주</a>
+  <a class="toc-item toc-sub" href="#s02g">장단점</a>
+  <a class="toc-item" href="#s03" id="toc-s03">
+    <span class="toc-num">03</span>K-means 클러스터링
+  </a>
+  <a class="toc-item toc-sub" href="#s03b">알고리즘 단계</a>
+  <a class="toc-item toc-sub" href="#s03c">수치 예시</a>
+  <a class="toc-item toc-sub" href="#s03d">수렴 보장</a>
+  <a class="toc-item toc-sub" href="#s03e">K-means++</a>
+  <a class="toc-item toc-sub" href="#s03f">K 선택 (Elbow)</a>
+  <a class="toc-item toc-sub" href="#s03g">한계</a>
+  <a class="toc-item" href="#s04" id="toc-s04">
+    <span class="toc-num">04</span>KNN vs K-means 비교
+  </a>
+  <a class="toc-item toc-sub" href="#s04b">ML 파이프라인</a>
+  <a class="toc-item" href="#s05" id="toc-s05">
+    <span class="toc-num">05</span>요약
+  </a>
+</nav>
+
+<!-- ══════════════════════════════════════════
+     메인 콘텐츠
+══════════════════════════════════════════ -->
+<main class="main">
+
+  <!-- 페이지 헤더 -->
+  <header class="page-header">
+    <div class="page-badge">기계학습 · Lecture 07</div>
+    <div class="page-title">지도학습과<br>비지도학습</div>
+    <div class="page-sub">KNN &amp; K-means — 인천대학교 컴퓨터공학부 김인수 교수 | 2026 1학기</div>
+    <div class="page-meta">
+      <span class="meta-tag">Supervised Learning</span>
+      <span class="meta-tag">Unsupervised Learning</span>
+      <span class="meta-tag">KNN</span>
+      <span class="meta-tag">K-means</span>
+      <span class="meta-tag">Slide 1–20</span>
+    </div>
+  </header>
+
+  <!-- ══════════
+       SECTION 01
+  ══════════ -->
+  <section class="section" id="s01">
+    <div class="section-header">
+      <span class="section-num">01</span>
+      <h2 class="section-title">지도학습 vs 비지도학습 — 학습 패러다임</h2>
+    </div>
+
+    <div class="concept-box">
+      핵심 차이: 지도학습은 <strong>'정답이 있는 학습'</strong>, 비지도학습은 <strong>'정답 없이 패턴을 찾는 학습'</strong>이다.
+    </div>
+
+    <div class="two-col">
+      <!-- 지도학습 카드 -->
+      <div class="card" style="border-top: 3px solid var(--supervised-color);">
+        <div class="card-title" style="color: var(--accent-green);">✓ 지도학습 (Supervised Learning)</div>
+        <div style="margin-bottom:10px;">
+          <div style="font-size:12px; color:var(--text-mute); margin-bottom:4px;">학습 목표</div>
+          <div style="font-size:13px; color:var(--text-dim);">입력 x와 레이블 y의 쌍으로 학습</div>
+          <div class="formula">P(y|x) 또는 f(x) = y를 추정</div>
+        </div>
+        <div style="margin-bottom:10px;">
+          <div style="font-size:12px; color:var(--text-mute); margin-bottom:4px;">핵심 질문</div>
+          <div style="font-size:13px; color:var(--text-dim);">"이 데이터가 어느 클래스인가?" / "출력 값이 얼마인가?"</div>
+        </div>
+        <div style="margin-bottom:10px;">
+          <div style="font-size:12px; color:var(--text-mute); margin-bottom:4px;">학습 데이터</div>
+          <div class="formula">{ (x₁,y₁), (x₂,y₂), … , (xₙ,yₙ) }</div>
+          <div style="font-size:12px; color: var(--accent-green);">레이블이 반드시 필요</div>
+        </div>
+        <div>
+          <div style="font-size:12px; color:var(--text-mute); margin-bottom:6px;">대표 알고리즘</div>
+          <div style="display:flex; flex-wrap:wrap; gap:6px;">
+            <span class="chip chip-blue">KNN</span>
+            <span class="chip chip-blue">로지스틱 회귀</span>
+            <span class="chip chip-blue">SVM</span>
+            <span class="chip chip-blue">MLP</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 비지도학습 카드 -->
+      <div class="card" style="border-top: 3px solid var(--unsupervised-color);">
+        <div class="card-title" style="color: var(--accent-purple);">◎ 비지도학습 (Unsupervised Learning)</div>
+        <div style="margin-bottom:10px;">
+          <div style="font-size:12px; color:var(--text-mute); margin-bottom:4px;">학습 목표</div>
+          <div style="font-size:13px; color:var(--text-dim);">레이블 없이 데이터 자체의 구조 발견</div>
+          <div class="formula">P(x) 또는 잠재 구조를 추정</div>
+        </div>
+        <div style="margin-bottom:10px;">
+          <div style="font-size:12px; color:var(--text-mute); margin-bottom:4px;">핵심 질문</div>
+          <div style="font-size:13px; color:var(--text-dim);">"데이터가 어떻게 그룹화되는가?" / "데이터의 핵심 구조는 무엇인가?"</div>
+        </div>
+        <div style="margin-bottom:10px;">
+          <div style="font-size:12px; color:var(--text-mute); margin-bottom:4px;">학습 데이터</div>
+          <div class="formula">{ x₁, x₂, … , xₙ }</div>
+          <div style="font-size:12px; color: var(--accent-purple);">레이블 불필요</div>
+        </div>
+        <div>
+          <div style="font-size:12px; color:var(--text-mute); margin-bottom:6px;">대표 알고리즘</div>
+          <div style="display:flex; flex-wrap:wrap; gap:6px;">
+            <span class="chip chip-purple">K-means</span>
+            <span class="chip chip-purple">GMM</span>
+            <span class="chip chip-purple">PCA</span>
+            <span class="chip chip-purple">Autoencoder</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════
+       SECTION 02 — KNN
+  ══════════ -->
+  <section class="section" id="s02">
+    <div class="section-header">
+      <span class="section-num">02</span>
+      <h2 class="section-title">KNN (K-Nearest Neighbors)</h2>
+    </div>
+
+    <div class="concept-box">
+      "새로운 데이터 포인트 x가 주어졌을 때, 훈련 데이터 중 <strong>가장 가까운 K개의 이웃</strong>을 찾아 <strong>다수결(분류)</strong> 또는 <strong>평균(회귀)</strong>으로 예측한다."
+    </div>
+
+    <div class="card">
+      <div class="card-title">핵심 아이디어</div>
+      <div class="three-col">
+        <div style="background:var(--surface2); border-radius:8px; padding:14px; border:1px solid var(--border);">
+          <div style="font-size:12px; font-weight:700; color:var(--accent-cyan); margin-bottom:6px;">명시적 모델 없음</div>
+          <div style="font-size:12px; color:var(--text-dim);">파라미터를 학습하지 않는다<br>→ Instance-based / Lazy Learning</div>
+        </div>
+        <div style="background:var(--surface2); border-radius:8px; padding:14px; border:1px solid var(--border);">
+          <div style="font-size:12px; font-weight:700; color:var(--accent-cyan); margin-bottom:6px;">유사성 기반</div>
+          <div style="font-size:12px; color:var(--text-dim);">비슷한 입력은 비슷한 출력을 가진다는 가정</div>
+        </div>
+        <div style="background:var(--surface2); border-radius:8px; padding:14px; border:1px solid var(--border);">
+          <div style="font-size:12px; font-weight:700; color:var(--accent-cyan); margin-bottom:6px;">K는 하이퍼파라미터</div>
+          <div style="font-size:12px; color:var(--text-dim);">K 작음 → 복잡한 경계<br>K 큼 → 부드러운 경계</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- KNN 직관 SVG -->
+    <div class="graph-card">
+      <div class="graph-title">KNN 직관적 그림 — K=3 예시</div>
+      <svg viewBox="0 0 500 240" width="100%" display="block" style="max-width:500px; margin:0 auto;">
+        <!-- 배경 -->
+        <rect x="0" y="0" width="500" height="240" fill="#0d1525" rx="8"/>
+        <!-- 클래스 A (파랑) -->
+        <circle cx="120" cy="60" r="14" fill="#3b82f6" opacity=".85"/>
+        <circle cx="80" cy="110" r="14" fill="#3b82f6" opacity=".85"/>
+        <circle cx="155" cy="130" r="14" fill="#3b82f6" opacity=".85"/>
+        <!-- 클래스 B (노랑) -->
+        <circle cx="320" cy="55" r="14" fill="#f59e0b" opacity=".85"/>
+        <circle cx="370" cy="110" r="14" fill="#f59e0b" opacity=".85"/>
+        <circle cx="310" cy="170" r="14" fill="#f59e0b" opacity=".85"/>
+        <!-- 쿼리 포인트 (빨강) -->
+        <circle cx="220" cy="120" r="13" fill="#ef4444" opacity=".9"/>
+        <!-- K=3 탐색 원 (점선) -->
+        <circle cx="220" cy="120" r="75" fill="none" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="6 4" opacity=".5"/>
+        <!-- 연결선 (이웃) -->
+        <line x1="220" y1="120" x2="155" y2="130" stroke="#3b82f6" stroke-width="1.5" opacity=".6" stroke-dasharray="4 3"/>
+        <line x1="220" y1="120" x2="120" y2="60" stroke="#3b82f6" stroke-width="1.5" opacity=".6" stroke-dasharray="4 3"/>
+        <line x1="220" y1="120" x2="320" y2="55" stroke="#f59e0b" stroke-width="1.5" opacity=".6" stroke-dasharray="4 3"/>
+        <!-- 라벨 -->
+        <text x="120" y="65" text-anchor="middle" dy="4" fill="white" font-size="10" font-weight="bold">A</text>
+        <text x="80" y="115" text-anchor="middle" dy="4" fill="white" font-size="10" font-weight="bold">A</text>
+        <text x="155" y="135" text-anchor="middle" dy="4" fill="white" font-size="10" font-weight="bold">A</text>
+        <text x="320" y="60" text-anchor="middle" dy="4" fill="white" font-size="10" font-weight="bold">B</text>
+        <text x="370" y="115" text-anchor="middle" dy="4" fill="white" font-size="10" font-weight="bold">B</text>
+        <text x="310" y="175" text-anchor="middle" dy="4" fill="white" font-size="10" font-weight="bold">B</text>
+        <text x="220" y="125" text-anchor="middle" dy="4" fill="white" font-size="10" font-weight="bold">?</text>
+        <!-- 결과 박스 -->
+        <rect x="130" y="185" width="240" height="44" fill="#1a2235" rx="6" stroke="#2a3a52"/>
+        <text x="250" y="204" text-anchor="middle" fill="#94a3b8" font-size="11">K=3 이웃: A(2표) + B(1표)</text>
+        <text x="250" y="220" text-anchor="middle" fill="#3b82f6" font-size="12" font-weight="bold">→ 다수결: 클래스 A로 분류</text>
+        <!-- 범례 -->
+        <circle cx="30" cy="198" r="7" fill="#3b82f6"/>
+        <text x="42" y="202" fill="#94a3b8" font-size="11" dominant-baseline="middle">클래스 A</text>
+        <circle cx="30" cy="218" r="7" fill="#f59e0b"/>
+        <text x="42" y="222" fill="#94a3b8" font-size="11" dominant-baseline="middle">클래스 B</text>
+        <circle cx="430" cy="198" r="7" fill="#ef4444"/>
+        <text x="442" y="202" fill="#94a3b8" font-size="11" dominant-baseline="middle">쿼리 x</text>
+      </svg>
+    </div>
+
+    <!-- 거리 측도 -->
+    <div id="s02b" style="scroll-margin-top:24px; margin-top:32px;">
+      <div style="font-family:'Impact','Arial Narrow',sans-serif; font-size:18px; color:var(--text); margin-bottom:16px; padding-bottom:8px; border-bottom:1px solid var(--border);">거리 측도 (Distance Metric)</div>
+
+      <div class="concept-box orange">'가장 가깝다'는 것을 어떻게 정의하는가? — 거리 함수의 선택이 KNN 성능을 좌우한다.</div>
+
+      <div class="three-col">
+        <div class="card" style="border-top:3px solid var(--accent-green);">
+          <div class="card-title" style="color:var(--accent-green);">유클리드 거리 (L2)</div>
+          <div class="formula">d(x,z) = √(Σᵢ(xᵢ−zᵢ)²)</div>
+          <div style="font-size:12px; color:var(--text-dim); margin-top:8px; line-height:1.7;">
+            두 점 사이의 직선 거리<br>
+            → 연속형 데이터에 <strong style="color:var(--text);">가장 많이 사용</strong><br>
+            → 모든 특성의 스케일이 같아야 함<br>
+            → <span style="color:var(--accent-orange);">정규화 필수</span>
+          </div>
+        </div>
+        <div class="card" style="border-top:3px solid var(--accent-blue);">
+          <div class="card-title" style="color:var(--accent-blue);">맨해튼 거리 (L1)</div>
+          <div class="formula">d(x,z) = Σᵢ|xᵢ−zᵢ|</div>
+          <div style="font-size:12px; color:var(--text-dim); margin-top:8px; line-height:1.7;">
+            격자 이동 거리 (택시 거리)<br>
+            → <strong style="color:var(--text);">이상치(outlier)에 더 강건</strong><br>
+            → 고차원에서 유클리드보다 안정적
+          </div>
+        </div>
+        <div class="card" style="border-top:3px solid var(--accent-purple);">
+          <div class="card-title" style="color:var(--accent-purple);">민코우스키 거리 (Lp)</div>
+          <div class="formula">d(x,z) = (Σᵢ|xᵢ−zᵢ|ᵖ)^(1/p)</div>
+          <div style="font-size:12px; color:var(--text-dim); margin-top:8px; line-height:1.7;">
+            유클리드(p=2)와 맨해튼(p=1)의 <strong style="color:var(--text);">일반화</strong><br>
+            → p→∞ : 체비쇼프 거리<br>
+            &nbsp;&nbsp;&nbsp;(최대 성분 차이)
+          </div>
+        </div>
+      </div>
+      <div class="alert">
+        <span class="alert-icon">⚠</span>
+        <strong>스케일 정규화 필수</strong>: 키(cm)와 체중(kg)을 그대로 사용하면 단위 차이로 거리가 왜곡된다. 반드시 정규화(Normalization) 또는 표준화(Standardization)를 먼저 수행해야 한다.
+      </div>
+    </div>
+
+    <!-- 알고리즘 단계 -->
+    <div id="s02c" style="scroll-margin-top:24px; margin-top:32px;">
+      <div style="font-family:'Impact','Arial Narrow',sans-serif; font-size:18px; color:var(--text); margin-bottom:16px; padding-bottom:8px; border-bottom:1px solid var(--border);">분류 알고리즘 단계</div>
+      <div class="step-list">
+        <div class="step-item">
+          <div class="step-num">①</div>
+          <div class="step-content">
+            <div class="step-label">훈련 (Train)</div>
+            <div class="step-desc">훈련 데이터 X = {(x₁,y₁), … , (xₙ,yₙ)}를 메모리에 저장<br>→ 별도의 파라미터 학습 없음 <span class="chip chip-blue">Lazy Learning</span></div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">②</div>
+          <div class="step-content">
+            <div class="step-label">거리 계산 (Predict)</div>
+            <div class="step-desc">새로운 데이터 xₜₑₛₜ와 모든 훈련 데이터 간의 거리 d(xₜₑₛₜ, xᵢ)를 계산</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">③</div>
+          <div class="step-content">
+            <div class="step-label">이웃 선택</div>
+            <div class="step-desc">거리 기준으로 정렬 → 가장 가까운 K개의 이웃 { xᵢ₁, … , xᵢₖ } 선택</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">④</div>
+          <div class="step-content">
+            <div class="step-label">예측 — 분류 (다수결 투표)</div>
+            <div class="step-desc">이웃 K개에서 가장 많은 클래스로 분류</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num" style="color:var(--accent-cyan);">④'</div>
+          <div class="step-content">
+            <div class="step-label" style="color:var(--accent-cyan);">예측 — 회귀 (평균)</div>
+            <div class="step-desc">이웃 K개의 출력값 평균<br><span class="formula" style="display:inline-block; margin-top:6px;">ŷ = (1/K) Σⱼ yᵢⱼ</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="info" style="margin-top:12px;">
+        <strong>시간복잡도:</strong> 훈련 O(1) — 예측 O(n·d) &nbsp;|&nbsp; <strong>공간복잡도:</strong> O(n·d) → 데이터가 클수록 예측이 느려짐
+      </div>
+    </div>
+
+    <!-- 수치 예시 -->
+    <div id="s02d" style="scroll-margin-top:24px; margin-top:32px;">
+      <div style="font-family:'Impact','Arial Narrow',sans-serif; font-size:18px; color:var(--text); margin-bottom:16px; padding-bottom:8px; border-bottom:1px solid var(--border);">수치 예시 (K=3, 2차원)</div>
+      <div class="note">설정: 훈련 데이터 5개, 분류 대상 xₜₑₛₜ = (5,4), K = 3, 유클리드 거리 사용</div>
+      <div class="card" style="padding:0; overflow:hidden;">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>데이터</th><th>x₁</th><th>x₂</th><th>레이블</th><th>d(xₜₑₛₜ, xᵢ)</th><th>이웃?</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="background:rgba(16,185,129,.06);">
+              <td>x₁</td><td>3</td><td>4</td><td><span class="chip chip-blue">A</span></td>
+              <td><span style="font-family:monospace; color:var(--accent-cyan);">√((5−3)²+(4−4)²) = 2.00</span></td>
+              <td><span class="tag-yes">✓ 1위</span></td>
+            </tr>
+            <tr style="background:rgba(16,185,129,.04);">
+              <td>x₂</td><td>6</td><td>2</td><td><span class="chip chip-orange">B</span></td>
+              <td><span style="font-family:monospace; color:var(--accent-cyan);">√((5−6)²+(4−2)²) = 2.24</span></td>
+              <td><span class="tag-yes">✓ 2위</span></td>
+            </tr>
+            <tr style="background:rgba(16,185,129,.04);">
+              <td>x₃</td><td>4</td><td>6</td><td><span class="chip chip-blue">A</span></td>
+              <td><span style="font-family:monospace; color:var(--accent-cyan);">√((5−4)²+(4−6)²) = 2.24</span></td>
+              <td><span class="tag-yes">✓ 3위</span></td>
+            </tr>
+            <tr>
+              <td>x₄</td><td>8</td><td>3</td><td><span class="chip chip-orange">B</span></td>
+              <td><span style="font-family:monospace; color:var(--text-mute);">√((5−8)²+(4−3)²) = 3.16</span></td>
+              <td><span class="tag-no">✗</span></td>
+            </tr>
+            <tr>
+              <td>x₅</td><td>1</td><td>2</td><td><span class="chip chip-blue">A</span></td>
+              <td><span style="font-family:monospace; color:var(--text-mute);">√((5−1)²+(4−2)²) = 4.47</span></td>
+              <td><span class="tag-no">✗</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="two-col" style="margin-top:12px;">
+        <div class="card" style="background:rgba(59,130,246,.07); border-color:rgba(59,130,246,.25);">
+          <div class="card-title" style="color:var(--accent-blue);">다수결 투표 (K=3)</div>
+          <div style="font-size:13px; color:var(--text-dim); line-height:1.8;">
+            K=3 이웃: x₁(A), x₂(B), x₃(A)<br>
+            클래스 A: <strong style="color:var(--accent-blue);">2표</strong> / 클래스 B: 1표<br>
+            → 다수결 → <strong style="color:var(--accent-blue);">클래스 A</strong>
+          </div>
+        </div>
+        <div class="card" style="background:rgba(16,185,129,.07); border-color:rgba(16,185,129,.25);">
+          <div class="card-title" style="color:var(--accent-green);">최종 예측</div>
+          <div style="font-size:20px; color:var(--accent-green); font-weight:700; margin:8px 0;">ŷ = 클래스 A</div>
+          <div style="font-size:13px; color:var(--text-dim);">xₜₑₛₜ = (5,4)는 클래스 A로 분류된다.</div>
+        </div>
+      </div>
+      <div class="note">
+        K 값의 영향: K=1이면 x₁(A)만으로 A. K=5면 A:3표, B:2표 → A.<br>
+        K가 너무 크면 경계가 단순해져 <strong>과소적합(underfitting)</strong> 발생 가능.
+      </div>
+    </div>
+
+    <!-- K 값 영향 -->
+    <div id="s02e" style="scroll-margin-top:24px; margin-top:32px;">
+      <div style="font-family:'Impact','Arial Narrow',sans-serif; font-size:18px; color:var(--text); margin-bottom:16px; padding-bottom:8px; border-bottom:1px solid var(--border);">K 값의 영향과 Bias-Variance Tradeoff</div>
+      <div class="concept-box orange">K가 결정 경계의 복잡도를 제어한다.</div>
+      <div class="k-effect">
+        <div class="k-card k1">
+          <div class="k-card-title">K = 1</div>
+          <p>가장 가까운 1개만 참조<br>→ 훈련 오류 = 0<br>→ 결정 경계 매우 복잡<br>→ 과적합(Overfitting) 위험</p>
+          <div class="k-badge">낮은 편향 / 높은 분산</div>
+        </div>
+        <div class="k-card kn">
+          <div class="k-card-title">K = n</div>
+          <p>모든 훈련 데이터가 이웃<br>→ 항상 가장 많은 클래스로 분류<br>→ 결정 경계 매우 단순<br>→ 과소적합(Underfitting)</p>
+          <div class="k-badge">높은 편향 / 낮은 분산</div>
+        </div>
+        <div class="k-card kopt">
+          <div class="k-card-title">최적 K</div>
+          <p>교차 검증(Cross-Validation)으로 선택<br>→ 편향과 분산의 균형점<br>→ 홀수 K 사용 (동점 방지)<br>→ 시작점: K = √n</p>
+          <div class="k-badge">편향: 균형 / 분산: 균형</div>
+        </div>
+      </div>
+      <div class="info" style="margin-top:12px;">
+        <strong>K 선택 방법 — k-fold 교차검증:</strong><br>
+        훈련 데이터를 k개 폴드로 분할 → 각 폴드를 순서대로 검증 데이터로 사용 → 검증 오류가 최소인 K를 선택<br>
+        → 홀수 K 권장, 일반적으로 K = √n 을 시작점으로 설정
+      </div>
+    </div>
+
+    <!-- 차원의 저주 -->
+    <div id="s02f" style="scroll-margin-top:24px; margin-top:32px;">
+      <div style="font-family:'Impact','Arial Narrow',sans-serif; font-size:18px; color:var(--text); margin-bottom:16px; padding-bottom:8px; border-bottom:1px solid var(--border);">차원의 저주 (Curse of Dimensionality)</div>
+      <div class="alert">
+        <span class="alert-icon">⚠</span>
+        <strong>KNN의 가장 치명적인 약점</strong> — 차원이 높아질수록 거리 개념이 무의미해진다.
+      </div>
+      <div class="two-col">
+        <div class="card">
+          <div class="card-title">직관적 이해</div>
+          <div style="font-size:13px; color:var(--text-dim); line-height:1.7;">
+            거리의 경우 모든 특성들이 <strong style="color:var(--text);">"똑같이 중요하게"</strong> 계산된다.
+          </div>
+          <div class="formula" style="margin-top:10px;">d(x,z) = √(Σᵢ(xᵢ−zᵢ)²)</div>
+          <div style="margin-top:14px;">
+            <div style="font-size:12px; color:var(--text-mute); margin-bottom:8px;">암 분류 예시 — 특성과 예측 연관성</div>
+            <table class="data-table" style="font-size:12px;">
+              <thead><tr><th>특성</th><th>변수</th><th>예측 연관성</th></tr></thead>
+              <tbody>
+                <tr><td>종양 크기</td><td>x₁</td><td style="color:var(--accent-green);">매우 높음</td></tr>
+                <tr><td>세포 모양 불규칙도</td><td>x₂</td><td style="color:var(--accent-green);">매우 높음</td></tr>
+                <tr><td>환자 혈액형</td><td>x₃</td><td style="color:var(--text-mute);">거의 없음</td></tr>
+                <tr><td>환자 생년월일</td><td>x₄</td><td style="color:var(--text-mute);">거의 없음</td></tr>
+                <tr><td>병원 방문 요일</td><td>x₅</td><td style="color:var(--text-mute);">거의 없음</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div>
+          <div class="card" style="border-left:4px solid var(--accent-red); border-radius:0 8px 8px 0; margin-bottom:10px;">
+            <div style="font-size:13px; font-weight:700; color:var(--accent-red); margin-bottom:6px;">1. 거리 집중 현상</div>
+            <div style="font-size:12px; color:var(--text-dim); line-height:1.6;">모든 점들이 거의 같은 거리에 위치<br>→ '가장 가까운 이웃' 구분 불가</div>
+          </div>
+          <div class="card" style="border-left:4px solid var(--accent-orange); border-radius:0 8px 8px 0; margin-bottom:10px;">
+            <div style="font-size:13px; font-weight:700; color:var(--accent-orange); margin-bottom:6px;">2. 노이즈의 증가</div>
+            <div style="font-size:12px; color:var(--text-dim); line-height:1.6;">변수가 늘어날수록 예측과 무관한 노이즈 변수 증가<br>→ 혈액형이 같은 환자가 종양 크기 유사 환자보다 더 가까운 이웃이 될 수 있음</div>
+          </div>
+          <div class="card" style="border-left:4px solid var(--text-mute); border-radius:0 8px 8px 0;">
+            <div style="font-size:13px; font-weight:700; color:var(--text-dim); margin-bottom:6px;">3. 계산 비용 증가</div>
+            <div style="font-size:12px; color:var(--text-dim); line-height:1.6;">거리 계산 비용 O(n·d)<br>→ d가 크면 예측이 매우 느려짐</div>
+          </div>
+        </div>
+      </div>
+      <div class="success" style="margin-top:12px;">
+        <strong>해결 방향 → PCA / 차원 축소:</strong> 특성 선택(Feature Selection) 또는 PCA로 차원을 줄인 뒤 KNN을 적용하면 성능이 크게 향상된다.
+      </div>
+    </div>
+
+    <!-- 장단점 -->
+    <div id="s02g" style="scroll-margin-top:24px; margin-top:32px;">
+      <div style="font-family:'Impact','Arial Narrow',sans-serif; font-size:18px; color:var(--text); margin-bottom:16px; padding-bottom:8px; border-bottom:1px solid var(--border);">장단점 및 실용적 고려사항</div>
+      <div class="pros-cons">
+        <div class="pros-card">
+          <div class="pc-title pros">✓ 장점 (Strengths)</div>
+          <div class="pc-item">구현이 단순하다 — 핵심 가정이 없음</div>
+          <div class="pc-item">훈련이 필요 없다 (Lazy Learning)</div>
+          <div class="pc-item">다중 클래스 분류를 자연스럽게 지원</div>
+          <div class="pc-item">비선형 결정 경계를 자동으로 표현</div>
+          <div class="pc-item">새로운 훈련 데이터 추가가 쉽다</div>
+        </div>
+        <div class="cons-card">
+          <div class="pc-title cons">✗ 단점 (Weaknesses)</div>
+          <div class="pc-item">예측 시간 O(n·d) — 대규모 데이터에 느림</div>
+          <div class="pc-item">차원의 저주 — 고차원에서 성능 저하</div>
+          <div class="pc-item">메모리에 전체 훈련 데이터 저장 필요</div>
+          <div class="pc-item">스케일에 민감 — 반드시 정규화 필요</div>
+          <div class="pc-item">특성 중요도를 알 수 없음 (해석 불가)</div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:14px;">
+        <div class="card-title">실용적 체크리스트</div>
+        <div class="checklist">
+          <div class="check-item">
+            <div class="check-key">전처리</div>
+            <div class="check-val">Min-Max 정규화 또는 Z-score 표준화 수행</div>
+          </div>
+          <div class="check-item">
+            <div class="check-key">K 선택</div>
+            <div class="check-val">k-fold 교차검증으로 최적 K 탐색 (홀수 권장)</div>
+          </div>
+          <div class="check-item">
+            <div class="check-key">거리 선택</div>
+            <div class="check-val">연속형 → 유클리드 / 이산형 → 맨해튼 / 문자열 → 편집 거리</div>
+          </div>
+          <div class="check-item">
+            <div class="check-key">속도 개선</div>
+            <div class="check-val">KD-Tree 또는 Ball-Tree 자료구조로 이웃 탐색 가속화</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════
+       SECTION 03 — K-means
+  ══════════ -->
+  <section class="section" id="s03">
+    <div class="section-header">
+      <span class="section-num" style="color:var(--accent-orange);">03</span>
+      <h2 class="section-title">K-means 클러스터링</h2>
+    </div>
+
+    <div class="concept-box orange">
+      "n개의 데이터를 K개의 클러스터로 분할하되, 각 데이터는 <strong>가장 가까운 클러스터 중심(centroid)</strong>에 배정되고, <strong>클러스터 내 분산이 최소</strong>가 되도록 중심을 반복 갱신한다."
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">목적함수 — Inertia / WCSS</div>
+        <div class="formula">J = Σₖ Σ(xᵢ∈Cₖ) ||xᵢ − μₖ||²</div>
+        <div class="formula" style="margin-top:6px;">→ argmin(C₁,…,Cₖ, μ₁,…,μₖ) J</div>
+        <div style="font-size:12px; color:var(--text-dim); margin-top:10px; line-height:1.7;">
+          μₖ : 클러스터 k의 중심 (centroid)<br>
+          Cₖ : 클러스터 k에 속한 데이터 집합
+        </div>
+        <div style="margin-top:14px; background:var(--surface2); border-radius:6px; padding:12px; border:1px solid var(--border);">
+          <div style="font-size:12px; color:var(--text-mute); margin-bottom:8px;">KNN과의 핵심 차이</div>
+          <div style="font-size:13px; color:var(--text-dim); margin-bottom:6px;"><span class="chip chip-blue">KNN</span> &nbsp;레이블 있음 (지도) / 기존 레이블 기반 분류</div>
+          <div style="font-size:13px; color:var(--text-dim);"><span class="chip chip-orange">K-means</span> &nbsp;레이블 없음 (비지도) / 새로운 그룹 구조 발견</div>
+        </div>
+      </div>
+
+      <!-- K-means 클러스터링 SVG -->
+      <div class="card">
+        <div class="card-title">클러스터링 결과 예시</div>
+        <svg viewBox="0 0 260 200" width="100%" display="block">
+          <rect width="260" height="200" fill="#0d1525" rx="6"/>
+          <!-- 클러스터 1 (파랑) -->
+          <circle cx="55" cy="45" r="10" fill="#3b82f6" opacity=".85"/>
+          <circle cx="75" cy="65" r="10" fill="#3b82f6" opacity=".85"/>
+          <circle cx="45" cy="70" r="10" fill="#3b82f6" opacity=".85"/>
+          <!-- 중심 1 -->
+          <circle cx="58" cy="60" r="14" fill="none" stroke="#3b82f6" stroke-width="2" stroke-dasharray="4 2" opacity=".7"/>
+          <circle cx="58" cy="60" r="5" fill="white" stroke="#3b82f6" stroke-width="2"/>
+          <!-- 클러스터 2 (노랑) -->
+          <circle cx="185" cy="50" r="10" fill="#f59e0b" opacity=".85"/>
+          <circle cx="205" cy="70" r="10" fill="#f59e0b" opacity=".85"/>
+          <circle cx="195" cy="40" r="10" fill="#f59e0b" opacity=".85"/>
+          <!-- 중심 2 -->
+          <circle cx="195" cy="55" r="14" fill="none" stroke="#f59e0b" stroke-width="2" stroke-dasharray="4 2" opacity=".7"/>
+          <circle cx="195" cy="55" r="5" fill="white" stroke="#f59e0b" stroke-width="2"/>
+          <!-- 클러스터 3 (초록) -->
+          <circle cx="115" cy="145" r="10" fill="#10b981" opacity=".85"/>
+          <circle cx="140" cy="160" r="10" fill="#10b981" opacity=".85"/>
+          <circle cx="125" cy="130" r="10" fill="#10b981" opacity=".85"/>
+          <!-- 중심 3 -->
+          <circle cx="127" cy="145" r="14" fill="none" stroke="#10b981" stroke-width="2" stroke-dasharray="4 2" opacity=".7"/>
+          <circle cx="127" cy="145" r="5" fill="white" stroke="#10b981" stroke-width="2"/>
+          <!-- 범례 -->
+          <circle cx="20" cy="175" r="6" fill="#3b82f6"/>
+          <text x="30" y="179" fill="#94a3b8" font-size="10" dominant-baseline="middle">데이터 점</text>
+          <circle cx="100" cy="175" r="5" fill="white" stroke="#94a3b8" stroke-width="1.5"/>
+          <text x="110" y="179" fill="#94a3b8" font-size="10" dominant-baseline="middle">centroid</text>
+        </svg>
+      </div>
+    </div>
+
+    <!-- 알고리즘 단계 -->
+    <div id="s03b" style="scroll-margin-top:24px; margin-top:32px;">
+      <div style="font-family:'Impact','Arial Narrow',sans-serif; font-size:18px; color:var(--text); margin-bottom:16px; padding-bottom:8px; border-bottom:1px solid var(--border);">알고리즘 단계 — Lloyd's Algorithm</div>
+      <div class="step-list">
+        <div class="step-item" style="border-left:3px solid var(--accent-orange);">
+          <div class="step-num" style="color:var(--accent-orange);">①</div>
+          <div class="step-content">
+            <div class="step-label" style="color:var(--accent-orange);">초기화 (Initialize)</div>
+            <div class="step-desc">K개의 클러스터 중심 μ₁, μ₂, ..., μₖ를 임의로 선택<br>(랜덤 샘플링 또는 K-means++ 방식 사용)</div>
+          </div>
+        </div>
+        <div class="step-item" style="border-left:3px solid var(--accent-blue);">
+          <div class="step-num" style="color:var(--accent-blue);">②</div>
+          <div class="step-content">
+            <div class="step-label">할당 단계 (Assignment Step)</div>
+            <div class="step-desc">각 데이터 xᵢ를 가장 가까운 클러스터 중심에 할당</div>
+            <div class="formula" style="margin-top:6px;">cᵢ = argmin_k ||xᵢ − μₖ||²</div>
+            <div class="step-desc" style="margin-top:4px;">→ 각 데이터는 정확히 하나의 클러스터에 속함</div>
+          </div>
+        </div>
+        <div class="step-item" style="border-left:3px solid var(--accent-green);">
+          <div class="step-num" style="color:var(--accent-green);">③</div>
+          <div class="step-content">
+            <div class="step-label" style="color:var(--accent-green);">갱신 단계 (Update Step)</div>
+            <div class="step-desc">각 클러스터의 새로운 중심을 해당 클러스터 데이터의 평균으로 갱신</div>
+            <div class="formula" style="margin-top:6px;">μₖ = (1/|Cₖ|) Σ(xᵢ∈Cₖ) xᵢ</div>
+          </div>
+        </div>
+        <div class="step-item" style="border-left:3px solid var(--accent-purple);">
+          <div class="step-num" style="color:var(--accent-purple);">④</div>
+          <div class="step-content">
+            <div class="step-label" style="color:var(--accent-purple);">반복 (Repeat)</div>
+            <div class="step-desc">② → ③ 를 클러스터 할당이 변하지 않을 때까지 반복<br>→ 수렴 조건: 모든 cᵢ가 이전 반복과 동일할 때</div>
+          </div>
+        </div>
+      </div>
+      <div class="info" style="margin-top:12px;">
+        <strong>수렴 보장:</strong> 각 반복에서 목적함수 J는 단조 감소 → 반드시 유한 번 반복 후 수렴<br>
+        <span style="color:var(--accent-red);">단, 전역 최솟값 보장은 안 됨</span>
+      </div>
+    </div>
+
+    <!-- 수치 예시 -->
+    <div id="s03c" style="scroll-margin-top:24px; margin-top:32px;">
+      <div style="font-family:'Impact','Arial Narrow',sans-serif; font-size:18px; color:var(--text); margin-bottom:16px; padding-bottom:8px; border-bottom:1px solid var(--border);">수치 예시 (K=2, 1차원)</div>
+      <div class="note">설정: 데이터 = {1, 2, 8, 9, 10}, K=2, 초기 중심 μ₁=1, μ₂=9 (1차원, 유클리드 거리)</div>
+
+      <!-- 1D 시각화 SVG -->
+      <div class="graph-card">
+        <div class="graph-title">1차원 데이터 클러스터링 시각화</div>
+        <svg viewBox="0 0 560 100" width="100%" display="block">
+          <rect width="560" height="100" fill="#0d1525" rx="6"/>
+          <!-- 축 -->
+          <line x1="40" y1="55" x2="530" y2="55" stroke="#2a3a52" stroke-width="1.5"/>
+          <!-- 눈금 -->
+          <line x1="60" y1="50" x2="60" y2="60" stroke="#2a3a52" stroke-width="1"/>
+          <text x="60" y="72" text-anchor="middle" fill="#64748b" font-size="10">0</text>
+          <line x1="105" y1="50" x2="105" y2="60" stroke="#2a3a52" stroke-width="1"/>
+          <text x="105" y="72" text-anchor="middle" fill="#64748b" font-size="10">1</text>
+          <line x1="150" y1="50" x2="150" y2="60" stroke="#2a3a52" stroke-width="1"/>
+          <text x="150" y="72" text-anchor="middle" fill="#64748b" font-size="10">2</text>
+          <line x1="375" y1="50" x2="375" y2="60" stroke="#2a3a52" stroke-width="1"/>
+          <text x="375" y="72" text-anchor="middle" fill="#64748b" font-size="10">8</text>
+          <line x1="420" y1="50" x2="420" y2="60" stroke="#2a3a52" stroke-width="1"/>
+          <text x="420" y="72" text-anchor="middle" fill="#64748b" font-size="10">9</text>
+          <line x1="465" y1="50" x2="465" y2="60" stroke="#2a3a52" stroke-width="1"/>
+          <text x="465" y="72" text-anchor="middle" fill="#64748b" font-size="10">10</text>
+          <!-- 클러스터 1 영역 -->
+          <rect x="80" y="30" width="95" height="20" fill="rgba(59,130,246,.15)" rx="4"/>
+          <!-- 데이터 점 C1 -->
+          <circle cx="105" cy="55" r="10" fill="#3b82f6" opacity=".9"/>
+          <text x="105" y="59" text-anchor="middle" fill="white" font-size="9" font-weight="bold">1</text>
+          <circle cx="150" cy="55" r="10" fill="#3b82f6" opacity=".9"/>
+          <text x="150" y="59" text-anchor="middle" fill="white" font-size="9" font-weight="bold">2</text>
+          <!-- 클러스터 2 영역 -->
+          <rect x="355" y="30" width="125" height="20" fill="rgba(245,158,11,.15)" rx="4"/>
+          <!-- 데이터 점 C2 -->
+          <circle cx="375" cy="55" r="10" fill="#f59e0b" opacity=".9"/>
+          <text x="375" y="59" text-anchor="middle" fill="white" font-size="9" font-weight="bold">8</text>
+          <circle cx="420" cy="55" r="10" fill="#f59e0b" opacity=".9"/>
+          <text x="420" y="59" text-anchor="middle" fill="white" font-size="9" font-weight="bold">9</text>
+          <circle cx="465" cy="55" r="10" fill="#f59e0b" opacity=".9"/>
+          <text x="465" y="59" text-anchor="middle" fill="white" font-size="9" font-weight="bold">10</text>
+          <!-- 중심 표시 -->
+          <line x1="127" y1="25" x2="127" y2="45" stroke="#3b82f6" stroke-width="2" stroke-dasharray="3 2"/>
+          <text x="127" y="18" text-anchor="middle" fill="#3b82f6" font-size="10" font-weight="bold">μ₁=1.5</text>
+          <line x1="420" y1="25" x2="420" y2="45" stroke="#f59e0b" stroke-width="2" stroke-dasharray="3 2"/>
+          <text x="420" y="18" text-anchor="middle" fill="#f59e0b" font-size="10" font-weight="bold">μ₂=9.0</text>
+        </svg>
+      </div>
+
+      <div class="card" style="padding:0; overflow:hidden;">
+        <div style="padding:12px 16px; background:var(--surface3); font-size:12px; font-weight:700; color:var(--text-dim);">반복 1 — 할당 단계</div>
+        <table class="data-table">
+          <thead>
+            <tr><th>데이터</th><th>d(x, μ₁=1)</th><th>d(x, μ₂=9)</th><th>배정</th></tr>
+          </thead>
+          <tbody>
+            <tr style="background:rgba(59,130,246,.05);">
+              <td>x=1</td>
+              <td style="font-family:monospace; color:var(--accent-cyan);">|1−1| = 0</td>
+              <td style="font-family:monospace; color:var(--text-mute);">|1−9| = 8</td>
+              <td><span class="chip chip-blue">C₁</span></td>
+            </tr>
+            <tr style="background:rgba(59,130,246,.05);">
+              <td>x=2</td>
+              <td style="font-family:monospace; color:var(--accent-cyan);">|2−1| = 1</td>
+              <td style="font-family:monospace; color:var(--text-mute);">|2−9| = 7</td>
+              <td><span class="chip chip-blue">C₁</span></td>
+            </tr>
+            <tr style="background:rgba(245,158,11,.05);">
+              <td>x=8</td>
+              <td style="font-family:monospace; color:var(--text-mute);">|8−1| = 7</td>
+              <td style="font-family:monospace; color:var(--accent-orange);">|8−9| = 1</td>
+              <td><span class="chip chip-orange">C₂</span></td>
+            </tr>
+            <tr style="background:rgba(245,158,11,.05);">
+              <td>x=9</td>
+              <td style="font-family:monospace; color:var(--text-mute);">|9−1| = 8</td>
+              <td style="font-family:monospace; color:var(--accent-orange);">|9−9| = 0</td>
+              <td><span class="chip chip-orange">C₂</span></td>
+            </tr>
+            <tr style="background:rgba(245,158,11,.05);">
+              <td>x=10</td>
+              <td style="font-family:monospace; color:var(--text-mute);">|10−1| = 9</td>
+              <td style="font-family:monospace; color:var(--accent-orange);">|10−9| = 1</td>
+              <td><span class="chip chip-orange">C₂</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="two-col" style="margin-top:10px;">
+        <div class="card" style="background:rgba(59,130,246,.07); border-color:rgba(59,130,246,.25);">
+          <div class="card-title" style="color:var(--accent-blue);">반복 1 — 갱신 단계</div>
+          <div class="formula">새 μ₁ = (1+2)/2 = 1.5</div>
+          <div class="formula" style="margin-top:6px;">새 μ₂ = (8+9+10)/3 = 9.0</div>
+        </div>
+        <div class="card" style="background:rgba(16,185,129,.07); border-color:rgba(16,185,129,.25);">
+          <div class="card-title" style="color:var(--accent-green);">반복 2 → 수렴!</div>
+          <div style="font-size:13px; color:var(--text-dim); line-height:1.8;">
+            C₁={1,2}, 배정 동일 → μ₁=1.5 (불변)<br>
+            C₂={8,9,10}, 배정 동일 → μ₂=9.0 (불변)<br>
+            <strong style="color:var(--accent-green);">→ 수렴! (2회 반복)</strong><br>
+            <span style="font-family:monospace; font-size:12px; color:var(--text-mute);">J = 0.5+0.5+1+0+1 = 3.0</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 수렴 보장 -->
+    <div id="s03d" style="scroll-margin-top:24px; margin-top:32px;">
+      <div style="font-family:'Impact','Arial Narrow',sans-serif; font-size:18px; color:var(--text); margin-bottom:16px; padding-bottom:8px; border-bottom:1px solid var(--border);">수렴 보장 및 한계</div>
+      <div class="card">
+        <div class="card-title">수렴 증명 (직관)</div>
+        <div class="step-list">
+          <div class="step-item">
+            <div class="step-num" style="font-size:14px;">1</div>
+            <div class="step-content">
+              <div class="step-label">할당 단계</div>
+              <div class="step-desc">각 xᵢ를 가장 가까운 중심에 배정 → 거리 합 J가 감소하거나 같아짐 (J_new ≤ J_old)</div>
+            </div>
+          </div>
+          <div class="step-item">
+            <div class="step-num" style="font-size:14px;">2</div>
+            <div class="step-content">
+              <div class="step-label">갱신 단계</div>
+              <div class="step-desc">클러스터 중심을 평균으로 갱신 → 평균은 제곱 오차를 최소화하는 점 → J가 감소하거나 같아짐</div>
+            </div>
+          </div>
+          <div class="step-item">
+            <div class="step-num" style="font-size:14px;">3</div>
+            <div class="step-content">
+              <div class="step-label">유한성</div>
+              <div class="step-desc">클러스터 할당의 경우의 수는 유한 (Kⁿ 개) → 단조 감소 + 유한 → 반드시 수렴</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="alert" style="margin-top:12px;">
+        <strong>주의: 전역 최솟값 비보장</strong><br>
+        초기 중심값에 따라 서로 다른 지역 최솟값(local minimum)에 수렴할 수 있다.<br>
+        → 해결책: 여러 번 랜덤 초기화 후 가장 작은 J 값의 결과 선택 (<strong>n_init 파라미터</strong>)
+      </div>
+      <div class="success" style="margin-top:8px;">
+        <strong>결론:</strong> K-means는 수렴이 보장되지만 전역 최솟값 보장은 없다. 실전에서는 여러 번 실행 후 가장 좋은 결과를 사용한다.
+      </div>
+    </div>
+
+    <!-- K-means++ -->
+    <div id="s03e" style="scroll-margin-top:24px; margin-top:32px;">
+      <div style="font-family:'Impact','Arial Narrow',sans-serif; font-size:18px; color:var(--text); margin-bottom:16px; padding-bottom:8px; border-bottom:1px solid var(--border);">초기화 문제와 K-means++</div>
+      <div class="two-col">
+        <div class="card" style="background:rgba(239,68,68,.05); border-color:rgba(239,68,68,.2);">
+          <div class="card-title" style="color:var(--accent-red);">랜덤 초기화의 문제</div>
+          <div style="font-size:13px; color:var(--text-dim); line-height:1.7;">
+            초기 중심이 같은 클러스터 내에 여러 개 배치되면<br>
+            → 빈 클러스터 또는 나쁜 지역 최솟값 발생<br>
+            → 실제 클러스터 구조를 제대로 못 찾음
+          </div>
+        </div>
+        <div class="card" style="background:rgba(16,185,129,.05); border-color:rgba(16,185,129,.2);">
+          <div class="card-title" style="color:var(--accent-green);">K-means++ 알고리즘</div>
+          <div style="font-size:13px; color:var(--text-dim); line-height:1.7;">
+            초기 중심들이 서로 멀리 떨어지도록 확률적 선택<br>
+            → 이미 선택된 중심들과 거리가 먼 점을 더 높은 확률로 다음 중심으로 선택
+          </div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:14px;">
+        <div class="card-title">K-means++ 초기화 절차</div>
+        <div class="step-list">
+          <div class="step-item">
+            <div class="step-num" style="font-size:14px; color:var(--accent-orange);">1</div>
+            <div class="step-content"><div class="step-desc">첫 번째 중심 μ₁을 데이터에서 <strong>균일 랜덤 선택</strong></div></div>
+          </div>
+          <div class="step-item">
+            <div class="step-num" style="font-size:14px; color:var(--accent-orange);">2</div>
+            <div class="step-content">
+              <div class="step-desc">각 데이터 xᵢ에 대해 이미 선택된 중심들까지의 최소 거리² 계산</div>
+              <div class="formula" style="margin-top:6px;">D(xᵢ)² = min_k ||xᵢ − μₖ||²</div>
+            </div>
+          </div>
+          <div class="step-item">
+            <div class="step-num" style="font-size:14px; color:var(--accent-orange);">3</div>
+            <div class="step-content">
+              <div class="step-desc">D(xᵢ)²에 비례한 확률로 다음 중심 선택</div>
+              <div class="formula" style="margin-top:6px;">P(xᵢ 선택) ∝ D(xᵢ)²</div>
+            </div>
+          </div>
+          <div class="step-item">
+            <div class="step-num" style="font-size:14px; color:var(--accent-orange);">4</div>
+            <div class="step-content"><div class="step-desc">K개의 중심이 선택될 때까지 2~3 반복</div></div>
+          </div>
+          <div class="step-item">
+            <div class="step-num" style="font-size:14px; color:var(--accent-orange);">5</div>
+            <div class="step-content"><div class="step-desc">이후 표준 K-means 알고리즘 실행</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="success" style="margin-top:12px;">
+        K-means++는 초기화만 바꿨을 뿐이지만 수렴 속도와 최종 품질을 크게 개선한다. <strong>scikit-learn 기본값으로 사용됨.</strong>
+      </div>
+    </div>
+
+    <!-- Elbow Method -->
+    <div id="s03f" style="scroll-margin-top:24px; margin-top:32px;">
+      <div style="font-family:'Impact','Arial Narrow',sans-serif; font-size:18px; color:var(--text); margin-bottom:16px; padding-bottom:8px; border-bottom:1px solid var(--border);">K 개수 선택 — Elbow Method</div>
+
+      <div class="graph-card">
+        <div class="graph-row">
+          <div>
+            <div style="font-size:13px; font-weight:700; color:var(--accent-orange); margin-bottom:10px;">Elbow Method (팔꿈치 방법)</div>
+            <div style="font-size:13px; color:var(--text-dim); line-height:1.8; margin-bottom:12px;">
+              <strong style="color:var(--text);">핵심 아이디어:</strong><br>
+              K를 늘릴수록 J (inertia)는 감소한다.<br>
+              K=n이면 J=0 (자기 자신이 중심)<br>
+              → 단순히 J가 작은 K를 고르면 안 됨
+            </div>
+            <div style="font-size:13px; color:var(--text-dim); line-height:1.8; margin-bottom:12px;">
+              <strong style="color:var(--text);">Elbow 기준:</strong><br>
+              J 감소율이 급격히 줄어드는 'elbow' 지점<br>
+              → 추가 클러스터의 이득이 크지 않은 K 선택
+            </div>
+            <div class="note" style="font-size:12px;">
+              항상 명확한 elbow가 보이지 않을 수 있다. 이 경우 <strong>실루엣 계수(Silhouette Score)</strong> 등 다른 지표를 병행한다.
+            </div>
+          </div>
+          <!-- Elbow SVG -->
+          <svg viewBox="0 0 280 220" width="100%" display="block">
+            <rect width="280" height="220" fill="#0d1525" rx="6"/>
+            <!-- 제목 -->
+            <text x="140" y="20" text-anchor="middle" fill="#94a3b8" font-size="11" font-weight="bold">J vs K 그래프 (예시)</text>
+            <!-- 축 -->
+            <line x1="45" y1="30" x2="45" y2="175" stroke="#2a3a52" stroke-width="1.5"/>
+            <line x1="45" y1="175" x2="265" y2="175" stroke="#2a3a52" stroke-width="1.5"/>
+            <!-- Y축 라벨 -->
+            <text x="28" y="102" text-anchor="middle" fill="#64748b" font-size="10" transform="rotate(-90,28,102)">J (Inertia)</text>
+            <!-- X축 눈금 & 라벨 -->
+            <line x1="75" y1="170" x2="75" y2="180" stroke="#2a3a52"/>
+            <text x="75" y="192" text-anchor="middle" fill="#64748b" font-size="10">1</text>
+            <line x1="105" y1="170" x2="105" y2="180" stroke="#2a3a52"/>
+            <text x="105" y="192" text-anchor="middle" fill="#64748b" font-size="10">2</text>
+            <line x1="135" y1="170" x2="135" y2="180" stroke="#2a3a52"/>
+            <text x="135" y="192" text-anchor="middle" fill="#64748b" font-size="10">3</text>
+            <line x1="165" y1="170" x2="165" y2="180" stroke="#2a3a52"/>
+            <text x="165" y="192" text-anchor="middle" fill="#64748b" font-size="10">4</text>
+            <line x1="195" y1="170" x2="195" y2="180" stroke="#2a3a52"/>
+            <text x="195" y="192" text-anchor="middle" fill="#64748b" font-size="10">5</text>
+            <line x1="225" y1="170" x2="225" y2="180" stroke="#2a3a52"/>
+            <text x="225" y="192" text-anchor="middle" fill="#64748b" font-size="10">6</text>
+            <line x1="255" y1="170" x2="255" y2="180" stroke="#2a3a52"/>
+            <text x="255" y="192" text-anchor="middle" fill="#64748b" font-size="10">7</text>
+            <text x="155" y="210" text-anchor="middle" fill="#64748b" font-size="10">K (클러스터 수)</text>
+            <!-- Y축 눈금 -->
+            <line x1="40" y1="45" x2="50" y2="45" stroke="#2a3a52"/>
+            <text x="36" y="49" text-anchor="end" fill="#64748b" font-size="9">대</text>
+            <line x1="40" y1="90" x2="50" y2="90" stroke="#2a3a52"/>
+            <text x="36" y="94" text-anchor="end" fill="#64748b" font-size="9">중</text>
+            <line x1="40" y1="135" x2="50" y2="135" stroke="#2a3a52"/>
+            <text x="36" y="139" text-anchor="end" fill="#64748b" font-size="9">소</text>
+            <!-- 데이터 포인트 -->
+            <polyline points="75,45 105,85 135,112 165,132 195,148 225,158 255,165"
+              fill="none" stroke="#3b82f6" stroke-width="2.5"/>
+            <circle cx="75" cy="45" r="6" fill="#3b82f6"/>
+            <circle cx="105" cy="85" r="6" fill="#3b82f6"/>
+            <!-- Elbow 강조 -->
+            <circle cx="135" cy="112" r="10" fill="none" stroke="#ef4444" stroke-width="2.5"/>
+            <circle cx="135" cy="112" r="5" fill="#ef4444"/>
+            <text x="148" y="104" fill="#ef4444" font-size="11" font-weight="bold">Elbow!</text>
+            <text x="148" y="116" fill="#ef4444" font-size="10">K=3</text>
+            <circle cx="165" cy="132" r="6" fill="#3b82f6"/>
+            <circle cx="195" cy="148" r="6" fill="#3b82f6"/>
+            <circle cx="225" cy="158" r="6" fill="#3b82f6"/>
+            <circle cx="255" cy="165" r="6" fill="#3b82f6"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- 한계 -->
+    <div id="s03g" style="scroll-margin-top:24px; margin-top:32px;">
+      <div style="font-family:'Impact','Arial Narrow',sans-serif; font-size:18px; color:var(--text); margin-bottom:16px; padding-bottom:8px; border-bottom:1px solid var(--border);">한계 및 주의사항</div>
+      <div class="limit-grid">
+        <div class="limit-item">
+          <div class="limit-num">①</div>
+          <div class="limit-title">K를 사전에 지정해야 한다</div>
+          <div class="limit-desc">클러스터 개수를 미리 알아야 함</div>
+          <div class="limit-sol">→ Elbow method, 실루엣 점수 등으로 탐색 필요</div>
+        </div>
+        <div class="limit-item">
+          <div class="limit-num">②</div>
+          <div class="limit-title">구형(원형) 클러스터 가정</div>
+          <div class="limit-desc">유클리드 거리 기반 → 늘어진 타원형이나 복잡한 모양의 클러스터는 잘 포착 못 함</div>
+          <div class="limit-sol">→ DBSCAN, GMM 등 대안 고려</div>
+        </div>
+        <div class="limit-item">
+          <div class="limit-num">③</div>
+          <div class="limit-title">이상치(Outlier)에 민감</div>
+          <div class="limit-desc">중심 = 평균이므로 이상치가 중심을 크게 왜곡</div>
+          <div class="limit-sol">→ K-medoids (중앙값 기반) 사용 검토</div>
+        </div>
+        <div class="limit-item">
+          <div class="limit-num">④</div>
+          <div class="limit-title">스케일에 민감</div>
+          <div class="limit-desc">거리 기반 → 특성 스케일이 다르면 특정 특성이 지배</div>
+          <div class="limit-sol">→ 표준화 (Z-score) 필수</div>
+        </div>
+        <div class="limit-item" style="grid-column: 1 / -1;">
+          <div class="limit-num">⑤</div>
+          <div class="limit-title">이진 / 범주형 데이터 부적합</div>
+          <div class="limit-desc">유클리드 거리가 의미 없음</div>
+          <div class="limit-sol">→ K-modes (범주형) 또는 Gower 거리 사용</div>
+        </div>
+      </div>
+      <div class="note" style="margin-top:12px;">
+        K-means는 단순하고 빠르지만 이러한 한계를 이해하고 데이터 특성에 맞는 알고리즘을 선택해야 한다.
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════
+       SECTION 04 — 비교
+  ══════════ -->
+  <section class="section" id="s04">
+    <div class="section-header">
+      <span class="section-num" style="color:var(--accent-cyan);">04</span>
+      <h2 class="section-title">KNN vs K-means — 체계적 비교</h2>
+    </div>
+
+    <div class="compare-card">
+      <div class="compare-header">
+        <div style="color:var(--text-mute);">비교 항목</div>
+        <div class="h-knn">KNN</div>
+        <div class="h-km">K-means</div>
+      </div>
+      <div class="compare-row">
+        <div class="key">학습 유형</div>
+        <div class="val"><span class="chip chip-blue">지도학습 (Supervised)</span></div>
+        <div class="val"><span class="chip chip-orange">비지도학습 (Unsupervised)</span></div>
+      </div>
+      <div class="compare-row">
+        <div class="key">레이블 필요</div>
+        <div class="val tag-yes">필요 ✓</div>
+        <div class="val tag-no">불필요 ✗</div>
+      </div>
+      <div class="compare-row">
+        <div class="key">K의 의미</div>
+        <div class="val">이웃 개수 (탐색 범위)</div>
+        <div class="val">클러스터 개수 (그룹 수)</div>
+      </div>
+      <div class="compare-row">
+        <div class="key">훈련 단계</div>
+        <div class="val">없음 (Lazy)</div>
+        <div class="val">반복 최적화</div>
+      </div>
+      <div class="compare-row">
+        <div class="key">예측 방식</div>
+        <div class="val">다수결 투표 / 평균</div>
+        <div class="val">가장 가까운 centroid 배정</div>
+      </div>
+      <div class="compare-row">
+        <div class="key">시간복잡도(예측)</div>
+        <div class="val"><span style="font-family:monospace; color:var(--accent-cyan);">O(n·d)</span></div>
+        <div class="val"><span style="font-family:monospace; color:var(--accent-cyan);">O(K·n·d·t)</span> (t=반복 횟수)</div>
+      </div>
+      <div class="compare-row">
+        <div class="key">스케일 민감성</div>
+        <div class="val tag-no">매우 민감 (정규화 필수)</div>
+        <div class="val tag-no">매우 민감 (정규화 필수)</div>
+      </div>
+      <div class="compare-row">
+        <div class="key">결과 해석</div>
+        <div class="val">분류 / 회귀 예측값</div>
+        <div class="val">클러스터 레이블 (군집 구조)</div>
+      </div>
+      <div class="compare-row">
+        <div class="key">주요 응용</div>
+        <div class="val">분류, 회귀</div>
+        <div class="val">고객 세분화, 이상 탐지, 압축</div>
+      </div>
+    </div>
+
+    <div class="concept-box">
+      <strong>핵심:</strong> KNN은 '이미 알려진 레이블로 새 데이터를 분류'하고, K-means는 '레이블 없이 데이터의 숨겨진 그룹 구조를 발견'한다.
+    </div>
+
+    <!-- ML 파이프라인 -->
+    <div id="s04b" style="scroll-margin-top:24px; margin-top:32px;">
+      <div style="font-family:'Impact','Arial Narrow',sans-serif; font-size:18px; color:var(--text); margin-bottom:16px; padding-bottom:8px; border-bottom:1px solid var(--border);">전체 ML 파이프라인에서의 위치</div>
+
+      <!-- 파이프라인 SVG -->
+      <div class="graph-card">
+        <div class="graph-title">실제 ML 프로젝트에서 두 알고리즘은 어디에 쓰이는가?</div>
+        <svg viewBox="0 0 760 120" width="100%" display="block">
+          <rect width="760" height="120" fill="#0d1525" rx="6"/>
+          <!-- 파이프라인 박스들 -->
+          <!-- 1. 데이터 수집 -->
+          <rect x="10" y="20" width="105" height="50" fill="#1a2235" rx="6" stroke="#2a3a52"/>
+          <text x="62" y="42" text-anchor="middle" fill="#94a3b8" font-size="10" font-weight="bold">데이터 수집</text>
+          <text x="62" y="57" text-anchor="middle" fill="#64748b" font-size="9">Raw Data</text>
+          <!-- 화살표 -->
+          <polygon points="120,45 128,40 128,50" fill="#2a3a52"/>
+          <line x1="115" y1="45" x2="128" y2="45" stroke="#2a3a52" stroke-width="1.5"/>
+          <!-- 2. 전처리 -->
+          <rect x="130" y="20" width="105" height="50" fill="#1a2235" rx="6" stroke="#2a3a52"/>
+          <text x="182" y="42" text-anchor="middle" fill="#94a3b8" font-size="10" font-weight="bold">전처리/정규화</text>
+          <text x="182" y="57" text-anchor="middle" fill="#64748b" font-size="9">Preprocessing</text>
+          <!-- 화살표 -->
+          <polygon points="240,45 248,40 248,50" fill="#2a3a52"/>
+          <line x1="235" y1="45" x2="248" y2="45" stroke="#2a3a52" stroke-width="1.5"/>
+          <!-- 3. EDA + K-means (강조) -->
+          <rect x="250" y="10" width="115" height="70" fill="#1e2d42" rx="6" stroke="#f59e0b" stroke-width="2" stroke-dasharray="5 3"/>
+          <text x="307" y="35" text-anchor="middle" fill="#fcd34d" font-size="10" font-weight="bold">탐색적 분석</text>
+          <text x="307" y="50" text-anchor="middle" fill="#94a3b8" font-size="9">EDA + K-means</text>
+          <text x="307" y="68" text-anchor="middle" fill="#f59e0b" font-size="9" font-weight="bold">← K-means 활용</text>
+          <!-- 화살표 -->
+          <polygon points="370,45 378,40 378,50" fill="#2a3a52"/>
+          <line x1="365" y1="45" x2="378" y2="45" stroke="#2a3a52" stroke-width="1.5"/>
+          <!-- 4. 특성 선택/PCA (강조) -->
+          <rect x="380" y="10" width="115" height="70" fill="#1e2d42" rx="6" stroke="#8b5cf6" stroke-width="2" stroke-dasharray="5 3"/>
+          <text x="437" y="35" text-anchor="middle" fill="#c4b5fd" font-size="10" font-weight="bold">특성 선택/PCA</text>
+          <text x="437" y="50" text-anchor="middle" fill="#94a3b8" font-size="9">차원 축소</text>
+          <!-- 화살표 -->
+          <polygon points="500,45 508,40 508,50" fill="#2a3a52"/>
+          <line x1="495" y1="45" x2="508" y2="45" stroke="#2a3a52" stroke-width="1.5"/>
+          <!-- 5. 모델 학습 (강조) -->
+          <rect x="510" y="10" width="115" height="70" fill="#1e2d42" rx="6" stroke="#3b82f6" stroke-width="2" stroke-dasharray="5 3"/>
+          <text x="567" y="35" text-anchor="middle" fill="#93c5fd" font-size="10" font-weight="bold">모델 학습</text>
+          <text x="567" y="50" text-anchor="middle" fill="#94a3b8" font-size="9">KNN / SVM / MLP</text>
+          <text x="567" y="68" text-anchor="middle" fill="#3b82f6" font-size="9" font-weight="bold">← KNN 활용</text>
+          <!-- 화살표 -->
+          <polygon points="630,45 638,40 638,50" fill="#2a3a52"/>
+          <line x1="625" y1="45" x2="638" y2="45" stroke="#2a3a52" stroke-width="1.5"/>
+          <!-- 6. 평가/검증 -->
+          <rect x="640" y="20" width="110" height="50" fill="#1a2235" rx="6" stroke="#2a3a52"/>
+          <text x="695" y="40" text-anchor="middle" fill="#94a3b8" font-size="10" font-weight="bold">평가/검증</text>
+          <text x="695" y="55" text-anchor="middle" fill="#64748b" font-size="9">Confusion Matrix</text>
+        </svg>
+      </div>
+
+      <div class="two-col">
+        <div class="card" style="border-top:3px solid var(--kmeans-color);">
+          <div class="card-title" style="color:var(--accent-orange);">K-means 주요 활용 사례</div>
+          <div class="pc-item">고객 세분화 (CRM): 구매 패턴으로 고객군 분류</div>
+          <div class="pc-item">이미지 압축: 픽셀 색상 군집화로 색상 수 감소</div>
+          <div class="pc-item">문서 군집화: 유사 주제 문서 자동 그룹화</div>
+          <div class="pc-item">이상 탐지: 클러스터에서 멀리 떨어진 데이터 탐지</div>
+        </div>
+        <div class="card" style="border-top:3px solid var(--knn-color);">
+          <div class="card-title" style="color:var(--accent-blue);">KNN 주요 활용 사례</div>
+          <div class="pc-item">추천 시스템: 유사 사용자 기반 콘텐츠 추천</div>
+          <div class="pc-item">의료 진단: 유사 환자 데이터 기반 질병 예측</div>
+          <div class="pc-item">이미지 인식: 픽셀 특성 유사도 기반 분류</div>
+          <div class="pc-item">이상 거래 탐지: 정상 패턴과 거리 기반 탐지</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════
+       SECTION 05 — 요약
+  ══════════ -->
+  <section class="section" id="s05">
+    <div class="section-header">
+      <span class="section-num" style="color:var(--accent-green);">05</span>
+      <h2 class="section-title">요약 (Summary)</h2>
+    </div>
+
+    <div class="summary-grid">
+      <div class="summary-item">
+        <div class="summary-label sl-blue">지도 vs<br>비지도</div>
+        <div class="summary-text">지도학습은 레이블로 f(x)=y를 학습. 비지도학습은 레이블 없이 P(x)의 구조를 발견.</div>
+      </div>
+      <div class="summary-item">
+        <div class="summary-label sl-cyan">KNN<br>핵심</div>
+        <div class="summary-text">K개 이웃의 다수결(분류) 또는 평균(회귀). 모델 학습 없는 Lazy Learning. 거리 정규화 필수.</div>
+      </div>
+      <div class="summary-item">
+        <div class="summary-label sl-red">KNN<br>주의</div>
+        <div class="summary-text">K 선택은 교차검증. 고차원에서 차원의 저주 발생 → PCA로 선처리 필요.</div>
+      </div>
+      <div class="summary-item">
+        <div class="summary-label sl-orange">K-means<br>핵심</div>
+        <div class="summary-text">K개 클러스터, 반복 할당-갱신. 목적함수 J = Σ||xᵢ−μₖ||². 수렴은 보장, 전역최솟값은 미보장.</div>
+      </div>
+      <div class="summary-item">
+        <div class="summary-label sl-purple">K-means<br>주의</div>
+        <div class="summary-text">K-means++ 초기화 권장. Elbow/Silhouette으로 K 선택. 구형 클러스터 가정 한계.</div>
+      </div>
+    </div>
+
+    <div style="margin-top:32px; padding:24px; background:var(--surface2); border-radius:10px; border:1px solid var(--border); text-align:center;">
+      <div style="font-family:'Impact','Arial Narrow',sans-serif; font-size:13px; color:var(--text-mute); letter-spacing:3px; margin-bottom:8px;">MACHINE LEARNING · LECTURE 07</div>
+      <div style="font-size:14px; color:var(--text-dim);">인천대학교 컴퓨터공학부 · 김인수 교수 · 2026 1학기</div>
+    </div>
+  </section>
+
+</main>
+</div>
+
+<script>
+// TOC 활성화 스크롤 추적
+const sections = ['s01','s02','s03','s04','s05'];
+const tocMap = {
+  's01':'toc-s01','s02':'toc-s02','s03':'toc-s03','s04':'toc-s04','s05':'toc-s05'
+};
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      document.querySelectorAll('.toc-item').forEach(el => el.classList.remove('active'));
+      const id = entry.target.id;
+      const tocId = tocMap[id];
+      if (tocId) {
+        const tocEl = document.getElementById(tocId);
+        if (tocEl) tocEl.classList.add('active');
+      }
+    }
+  });
+}, { rootMargin: '-20% 0px -70% 0px' });
+
+sections.forEach(id => {
+  const el = document.getElementById(id);
+  if (el) observer.observe(el);
+});
+</script>
+</body>
+</html>
