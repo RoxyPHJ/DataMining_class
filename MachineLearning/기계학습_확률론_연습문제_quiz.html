@@ -1,0 +1,1149 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>기계학습 확률론 퀴즈</title>
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --surface: #111827;
+    --surface2: #1a2235;
+    --surface3: #1e2d45;
+    --border: #2a3a55;
+    --accent: #38bdf8;
+    --accent2: #818cf8;
+    --accent3: #34d399;
+    --warn: #fb923c;
+    --danger: #f87171;
+    --text: #e2e8f0;
+    --text-muted: #94a3b8;
+    --text-dim: #64748b;
+    --correct: #34d399;
+    --wrong: #f87171;
+    --tag-basic: #0ea5e9;
+    --tag-applied: #a78bfa;
+    --font-body: 'Apple SD Gothic Neo', 'Malgun Gothic', 'Nanum Gothic', sans-serif;
+    --font-code: 'Menlo', 'Courier New', monospace;
+    --font-head: 'Impact', 'Arial Narrow', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    min-height: 100vh;
+    line-height: 1.7;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: linear-gradient(135deg, #0f172a 0%, #1a2235 60%, #0f2744 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 2.5rem 2rem 2rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 30% 50%, rgba(56,189,248,0.07) 0%, transparent 60%),
+                radial-gradient(ellipse at 70% 50%, rgba(129,140,248,0.07) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .header-tag {
+    display: inline-block;
+    font-family: var(--font-code);
+    font-size: 0.7rem;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    border-radius: 4px;
+    padding: 2px 10px;
+    letter-spacing: 2px;
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+  }
+  header h1 {
+    font-family: var(--font-head);
+    font-size: 2.4rem;
+    letter-spacing: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 0.5rem;
+  }
+  header p {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+  }
+
+  /* ── SCORE PANEL ── */
+  .score-panel {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    margin: 2rem auto;
+    max-width: 860px;
+    padding: 1.5rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  .score-info { display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap; }
+  .score-num { font-family: var(--font-head); font-size: 2.8rem; color: var(--accent); letter-spacing: 2px; }
+  .score-label { color: var(--text-muted); font-size: 0.85rem; }
+  .score-bar-wrap { flex: 1; min-width: 160px; }
+  .score-bar-bg { background: var(--border); border-radius: 99px; height: 8px; overflow: hidden; }
+  .score-bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 99px; transition: width 0.8s ease; width: 0%; }
+  .btn-score {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border: none; border-radius: 8px;
+    color: #0a0e1a; font-family: var(--font-body);
+    font-size: 0.9rem; font-weight: 700;
+    padding: 0.7rem 1.8rem; cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .btn-score:hover { opacity: 0.85; }
+  .btn-reset {
+    background: transparent; border: 1px solid var(--border);
+    border-radius: 8px; color: var(--text-muted);
+    font-family: var(--font-body); font-size: 0.85rem;
+    padding: 0.7rem 1.2rem; cursor: pointer;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .btn-reset:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ── LEGEND ── */
+  .legend {
+    max-width: 860px; margin: 0 auto 1.5rem;
+    display: flex; gap: 1.5rem; flex-wrap: wrap;
+    padding: 0 1rem;
+  }
+  .legend-item { display: flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; color: var(--text-muted); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+  /* ── SECTION HEADER ── */
+  .section-header {
+    max-width: 860px; margin: 2.5rem auto 1rem;
+    padding: 0 1rem;
+    display: flex; align-items: center; gap: 1rem;
+  }
+  .section-num {
+    font-family: var(--font-head);
+    font-size: 1.6rem; color: var(--accent);
+    min-width: 2.5rem; letter-spacing: 1px;
+  }
+  .section-title {
+    font-size: 1.05rem; font-weight: 700;
+    color: var(--text);
+  }
+  .section-line { flex: 1; height: 1px; background: var(--border); }
+
+  /* ── QUIZ CARD ── */
+  .quiz-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    max-width: 860px; margin: 0 auto 1.2rem;
+    overflow: hidden;
+    transition: border-color 0.3s;
+  }
+  .quiz-card:hover { border-color: var(--accent); }
+  .quiz-card.answered-correct { border-color: var(--correct); }
+  .quiz-card.answered-wrong { border-color: var(--wrong); }
+
+  .card-top {
+    padding: 1.3rem 1.5rem 0.8rem;
+    display: flex; align-items: flex-start; gap: 1rem;
+  }
+  .q-num {
+    font-family: var(--font-head);
+    font-size: 1.5rem; color: var(--text-dim);
+    min-width: 2rem; padding-top: 2px;
+  }
+  .q-body { flex: 1; }
+
+  .q-tags { display: flex; gap: 0.5rem; margin-bottom: 0.6rem; flex-wrap: wrap; }
+  .tag {
+    font-size: 0.68rem; font-family: var(--font-code);
+    padding: 2px 8px; border-radius: 4px;
+    font-weight: 700; letter-spacing: 0.5px;
+  }
+  .tag-type { background: rgba(56,189,248,0.15); color: var(--accent); border: 1px solid rgba(56,189,248,0.3); }
+  .tag-basic { background: rgba(14,165,233,0.15); color: var(--tag-basic); border: 1px solid rgba(14,165,233,0.3); }
+  .tag-applied { background: rgba(167,139,250,0.15); color: var(--tag-applied); border: 1px solid rgba(167,139,250,0.3); }
+  .tag-ref { background: rgba(100,116,139,0.15); color: var(--text-dim); border: 1px solid rgba(100,116,139,0.3); }
+  .difficulty { font-size: 0.8rem; }
+
+  .q-text { font-size: 0.97rem; line-height: 1.75; color: var(--text); }
+  .q-text .math { font-style: italic; color: var(--accent2); }
+  .q-sub { margin-top: 0.5rem; padding-left: 1rem; border-left: 2px solid var(--border); color: var(--text-muted); font-size: 0.9rem; }
+  .q-sub li { margin-bottom: 0.2rem; }
+  .q-hint { margin-top: 0.6rem; font-size: 0.82rem; color: var(--text-dim); font-family: var(--font-code); }
+
+  /* ── MC OPTIONS ── */
+  .mc-options { padding: 0.5rem 1.5rem 0.8rem 4rem; display: flex; flex-direction: column; gap: 0.5rem; }
+  .mc-opt {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 0.6rem 1rem;
+    cursor: pointer; display: flex; align-items: center; gap: 0.8rem;
+    transition: background 0.15s, border-color 0.15s;
+    font-size: 0.9rem;
+  }
+  .mc-opt:hover { background: var(--surface3); border-color: var(--accent); }
+  .mc-opt.selected { border-color: var(--accent2); background: rgba(129,140,248,0.1); }
+  .mc-opt.correct-opt { border-color: var(--correct); background: rgba(52,211,153,0.1); }
+  .mc-opt.wrong-opt { border-color: var(--wrong); background: rgba(248,113,113,0.1); }
+  .mc-label { font-family: var(--font-head); font-size: 1rem; color: var(--text-muted); min-width: 1.2rem; }
+
+  /* ── OX OPTIONS ── */
+  .ox-options { padding: 0.5rem 1.5rem 0.8rem 4rem; display: flex; gap: 1rem; }
+  .ox-btn {
+    flex: 1; max-width: 120px;
+    background: var(--surface2); border: 2px solid var(--border);
+    border-radius: 10px; padding: 0.8rem;
+    cursor: pointer; font-family: var(--font-head);
+    font-size: 2rem; text-align: center;
+    transition: all 0.15s;
+  }
+  .ox-btn:hover { border-color: var(--accent); }
+  .ox-btn.selected { border-color: var(--accent2); background: rgba(129,140,248,0.1); }
+  .ox-btn.correct-opt { border-color: var(--correct); background: rgba(52,211,153,0.1); }
+  .ox-btn.wrong-opt { border-color: var(--wrong); background: rgba(248,113,113,0.1); }
+
+  /* ── SHORT ANSWER ── */
+  .short-wrap { padding: 0.5rem 1.5rem 0.8rem 4rem; }
+  .short-input {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 0.7rem 1rem;
+    color: var(--text); font-family: var(--font-code); font-size: 0.9rem;
+    width: 100%; max-width: 360px;
+    outline: none; transition: border-color 0.2s;
+  }
+  .short-input:focus { border-color: var(--accent); }
+  .short-input.correct-input { border-color: var(--correct); background: rgba(52,211,153,0.08); }
+  .short-input.wrong-input { border-color: var(--wrong); background: rgba(248,113,113,0.08); }
+  .btn-check {
+    margin-left: 0.8rem; background: var(--surface3);
+    border: 1px solid var(--border); border-radius: 8px;
+    color: var(--text-muted); font-family: var(--font-body);
+    font-size: 0.85rem; padding: 0.7rem 1.2rem; cursor: pointer;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .btn-check:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ── TOGGLE ANSWER ── */
+  .toggle-wrap { padding: 0 1.5rem 1rem 4rem; }
+  .btn-toggle {
+    background: transparent; border: 1px solid var(--border);
+    border-radius: 8px; color: var(--text-muted);
+    font-family: var(--font-body); font-size: 0.82rem;
+    padding: 0.4rem 1rem; cursor: pointer;
+    transition: border-color 0.2s, color 0.2s;
+    display: flex; align-items: center; gap: 0.5rem;
+  }
+  .btn-toggle:hover { border-color: var(--accent2); color: var(--accent2); }
+  .arrow { transition: transform 0.3s; }
+  .arrow.open { transform: rotate(90deg); }
+
+  .answer-box {
+    margin-top: 0.8rem;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1.2rem 1.4rem;
+    display: none; animation: fadeIn 0.2s ease;
+  }
+  .answer-box.open { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+
+  .ans-label { font-size: 0.72rem; font-family: var(--font-code); color: var(--accent); letter-spacing: 1px; margin-bottom: 0.6rem; text-transform: uppercase; }
+  .ans-value { font-size: 0.92rem; color: var(--text); line-height: 1.8; }
+  .ans-value .highlight { color: var(--correct); font-weight: 700; }
+  .ans-value .math { color: var(--accent2); font-style: italic; }
+  .ans-explanation { margin-top: 0.8rem; padding-top: 0.8rem; border-top: 1px solid var(--border); font-size: 0.85rem; color: var(--text-muted); line-height: 1.75; }
+  .ans-variation { margin-top: 0.7rem; padding: 0.7rem 1rem; background: rgba(167,139,250,0.08); border: 1px solid rgba(167,139,250,0.25); border-radius: 8px; font-size: 0.82rem; color: var(--tag-applied); }
+  .ans-variation strong { color: var(--accent2); }
+
+  code { font-family: var(--font-code); background: rgba(255,255,255,0.06); padding: 1px 6px; border-radius: 4px; font-size: 0.88em; color: var(--accent); }
+
+  /* ── RESULT BADGE ── */
+  .result-badge {
+    margin: 0 1.5rem 1rem 4rem;
+    padding: 0.4rem 1rem; border-radius: 6px;
+    font-size: 0.82rem; display: none;
+  }
+  .result-badge.show { display: inline-block; }
+  .result-badge.correct { background: rgba(52,211,153,0.15); color: var(--correct); border: 1px solid rgba(52,211,153,0.3); }
+  .result-badge.wrong { background: rgba(248,113,113,0.15); color: var(--wrong); border: 1px solid rgba(248,113,113,0.3); }
+
+  /* ── FOOTER ── */
+  footer {
+    text-align: center; padding: 3rem 1rem;
+    color: var(--text-dim); font-size: 0.8rem;
+    border-top: 1px solid var(--border);
+    margin-top: 3rem;
+  }
+
+  @media (max-width: 600px) {
+    header h1 { font-size: 1.7rem; }
+    .score-panel { flex-direction: column; }
+    .mc-options, .ox-options, .toggle-wrap, .short-wrap, .result-badge { padding-left: 1rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-tag">기계학습 · 기초 통계 및 확률 이론</div>
+  <h1>PROBABILITY QUIZ</h1>
+  <p>인천대학교 컴퓨터공학부 · 2026년 1학기 &nbsp;|&nbsp; 총 14문제 (기본 7 + 응용 7)</p>
+</header>
+
+<div class="score-panel">
+  <div class="score-info">
+    <div>
+      <div class="score-num" id="scoreNum">0 / 0</div>
+      <div class="score-label">정답 / 채점된 문제</div>
+    </div>
+    <div class="score-bar-wrap">
+      <div style="font-size:0.75rem;color:var(--text-dim);margin-bottom:4px">정답률</div>
+      <div class="score-bar-bg"><div class="score-bar-fill" id="scoreBar"></div></div>
+    </div>
+  </div>
+  <div style="display:flex;gap:0.6rem;">
+    <button class="btn-reset" onclick="resetAll()">↺ 초기화</button>
+    <button class="btn-score" onclick="gradeAll()">전체 채점</button>
+  </div>
+</div>
+
+<div class="legend" style="max-width:860px;margin:0 auto 1.5rem;padding:0 1rem;">
+  <div class="legend-item"><span class="legend-dot" style="background:var(--tag-basic)"></span> 기본 문제</div>
+  <div class="legend-item"><span class="legend-dot" style="background:var(--tag-applied)"></span> [응용] 문제</div>
+  <div class="legend-item"><span class="legend-dot" style="background:var(--correct)"></span> 정답</div>
+  <div class="legend-item"><span class="legend-dot" style="background:var(--wrong)"></span> 오답</div>
+</div>
+
+<!-- ═══════════════════════════════════════ SECTION 01 ═══════════════════════════════════════ -->
+<div class="section-header">
+  <span class="section-num">01</span>
+  <span class="section-title">기댓값과 분산</span>
+  <div class="section-line"></div>
+</div>
+
+<!-- Q1 기본 -->
+<div class="quiz-card" id="card1">
+  <div class="card-top">
+    <div class="q-num">1</div>
+    <div class="q-body">
+      <div class="q-tags">
+        <span class="tag tag-type">객관식</span>
+        <span class="tag tag-basic">기본</span>
+        <span class="tag tag-ref">문제 1 참조</span>
+        <span class="difficulty">⭐ 쉬움</span>
+      </div>
+      <div class="q-text">
+        확률변수 X의 PMF가 아래와 같을 때, <span class="math">E[X]</span>는?<br><br>
+        <table style="border-collapse:collapse;font-family:var(--font-code);font-size:0.88rem;color:var(--text-muted);">
+          <tr>
+            <td style="padding:4px 14px;border:1px solid var(--border);">k</td>
+            <td style="padding:4px 14px;border:1px solid var(--border);">0</td>
+            <td style="padding:4px 14px;border:1px solid var(--border);">1</td>
+            <td style="padding:4px 14px;border:1px solid var(--border);">2</td>
+            <td style="padding:4px 14px;border:1px solid var(--border);">3</td>
+          </tr>
+          <tr>
+            <td style="padding:4px 14px;border:1px solid var(--border);">P(X=k)</td>
+            <td style="padding:4px 14px;border:1px solid var(--border);">0.50</td>
+            <td style="padding:4px 14px;border:1px solid var(--border);">0.30</td>
+            <td style="padding:4px 14px;border:1px solid var(--border);">0.15</td>
+            <td style="padding:4px 14px;border:1px solid var(--border);">0.05</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="mc-options" id="mc1">
+    <div class="mc-opt" onclick="selectMC(1,'A')"><span class="mc-label">A</span> 0.65</div>
+    <div class="mc-opt" onclick="selectMC(1,'B')"><span class="mc-label">B</span> 0.75</div>
+    <div class="mc-opt" onclick="selectMC(1,'C')"><span class="mc-label">C</span> 0.80</div>
+    <div class="mc-opt" onclick="selectMC(1,'D')"><span class="mc-label">D</span> 0.90</div>
+  </div>
+  <div class="result-badge" id="badge1"></div>
+  <div class="toggle-wrap">
+    <button class="btn-toggle" onclick="toggleAns(1)"><span class="arrow" id="arrow1">▶</span> 정답 및 해설 보기</button>
+    <div class="answer-box" id="ans1">
+      <div class="ans-label">정답</div>
+      <div class="ans-value"><span class="highlight">B. 0.75</span></div>
+      <div class="ans-explanation">
+        <span class="math">E[X] = 0×0.50 + 1×0.30 + 2×0.15 + 3×0.05</span><br>
+        = 0 + 0.30 + 0.30 + 0.15 = <strong>0.75</strong>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Q2 응용 -->
+<div class="quiz-card" id="card2">
+  <div class="card-top">
+    <div class="q-num">2</div>
+    <div class="q-body">
+      <div class="q-tags">
+        <span class="tag tag-type">객관식</span>
+        <span class="tag tag-applied">[응용]</span>
+        <span class="tag tag-ref">문제 1 참조</span>
+        <span class="difficulty">⭐⭐ 보통</span>
+      </div>
+      <div class="q-text">
+        위 문제 1과 동일한 PMF에서 <span class="math">Y = 3X + 2</span>로 정의할 때,<br>
+        <span class="math">Var(Y)</span>의 값은? <span style="font-size:0.82rem;color:var(--text-dim)">(성질: Var(aX+b) = a²Var(X) 이용)</span><br><br>
+        <span style="font-size:0.85rem;color:var(--text-muted)">먼저 Var(X) = E[X²] − (E[X])² 를 구한 뒤 적용하라.</span>
+      </div>
+    </div>
+  </div>
+  <div class="mc-options" id="mc2">
+    <div class="mc-opt" onclick="selectMC(2,'A')"><span class="mc-label">A</span> 4.6875</div>
+    <div class="mc-opt" onclick="selectMC(2,'B')"><span class="mc-label">B</span> 5.0625</div>
+    <div class="mc-opt" onclick="selectMC(2,'C')"><span class="mc-label">C</span> 5.8875</div>
+    <div class="mc-opt" onclick="selectMC(2,'D')"><span class="mc-label">D</span> 6.1875</div>
+  </div>
+  <div class="result-badge" id="badge2"></div>
+  <div class="toggle-wrap">
+    <button class="btn-toggle" onclick="toggleAns(2)"><span class="arrow" id="arrow2">▶</span> 정답 및 해설 보기</button>
+    <div class="answer-box" id="ans2">
+      <div class="ans-label">정답</div>
+      <div class="ans-value"><span class="highlight">D. 6.1875</span></div>
+      <div class="ans-explanation">
+        <strong>① E[X²] 계산:</strong><br>
+        E[X²] = 0²×0.50 + 1²×0.30 + 2²×0.15 + 3²×0.05 = 0 + 0.30 + 0.60 + 0.45 = <strong>1.35</strong><br><br>
+        <strong>② Var(X) 계산:</strong><br>
+        Var(X) = E[X²] − (E[X])² = 1.35 − (0.75)² = 1.35 − 0.5625 = <strong>0.6875</strong><br><br>
+        <strong>③ Var(Y) = 3² × Var(X) = 9 × 0.6875 = <span class="highlight">6.1875</span></strong>
+      </div>
+      <div class="ans-variation">
+        <strong>변형 포인트:</strong> 원본 문제에서 E[Y], Var(Y)를 모두 구하는 문항 중 Var(Y)만 분리하여 선택지로 제시. E[X]를 먼저 구한 뒤 분산 공식을 두 단계 적용해야 풀리는 구조.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ SECTION 02 ═══════════════════════════════════════ -->
+<div class="section-header">
+  <span class="section-num">02</span>
+  <span class="section-title">Bias–Variance Tradeoff</span>
+  <div class="section-line"></div>
+</div>
+
+<!-- Q3 기본 OX -->
+<div class="quiz-card" id="card3">
+  <div class="card-top">
+    <div class="q-num">3</div>
+    <div class="q-body">
+      <div class="q-tags">
+        <span class="tag tag-type">OX 문제</span>
+        <span class="tag tag-basic">기본</span>
+        <span class="tag tag-ref">문제 2 참조</span>
+        <span class="difficulty">⭐⭐ 보통</span>
+      </div>
+      <div class="q-text">
+        다음 명제의 참/거짓을 판별하라:<br><br>
+        <em>"Bias–Variance Decomposition에서 노이즈 항 σ²은 모델 복잡도와 무관하게 일정하므로, 아무리 좋은 모델을 써도 줄일 수 없는 불가피한 오차이다."</em>
+      </div>
+    </div>
+  </div>
+  <div class="ox-options">
+    <div class="ox-btn" onclick="selectOX(3,'O')">⭕ O</div>
+    <div class="ox-btn" onclick="selectOX(3,'X')">❌ X</div>
+  </div>
+  <div class="result-badge" id="badge3"></div>
+  <div class="toggle-wrap">
+    <button class="btn-toggle" onclick="toggleAns(3)"><span class="arrow" id="arrow3">▶</span> 정답 및 해설 보기</button>
+    <div class="answer-box" id="ans3">
+      <div class="ans-label">정답</div>
+      <div class="ans-value"><span class="highlight">⭕ O (참)</span></div>
+      <div class="ans-explanation">
+        <span class="math">E[(y − f̂(x))²] = Bias² + Variance + σ²</span><br><br>
+        노이즈 항 σ²은 데이터 생성 과정 자체에서 비롯되며(ε ~ N(0,σ²)), 어떤 모델도 줄일 수 없는 <strong>환원 불가능한 오차(irreducible error)</strong>이다. 반면 Bias와 Variance는 모델 선택에 따라 조절 가능하다.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Q4 응용 OX -->
+<div class="quiz-card" id="card4">
+  <div class="card-top">
+    <div class="q-num">4</div>
+    <div class="q-body">
+      <div class="q-tags">
+        <span class="tag tag-type">OX 문제</span>
+        <span class="tag tag-applied">[응용]</span>
+        <span class="tag tag-ref">문제 2, 4-3 참조</span>
+        <span class="difficulty">⭐⭐ 보통</span>
+      </div>
+      <div class="q-text">
+        다음 명제의 참/거짓을 판별하라:<br><br>
+        <em>"모델 예측 오차 분포가 N(5, 4)인 모델 A는 N(0, 25)인 모델 B보다 총 기댓값 오차(Bias² + Variance)가 크므로, Bias–Variance 관점에서 모델 A가 모델 B보다 나쁜 모델이다."</em>
+      </div>
+    </div>
+  </div>
+  <div class="ox-options">
+    <div class="ox-btn" onclick="selectOX(4,'O')">⭕ O</div>
+    <div class="ox-btn" onclick="selectOX(4,'X')">❌ X</div>
+  </div>
+  <div class="result-badge" id="badge4"></div>
+  <div class="toggle-wrap">
+    <button class="btn-toggle" onclick="toggleAns(4)"><span class="arrow" id="arrow4">▶</span> 정답 및 해설 보기</button>
+    <div class="answer-box" id="ans4">
+      <div class="ans-label">정답</div>
+      <div class="ans-value"><span class="highlight">⭕ O (참)</span></div>
+      <div class="ans-explanation">
+        모델 A: Bias² = 5² = 25, Variance = 4 → <strong>합 = 29</strong><br>
+        모델 B: Bias² = 0² = 0, Variance = 25 → <strong>합 = 25</strong><br><br>
+        따라서 총 오차 합은 A(29) > B(25). 명제는 참이다.<br><br>
+        단, 실용적으로는 모델 B도 Variance=25로 매우 커서, 실제 선택은 데이터 크기·목적에 따라 달라진다.
+      </div>
+      <div class="ans-variation">
+        <strong>변형 포인트:</strong> 원본 문제 4-3에서 "어느 모델이 더 나은지"를 서술형으로 묻는 것을 OX 명제로 재구성. Bias²와 Variance의 수치 합산을 직접 계산한 뒤 대소 비교하도록 유도.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ SECTION 03 ═══════════════════════════════════════ -->
+<div class="section-header">
+  <span class="section-num">03</span>
+  <span class="section-title">공분산과 상관계수</span>
+  <div class="section-line"></div>
+</div>
+
+<!-- Q5 기본 단답형 -->
+<div class="quiz-card" id="card5">
+  <div class="card-top">
+    <div class="q-num">5</div>
+    <div class="q-body">
+      <div class="q-tags">
+        <span class="tag tag-type">단답형</span>
+        <span class="tag tag-basic">기본</span>
+        <span class="tag tag-ref">문제 3 참조</span>
+        <span class="difficulty">⭐⭐ 보통</span>
+      </div>
+      <div class="q-text">
+        다음 데이터에서 표본 평균 <span class="math">x̄</span>와 <span class="math">ȳ</span>를 구하고, 표본 공분산 C(x,y)를 입력하라.<br><br>
+        <table style="border-collapse:collapse;font-family:var(--font-code);font-size:0.88rem;color:var(--text-muted);">
+          <tr>
+            <td style="padding:4px 12px;border:1px solid var(--border);">학생</td>
+            <td style="padding:4px 12px;border:1px solid var(--border);">1</td>
+            <td style="padding:4px 12px;border:1px solid var(--border);">2</td>
+            <td style="padding:4px 12px;border:1px solid var(--border);">3</td>
+            <td style="padding:4px 12px;border:1px solid var(--border);">4</td>
+            <td style="padding:4px 12px;border:1px solid var(--border);">5</td>
+          </tr>
+          <tr>
+            <td style="padding:4px 12px;border:1px solid var(--border);">x (시간)</td>
+            <td style="padding:4px 12px;border:1px solid var(--border);">2</td>
+            <td style="padding:4px 12px;border:1px solid var(--border);">4</td>
+            <td style="padding:4px 12px;border:1px solid var(--border);">6</td>
+            <td style="padding:4px 12px;border:1px solid var(--border);">8</td>
+            <td style="padding:4px 12px;border:1px solid var(--border);">10</td>
+          </tr>
+          <tr>
+            <td style="padding:4px 12px;border:1px solid var(--border);">y (점수)</td>
+            <td style="padding:4px 12px;border:1px solid var(--border);">55</td>
+            <td style="padding:4px 12px;border:1px solid var(--border);">65</td>
+            <td style="padding:4px 12px;border:1px solid var(--border);">70</td>
+            <td style="padding:4px 12px;border:1px solid var(--border);">80</td>
+            <td style="padding:4px 12px;border:1px solid var(--border);">85</td>
+          </tr>
+        </table><br>
+        표본 공분산 <span class="math">C(x,y)</span>를 소수점 첫째 자리까지 입력하라.
+      </div>
+    </div>
+  </div>
+  <div class="short-wrap">
+    <input class="short-input" id="short5" type="text" placeholder="예: 37.5">
+    <button class="btn-check" onclick="checkShort(5,'37.5',['37.5'])">확인</button>
+  </div>
+  <div class="result-badge" id="badge5"></div>
+  <div class="toggle-wrap">
+    <button class="btn-toggle" onclick="toggleAns(5)"><span class="arrow" id="arrow5">▶</span> 정답 및 해설 보기</button>
+    <div class="answer-box" id="ans5">
+      <div class="ans-label">정답</div>
+      <div class="ans-value"><span class="highlight">C(x,y) = 37.5</span></div>
+      <div class="ans-explanation">
+        x̄ = (2+4+6+8+10)/5 = <strong>6</strong>, ȳ = (55+65+70+80+85)/5 = <strong>71</strong><br><br>
+        Σ(xᵢ−x̄)(yᵢ−ȳ) = (−4)(−16)+(−2)(−6)+(0)(−1)+(2)(9)+(4)(14)<br>
+        = 64 + 12 + 0 + 18 + 56 = <strong>150</strong><br><br>
+        C(x,y) = 150 / (5−1) = <strong>37.5</strong>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Q6 응용 -->
+<div class="quiz-card" id="card6">
+  <div class="card-top">
+    <div class="q-num">6</div>
+    <div class="q-body">
+      <div class="q-tags">
+        <span class="tag tag-type">객관식</span>
+        <span class="tag tag-applied">[응용]</span>
+        <span class="tag tag-ref">문제 3 참조</span>
+        <span class="difficulty">⭐⭐⭐ 어려움</span>
+      </div>
+      <div class="q-text">
+        아래 수정된 데이터에서 상관계수 <span class="math">ρ</span>에 가장 가까운 값은?<br><br>
+        <table style="border-collapse:collapse;font-family:var(--font-code);font-size:0.88rem;color:var(--text-muted);">
+          <tr>
+            <td style="padding:4px 12px;border:1px solid var(--border);">학생</td>
+            <td style="padding:4px 12px;border:1px solid var(--border);">1</td>
+            <td style="padding:4px 12px;border:1px solid var(--border);">2</td>
+            <td style="padding:4px 12px;border:1px solid var(--border);">3</td>
+            <td style="padding:4px 12px;border:1px solid var(--border);">4</td>
+            <td style="padding:4px 12px;border:1px solid var(--border);">5</td>
+          </tr>
+          <tr>
+            <td style="padding:4px 12px;border:1px solid var(--border);">x (시간)</td>
+            <td style="padding:4px 12px;border:1px solid var(--border);">2</td>
+            <td style="padding:4px 12px;border:1px solid var(--border);">4</td>
+            <td style="padding:4px 12px;border:1px solid var(--border);">6</td>
+            <td style="padding:4px 12px;border:1px solid var(--border);">8</td>
+            <td style="padding:4px 12px;border:1px solid var(--border);">10</td>
+          </tr>
+          <tr>
+            <td style="padding:4px 12px;border:1px solid var(--border);">y (점수)</td>
+            <td style="padding:4px 12px;border:1px solid var(--border);">85</td>
+            <td style="padding:4px 12px;border:1px solid var(--border);">80</td>
+            <td style="padding:4px 12px;border:1px solid var(--border);">70</td>
+            <td style="padding:4px 12px;border:1px solid var(--border);">65</td>
+            <td style="padding:4px 12px;border:1px solid var(--border);">55</td>
+          </tr>
+        </table>
+        <div class="q-hint">※ y 값을 역순으로 변경 (음의 상관 방향)</div>
+      </div>
+    </div>
+  </div>
+  <div class="mc-options" id="mc6">
+    <div class="mc-opt" onclick="selectMC(6,'A')"><span class="mc-label">A</span> +0.98</div>
+    <div class="mc-opt" onclick="selectMC(6,'B')"><span class="mc-label">B</span> 0.00</div>
+    <div class="mc-opt" onclick="selectMC(6,'C')"><span class="mc-label">C</span> −0.98</div>
+    <div class="mc-opt" onclick="selectMC(6,'D')"><span class="mc-label">D</span> −0.50</div>
+  </div>
+  <div class="result-badge" id="badge6"></div>
+  <div class="toggle-wrap">
+    <button class="btn-toggle" onclick="toggleAns(6)"><span class="arrow" id="arrow6">▶</span> 정답 및 해설 보기</button>
+    <div class="answer-box" id="ans6">
+      <div class="ans-label">정답</div>
+      <div class="ans-value"><span class="highlight">C. −0.98</span></div>
+      <div class="ans-explanation">
+        x̄=6, ȳ=71 (동일). x는 그대로이므로 V(x)도 동일 = 10.<br>
+        y를 역순으로 바꿔도 ȳ=71, V(y) 동일.<br><br>
+        Σ(xᵢ−x̄)(yᵢ−ȳ) = (−4)(14)+(−2)(9)+(0)(−1)+(2)(−6)+(4)(−16)<br>
+        = −56 − 18 + 0 − 12 − 64 = <strong>−150</strong><br><br>
+        C(x,y) = −150/4 = −37.5<br>
+        ρ = −37.5 / (√10 × √(V(y))) ≈ <strong>−0.98</strong> (원본과 절댓값 동일, 부호 반전)
+      </div>
+      <div class="ans-variation">
+        <strong>변형 포인트:</strong> y값을 역순으로 뒤집어 음의 상관관계로 변형. 공분산 부호가 반전되어 상관계수 부호도 반전됨. 크기는 동일하므로 부호 개념을 이해했는지 확인하는 문제.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ SECTION 04 ═══════════════════════════════════════ -->
+<div class="section-header">
+  <span class="section-num">04</span>
+  <span class="section-title">정규분포와 표준화</span>
+  <div class="section-line"></div>
+</div>
+
+<!-- Q7 기본 -->
+<div class="quiz-card" id="card7">
+  <div class="card-top">
+    <div class="q-num">7</div>
+    <div class="q-body">
+      <div class="q-tags">
+        <span class="tag tag-type">단답형</span>
+        <span class="tag tag-basic">기본</span>
+        <span class="tag tag-ref">문제 4 참조</span>
+        <span class="difficulty">⭐ 쉬움</span>
+      </div>
+      <div class="q-text">
+        시험 점수 X ~ N(70, 100)일 때, 68–95–99.7 규칙을 이용하여<br>
+        <span class="math">P(50 ≤ X ≤ 90)</span>을 구하라. 소수점 표기 없이 %로 입력하라.<br>
+        <div class="q-hint">예: "95%"</div>
+      </div>
+    </div>
+  </div>
+  <div class="short-wrap">
+    <input class="short-input" id="short7" type="text" placeholder="예: 95%">
+    <button class="btn-check" onclick="checkShort(7,'95%',['95%','95'])">확인</button>
+  </div>
+  <div class="result-badge" id="badge7"></div>
+  <div class="toggle-wrap">
+    <button class="btn-toggle" onclick="toggleAns(7)"><span class="arrow" id="arrow7">▶</span> 정답 및 해설 보기</button>
+    <div class="answer-box" id="ans7">
+      <div class="ans-label">정답</div>
+      <div class="ans-value"><span class="highlight">95%</span></div>
+      <div class="ans-explanation">
+        σ = √100 = 10이므로:<br>
+        μ − 2σ = 70 − 20 = 50, μ + 2σ = 70 + 20 = 90<br><br>
+        68–95–99.7 규칙에 따라 <strong>μ ± 2σ 구간에 약 95%</strong>의 데이터가 포함된다.<br>
+        따라서 <strong>P(50 ≤ X ≤ 90) ≈ 95%</strong>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Q8 응용 -->
+<div class="quiz-card" id="card8">
+  <div class="card-top">
+    <div class="q-num">8</div>
+    <div class="q-body">
+      <div class="q-tags">
+        <span class="tag tag-type">객관식</span>
+        <span class="tag tag-applied">[응용]</span>
+        <span class="tag tag-ref">문제 4 참조</span>
+        <span class="difficulty">⭐⭐ 보통</span>
+      </div>
+      <div class="q-text">
+        시험 점수 분포가 <span class="math">X ~ N(70, 100)</span>에서 <span class="math">X ~ N(60, 100)</span>으로 변경되었다.<br>
+        (평균만 70→60으로 변경, 분산 동일)<br><br>
+        이 때 <span class="math">P(X > 75)</span>를 구하면? <span style="font-size:0.82rem;color:var(--text-dim)">(Φ(1.5) ≈ 0.9332)</span>
+      </div>
+    </div>
+  </div>
+  <div class="mc-options" id="mc8">
+    <div class="mc-opt" onclick="selectMC(8,'A')"><span class="mc-label">A</span> 0.0668</div>
+    <div class="mc-opt" onclick="selectMC(8,'B')"><span class="mc-label">B</span> 0.9332</div>
+    <div class="mc-opt" onclick="selectMC(8,'C')"><span class="mc-label">C</span> 0.1587</div>
+    <div class="mc-opt" onclick="selectMC(8,'D')"><span class="mc-label">D</span> 0.8413</div>
+  </div>
+  <div class="result-badge" id="badge8"></div>
+  <div class="toggle-wrap">
+    <button class="btn-toggle" onclick="toggleAns(8)"><span class="arrow" id="arrow8">▶</span> 정답 및 해설 보기</button>
+    <div class="answer-box" id="ans8">
+      <div class="ans-label">정답</div>
+      <div class="ans-value"><span class="highlight">A. 0.0668</span></div>
+      <div class="ans-explanation">
+        μ=60, σ=10이므로 Z = (X−60)/10<br><br>
+        P(X > 75) = P(Z > (75−60)/10) = P(Z > 1.5)<br><br>
+        = 1 − Φ(1.5) = 1 − 0.9332 = <strong>0.0668</strong>
+      </div>
+      <div class="ans-variation">
+        <strong>변형 포인트:</strong> 원본은 μ=70에서 P(X>85) 계산. 평균을 60으로 낮추고 기준점을 75로 조정하여 Z-score는 동일하게 1.5가 되도록 설계. 분포의 중심 이동이 표준화에 미치는 영향을 확인하는 문제.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ SECTION 05 ═══════════════════════════════════════ -->
+<div class="section-header">
+  <span class="section-num">05</span>
+  <span class="section-title">상관계수와 독립성</span>
+  <div class="section-line"></div>
+</div>
+
+<!-- Q9 기본 -->
+<div class="quiz-card" id="card9">
+  <div class="card-top">
+    <div class="q-num">9</div>
+    <div class="q-body">
+      <div class="q-tags">
+        <span class="tag tag-type">객관식</span>
+        <span class="tag tag-basic">기본</span>
+        <span class="tag tag-ref">문제 5 참조</span>
+        <span class="difficulty">⭐⭐ 보통</span>
+      </div>
+      <div class="q-text">
+        X ~ Uniform(−1, 1), Y = X² 일 때,<br>
+        <span class="math">Cov(X, Y)</span>를 구하면?<br>
+        <div class="q-hint">참고: fX(x) = 1/2 for −1 ≤ x ≤ 1</div>
+      </div>
+    </div>
+  </div>
+  <div class="mc-options" id="mc9">
+    <div class="mc-opt" onclick="selectMC(9,'A')"><span class="mc-label">A</span> 1/3</div>
+    <div class="mc-opt" onclick="selectMC(9,'B')"><span class="mc-label">B</span> 1/5</div>
+    <div class="mc-opt" onclick="selectMC(9,'C')"><span class="mc-label">C</span> 0</div>
+    <div class="mc-opt" onclick="selectMC(9,'D')"><span class="mc-label">D</span> −1/3</div>
+  </div>
+  <div class="result-badge" id="badge9"></div>
+  <div class="toggle-wrap">
+    <button class="btn-toggle" onclick="toggleAns(9)"><span class="arrow" id="arrow9">▶</span> 정답 및 해설 보기</button>
+    <div class="answer-box" id="ans9">
+      <div class="ans-label">정답</div>
+      <div class="ans-value"><span class="highlight">C. 0</span></div>
+      <div class="ans-explanation">
+        E[X] = ∫₋₁¹ x · (1/2) dx = 0 (대칭)<br>
+        E[Y] = E[X²] = ∫₋₁¹ x² · (1/2) dx = [x³/6]₋₁¹ = 1/3<br>
+        E[XY] = E[X·X²] = E[X³] = ∫₋₁¹ x³ · (1/2) dx = 0 (홀함수의 대칭 적분)<br><br>
+        Cov(X,Y) = E[XY] − E[X]·E[Y] = 0 − 0 · (1/3) = <strong>0</strong><br><br>
+        → 공분산이 0이지만 X와 Y는 Y=X²으로 <strong>명백히 종속</strong>. 독립 ≠ 무상관.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Q10 응용 -->
+<div class="quiz-card" id="card10">
+  <div class="card-top">
+    <div class="q-num">10</div>
+    <div class="q-body">
+      <div class="q-tags">
+        <span class="tag tag-type">OX 문제</span>
+        <span class="tag tag-applied">[응용]</span>
+        <span class="tag tag-ref">문제 5 참조</span>
+        <span class="difficulty">⭐⭐⭐ 어려움</span>
+      </div>
+      <div class="q-text">
+        다음 명제의 참/거짓을 판별하라:<br><br>
+        <em>"X ~ Uniform(0, 1), Y = X² 로 정의하면, Cov(X, Y) = 0이 되어 상관계수도 0이므로, X와 Y는 서로 독립이다."</em>
+      </div>
+    </div>
+  </div>
+  <div class="ox-options">
+    <div class="ox-btn" onclick="selectOX(10,'O')">⭕ O</div>
+    <div class="ox-btn" onclick="selectOX(10,'X')">❌ X</div>
+  </div>
+  <div class="result-badge" id="badge10"></div>
+  <div class="toggle-wrap">
+    <button class="btn-toggle" onclick="toggleAns(10)"><span class="arrow" id="arrow10">▶</span> 정답 및 해설 보기</button>
+    <div class="answer-box" id="ans10">
+      <div class="ans-label">정답</div>
+      <div class="ans-value"><span class="highlight">❌ X (거짓)</span></div>
+      <div class="ans-explanation">
+        <strong>① Cov(X,Y) 계산:</strong> X ~ U(0,1)이면 E[X]=1/2, E[Y]=E[X²]=1/3, E[XY]=E[X³]=1/4<br>
+        Cov(X,Y) = 1/4 − (1/2)(1/3) = 1/4 − 1/6 = <strong>1/12 ≠ 0</strong><br><br>
+        → 범위가 (−1,1)이 아닌 (0,1)이면 대칭성이 없으므로 공분산도 0이 아니다.<br>
+        명제의 전제 자체가 틀렸으므로 <strong>전체 명제는 거짓</strong>.<br><br>
+        핵심: "상관계수=0 → 독립"은 <strong>거짓</strong>이지만, 이 경우엔 그 전제조차 성립 안 함.
+      </div>
+      <div class="ans-variation">
+        <strong>변형 포인트:</strong> 원본 Uniform(−1,1)에서 대칭성으로 Cov=0인 특수 케이스를 Uniform(0,1)으로 바꿔 대칭 구조를 제거. "상관계수=0이면 독립"이라는 오개념과 함께, 범위 변화에 따른 공분산 부호 변화를 동시에 물음.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ SECTION 06 ═══════════════════════════════════════ -->
+<div class="section-header">
+  <span class="section-num">06</span>
+  <span class="section-title">중심극한정리</span>
+  <div class="section-line"></div>
+</div>
+
+<!-- Q11 기본 -->
+<div class="quiz-card" id="card11">
+  <div class="card-top">
+    <div class="q-num">11</div>
+    <div class="q-body">
+      <div class="q-tags">
+        <span class="tag tag-type">객관식</span>
+        <span class="tag tag-basic">기본</span>
+        <span class="tag tag-ref">문제 6 참조</span>
+        <span class="difficulty">⭐⭐ 보통</span>
+      </div>
+      <div class="q-text">
+        불량률 p=0.2인 공장에서 n=100개를 추출할 때 불량품 수 Sₙ의 분포와 기댓값/분산으로 옳은 것은?
+      </div>
+    </div>
+  </div>
+  <div class="mc-options" id="mc11">
+    <div class="mc-opt" onclick="selectMC(11,'A')"><span class="mc-label">A</span> Sₙ ~ B(100, 0.2), E[Sₙ]=20, Var(Sₙ)=16</div>
+    <div class="mc-opt" onclick="selectMC(11,'B')"><span class="mc-label">B</span> Sₙ ~ B(100, 0.2), E[Sₙ]=20, Var(Sₙ)=20</div>
+    <div class="mc-opt" onclick="selectMC(11,'C')"><span class="mc-label">C</span> Sₙ ~ N(20, 16), E[Sₙ]=20, Var(Sₙ)=16</div>
+    <div class="mc-opt" onclick="selectMC(11,'D')"><span class="mc-label">D</span> Sₙ ~ Poisson(20), E[Sₙ]=20, Var(Sₙ)=20</div>
+  </div>
+  <div class="result-badge" id="badge11"></div>
+  <div class="toggle-wrap">
+    <button class="btn-toggle" onclick="toggleAns(11)"><span class="arrow" id="arrow11">▶</span> 정답 및 해설 보기</button>
+    <div class="answer-box" id="ans11">
+      <div class="ans-label">정답</div>
+      <div class="ans-value"><span class="highlight">A. Sₙ ~ B(100, 0.2), E[Sₙ]=20, Var(Sₙ)=16</span></div>
+      <div class="ans-explanation">
+        Sₙ은 베르누이 시행의 합이므로 <strong>이항분포 B(n, p) = B(100, 0.2)</strong>.<br>
+        E[Sₙ] = np = 100 × 0.2 = <strong>20</strong><br>
+        Var(Sₙ) = np(1−p) = 100 × 0.2 × 0.8 = <strong>16</strong><br><br>
+        정규분포 N(20,16)은 CLT를 통한 <strong>근사</strong>이지, 정확한 분포가 아니다.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Q12 응용 -->
+<div class="quiz-card" id="card12">
+  <div class="card-top">
+    <div class="q-num">12</div>
+    <div class="q-body">
+      <div class="q-tags">
+        <span class="tag tag-type">객관식</span>
+        <span class="tag tag-applied">[응용]</span>
+        <span class="tag tag-ref">문제 6 참조</span>
+        <span class="difficulty">⭐⭐⭐ 어려움</span>
+      </div>
+      <div class="q-text">
+        불량률이 p=0.3, n=100으로 변경되었다. CLT를 이용하여<br>
+        <span class="math">P(Sₙ ≤ 24)</span>에 가장 가까운 값은?<br>
+        <div class="q-hint">참고: Φ(−1.09) ≈ 0.1379, Φ(−1.10) ≈ 0.1357</div>
+      </div>
+    </div>
+  </div>
+  <div class="mc-options" id="mc12">
+    <div class="mc-opt" onclick="selectMC(12,'A')"><span class="mc-label">A</span> 0.1379</div>
+    <div class="mc-opt" onclick="selectMC(12,'B')"><span class="mc-label">B</span> 0.8621</div>
+    <div class="mc-opt" onclick="selectMC(12,'C')"><span class="mc-label">C</span> 0.5000</div>
+    <div class="mc-opt" onclick="selectMC(12,'D')"><span class="mc-label">D</span> 0.7580</div>
+  </div>
+  <div class="result-badge" id="badge12"></div>
+  <div class="toggle-wrap">
+    <button class="btn-toggle" onclick="toggleAns(12)"><span class="arrow" id="arrow12">▶</span> 정답 및 해설 보기</button>
+    <div class="answer-box" id="ans12">
+      <div class="ans-label">정답</div>
+      <div class="ans-value"><span class="highlight">A. 0.1379</span></div>
+      <div class="ans-explanation">
+        p=0.3, n=100 → E[Sₙ]=30, Var(Sₙ)=100×0.3×0.7=21, σ=√21≈4.583<br><br>
+        Z = (24 − 30) / √21 = −6 / 4.583 ≈ <strong>−1.309</strong><br>
+        → 제공된 값 중 Φ(−1.09) ≈ 0.1379에 가장 가까움.<br><br>
+        따라서 P(Sₙ ≤ 24) ≈ <strong>0.1379</strong>
+      </div>
+      <div class="ans-variation">
+        <strong>변형 포인트:</strong> 원본 p=0.2, P(Sₙ>25)를 p=0.3, P(Sₙ≤24)로 변환. 불량률 증가로 평균이 20→30으로 이동하여 Z-score의 부호가 반전되고 크기도 달라짐. 방향 역전 + 수치 변형 복합 응용.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ SECTION 07 ═══════════════════════════════════════ -->
+<div class="section-header">
+  <span class="section-num">07</span>
+  <span class="section-title">주변 확률과 조건부 확률</span>
+  <div class="section-line"></div>
+</div>
+
+<!-- Q13 기본 -->
+<div class="quiz-card" id="card13">
+  <div class="card-top">
+    <div class="q-num">13</div>
+    <div class="q-body">
+      <div class="q-tags">
+        <span class="tag tag-type">객관식</span>
+        <span class="tag tag-basic">기본</span>
+        <span class="tag tag-ref">문제 7 참조</span>
+        <span class="difficulty">⭐⭐ 보통</span>
+      </div>
+      <div class="q-text">
+        공정한 동전을 처음 뒷면이 나올 때까지 던진 횟수 X의 PMF <span class="math">P(X=k)</span>와 기댓값 E[X]로 옳은 것은?
+      </div>
+    </div>
+  </div>
+  <div class="mc-options" id="mc13">
+    <div class="mc-opt" onclick="selectMC(13,'A')"><span class="mc-label">A</span> P(X=k) = (1/2)ᵏ, E[X] = 1</div>
+    <div class="mc-opt" onclick="selectMC(13,'B')"><span class="mc-label">B</span> P(X=k) = (1/2)ᵏ, E[X] = 2</div>
+    <div class="mc-opt" onclick="selectMC(13,'C')"><span class="mc-label">C</span> P(X=k) = (1/2)^(k−1) · (1/2), E[X] = 1</div>
+    <div class="mc-opt" onclick="selectMC(13,'D')"><span class="mc-label">D</span> P(X=k) = (1/2)^(k−1) · (1/2), E[X] = 2</div>
+  </div>
+  <div class="result-badge" id="badge13"></div>
+  <div class="toggle-wrap">
+    <button class="btn-toggle" onclick="toggleAns(13)"><span class="arrow" id="arrow13">▶</span> 정답 및 해설 보기</button>
+    <div class="answer-box" id="ans13">
+      <div class="ans-label">정답</div>
+      <div class="ans-value"><span class="highlight">D. P(X=k) = (1/2)^(k−1) · (1/2), E[X] = 2</span></div>
+      <div class="ans-explanation">
+        처음 k−1번은 앞면, k번째에 뒷면이 나와야 하므로:<br>
+        <strong>P(X=k) = (1/2)^(k−1) · (1/2) = (1/2)^k</strong> (k=1,2,3,...)<br><br>
+        이는 기하분포(Geometric distribution)이며:<br>
+        <strong>E[X] = 1/p = 1/(1/2) = 2</strong><br><br>
+        ※ 선택지 A, B는 표기가 맞지만 E[X]가 다름. D가 정확.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Q14 응용 -->
+<div class="quiz-card" id="card14">
+  <div class="card-top">
+    <div class="q-num">14</div>
+    <div class="q-body">
+      <div class="q-tags">
+        <span class="tag tag-type">객관식</span>
+        <span class="tag tag-applied">[응용]</span>
+        <span class="tag tag-ref">문제 7 참조</span>
+        <span class="difficulty">⭐⭐⭐ 어려움</span>
+      </div>
+      <div class="q-text">
+        X는 공정한 동전을 처음 뒷면이 나올 때까지의 횟수 (P(X=k) = (1/2)^k).<br>
+        X번 동안 공정한 동전을 다시 던져 <strong>X번 모두 앞면</strong>이 나오는 사건을 A라 하자.<br><br>
+        주변 확률 <span class="math">P(A) = Σ P(A|X=k)·P(X=k)</span>를 계산하면?
+      </div>
+    </div>
+  </div>
+  <div class="mc-options" id="mc14">
+    <div class="mc-opt" onclick="selectMC(14,'A')"><span class="mc-label">A</span> 1/2</div>
+    <div class="mc-opt" onclick="selectMC(14,'B')"><span class="mc-label">B</span> 1/3</div>
+    <div class="mc-opt" onclick="selectMC(14,'C')"><span class="mc-label">C</span> 1/4</div>
+    <div class="mc-opt" onclick="selectMC(14,'D')"><span class="mc-label">D</span> 2/5</div>
+  </div>
+  <div class="result-badge" id="badge14"></div>
+  <div class="toggle-wrap">
+    <button class="btn-toggle" onclick="toggleAns(14)"><span class="arrow" id="arrow14">▶</span> 정답 및 해설 보기</button>
+    <div class="answer-box" id="ans14">
+      <div class="ans-label">정답</div>
+      <div class="ans-value"><span class="highlight">B. 1/3</span></div>
+      <div class="ans-explanation">
+        X=k이면 X번 모두 앞면일 확률: P(A|X=k) = (1/2)^k<br><br>
+        P(A) = Σ_{k=1}^∞ P(A|X=k) · P(X=k)<br>
+        = Σ_{k=1}^∞ (1/2)^k · (1/2)^k<br>
+        = Σ_{k=1}^∞ (1/4)^k<br>
+        = (1/4) / (1 − 1/4) &nbsp;← 등비급수 공식 a/(1−r)<br>
+        = (1/4) / (3/4) = <strong>1/3</strong>
+      </div>
+      <div class="ans-variation">
+        <strong>변형 포인트:</strong> 원본 문제 7-4의 풀이 구조 그대로 유지하되, 최종 계산을 객관식으로 변환. 등비급수 수렴 공식을 적용하는 핵심 단계를 확인하는 문제. P(A|X=k)·P(X=k) = (1/4)^k 로 변환되는 순간이 핵심.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <div style="margin-bottom:0.5rem;color:var(--text-muted);">기계학습 확률론 연습문제 퀴즈 · 인천대학교 컴퓨터공학부 2026년 1학기</div>
+  <div>총 14문제 | 기본 7문제 + 응용 7문제</div>
+</footer>
+
+<script>
+  // ── STATE ──
+  const answers = {
+    mc: { 1:'B', 2:'D', 6:'C', 8:'A', 9:'C', 11:'A', 12:'A', 13:'D', 14:'B' },
+    ox: { 3:'O', 4:'O', 10:'X' },
+    short: {}
+  };
+  const userAnswers = {};
+  const scored = {};
+
+  // ── MC ──
+  function selectMC(qNum, opt) {
+    if (scored[qNum]) return;
+    const opts = document.querySelectorAll(`#mc${qNum} .mc-opt`);
+    opts.forEach(o => o.classList.remove('selected'));
+    event.currentTarget.classList.add('selected');
+    userAnswers[qNum] = opt;
+    gradeMC(qNum);
+  }
+
+  function gradeMC(qNum) {
+    const correct = answers.mc[qNum];
+    const selected = userAnswers[qNum];
+    if (!selected) return;
+    const opts = document.querySelectorAll(`#mc${qNum} .mc-opt`);
+    const labels = ['A','B','C','D'];
+    opts.forEach((o, i) => {
+      if (labels[i] === correct) o.classList.add('correct-opt');
+      else if (labels[i] === selected && selected !== correct) o.classList.add('wrong-opt');
+    });
+    markResult(qNum, selected === correct);
+    scored[qNum] = true;
+    updateScore();
+  }
+
+  // ── OX ──
+  function selectOX(qNum, opt) {
+    if (scored[qNum]) return;
+    const btns = document.querySelectorAll(`#card${qNum} .ox-btn`);
+    btns.forEach(b => b.classList.remove('selected'));
+    event.currentTarget.classList.add('selected');
+    userAnswers[qNum] = opt;
+    gradeOX(qNum);
+  }
+
+  function gradeOX(qNum) {
+    const correct = answers.ox[qNum];
+    const selected = userAnswers[qNum];
+    if (!selected) return;
+    const btns = document.querySelectorAll(`#card${qNum} .ox-btn`);
+    const vals = ['O','X'];
+    btns.forEach((b, i) => {
+      if (vals[i] === correct) b.classList.add('correct-opt');
+      else if (vals[i] === selected && selected !== correct) b.classList.add('wrong-opt');
+    });
+    markResult(qNum, selected === correct);
+    scored[qNum] = true;
+    updateScore();
+  }
+
+  // ── SHORT ──
+  function checkShort(qNum, correctVal, acceptList) {
+    if (scored[qNum]) return;
+    const input = document.getElementById(`short${qNum}`);
+    const val = input.value.trim();
+    const isCorrect = acceptList.includes(val);
+    input.classList.add(isCorrect ? 'correct-input' : 'wrong-input');
+    markResult(qNum, isCorrect);
+    scored[qNum] = true;
+    updateScore();
+  }
+
+  // ── HELPERS ──
+  function markResult(qNum, isCorrect) {
+    const badge = document.getElementById(`badge${qNum}`);
+    const card = document.getElementById(`card${qNum}`);
+    badge.className = `result-badge show ${isCorrect ? 'correct' : 'wrong'}`;
+    badge.textContent = isCorrect ? '✓ 정답입니다!' : '✗ 오답입니다. 해설을 확인하세요.';
+    card.classList.add(isCorrect ? 'answered-correct' : 'answered-wrong');
+  }
+
+  function toggleAns(qNum) {
+    const box = document.getElementById(`ans${qNum}`);
+    const arrow = document.getElementById(`arrow${qNum}`);
+    const isOpen = box.classList.contains('open');
+    box.classList.toggle('open', !isOpen);
+    arrow.classList.toggle('open', !isOpen);
+  }
+
+  function updateScore() {
+    const total = Object.keys(scored).length;
+    const correct = Object.entries(scored).filter(([k]) => {
+      const card = document.getElementById(`card${k}`);
+      return card && card.classList.contains('answered-correct');
+    }).length;
+    // recount
+    let c = 0;
+    Object.keys(scored).forEach(k => {
+      if (document.getElementById(`card${k}`).classList.contains('answered-correct')) c++;
+    });
+    document.getElementById('scoreNum').textContent = `${c} / ${total}`;
+    const pct = total > 0 ? Math.round((c/total)*100) : 0;
+    document.getElementById('scoreBar').style.width = pct + '%';
+  }
+
+  function gradeAll() {
+    // grade all mc
+    Object.keys(answers.mc).forEach(q => { if (!scored[q]) { if (userAnswers[q]) gradeMC(parseInt(q)); } });
+    Object.keys(answers.ox).forEach(q => { if (!scored[q]) { if (userAnswers[q]) gradeOX(parseInt(q)); } });
+  }
+
+  function resetAll() {
+    Object.keys(scored).forEach(k => delete scored[k]);
+    Object.keys(userAnswers).forEach(k => delete userAnswers[k]);
+    // reset MC
+    document.querySelectorAll('.mc-opt').forEach(o => o.className = 'mc-opt');
+    document.querySelectorAll('.ox-btn').forEach(b => b.className = 'ox-btn');
+    document.querySelectorAll('.short-input').forEach(i => { i.className = 'short-input'; i.value = ''; });
+    document.querySelectorAll('.result-badge').forEach(b => b.className = 'result-badge');
+    document.querySelectorAll('.quiz-card').forEach(c => { c.classList.remove('answered-correct','answered-wrong'); });
+    document.querySelectorAll('.answer-box').forEach(b => b.classList.remove('open'));
+    document.querySelectorAll('.arrow').forEach(a => a.classList.remove('open'));
+    document.getElementById('scoreNum').textContent = '0 / 0';
+    document.getElementById('scoreBar').style.width = '0%';
+
+    // re-attach MC click (simple re-add handlers by re-setting onclick attrs)
+    document.querySelectorAll('.mc-opt').forEach(opt => {
+      opt.onclick = function() { selectMC(...arguments); };
+    });
+  }
+</script>
+</body>
+</html>
