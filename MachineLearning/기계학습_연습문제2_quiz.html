@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>기계학습 연습문제2 — 응용 문제집</title>
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --surface: #111827;
+    --surface2: #1a2235;
+    --surface3: #1e2d45;
+    --border: #2a3a55;
+    --accent: #3b82f6;
+    --accent2: #06b6d4;
+    --accent3: #8b5cf6;
+    --green: #10b981;
+    --yellow: #f59e0b;
+    --red: #ef4444;
+    --text: #e2e8f0;
+    --text-muted: #94a3b8;
+    --text-dim: #64748b;
+    --orig-tag: #1e40af;
+    --apply-tag: #7c3aed;
+    --font-body: 'Apple SD Gothic Neo', 'Malgun Gothic', 'Nanum Gothic', sans-serif;
+    --font-code: 'Menlo', 'Courier New', monospace;
+    --font-head: 'Impact', 'Arial Narrow', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.75;
+    min-height: 100vh;
+  }
+
+  /* ── 헤더 ── */
+  .hero {
+    background: linear-gradient(135deg, #0d1b35 0%, #0a0e1a 50%, #0d1535 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 48px 32px 36px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 60% 50% at 50% 0%, rgba(59,130,246,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-label {
+    font-family: var(--font-code);
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--accent2);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .hero h1 {
+    font-family: var(--font-head);
+    font-size: clamp(24px, 4vw, 40px);
+    letter-spacing: 2px;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+  .hero h1 span { color: var(--accent); }
+  .hero-sub {
+    color: var(--text-muted);
+    font-size: 13px;
+  }
+  .hero-badges {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 20px;
+    flex-wrap: wrap;
+  }
+  .badge {
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-family: var(--font-code);
+    border: 1px solid;
+  }
+  .badge-blue { background: rgba(59,130,246,0.15); border-color: rgba(59,130,246,0.4); color: #93c5fd; }
+  .badge-purple { background: rgba(139,92,246,0.15); border-color: rgba(139,92,246,0.4); color: #c4b5fd; }
+  .badge-cyan { background: rgba(6,182,212,0.15); border-color: rgba(6,182,212,0.4); color: #67e8f9; }
+
+  /* ── 레이아웃 ── */
+  .container { max-width: 1100px; margin: 0 auto; padding: 40px 24px; }
+
+  /* ── 섹션 헤더 ── */
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 28px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-num {
+    font-family: var(--font-head);
+    font-size: 36px;
+    letter-spacing: -1px;
+    color: var(--accent);
+    opacity: 0.5;
+    min-width: 48px;
+  }
+  .section-info h2 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 2px;
+  }
+  .section-info p {
+    font-size: 12px;
+    color: var(--text-dim);
+    font-family: var(--font-code);
+  }
+
+  /* ── 문제 카드 쌍 ── */
+  .problem-pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 28px;
+  }
+  @media (max-width: 720px) {
+    .problem-pair { grid-template-columns: 1fr; }
+  }
+
+  .problem-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .card-tag {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 20px;
+    font-size: 11px;
+    font-family: var(--font-code);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+  }
+  .card-tag.orig { background: rgba(30,64,175,0.25); color: #93c5fd; }
+  .card-tag.apply { background: rgba(124,58,237,0.25); color: #c4b5fd; }
+  .tag-dot { width: 6px; height: 6px; border-radius: 50%; }
+  .orig .tag-dot { background: #3b82f6; }
+  .apply .tag-dot { background: #8b5cf6; }
+
+  .card-body { padding: 20px; flex: 1; }
+
+  .card-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .diff {
+    font-size: 11px;
+    padding: 1px 8px;
+    border-radius: 4px;
+    font-weight: 400;
+  }
+  .diff-1 { background: rgba(16,185,129,0.2); color: #6ee7b7; border: 1px solid rgba(16,185,129,0.3); }
+  .diff-2 { background: rgba(245,158,11,0.2); color: #fcd34d; border: 1px solid rgba(245,158,11,0.3); }
+  .diff-3 { background: rgba(239,68,68,0.2); color: #fca5a5; border: 1px solid rgba(239,68,68,0.3); }
+
+  .problem-text {
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.8;
+    margin-bottom: 14px;
+  }
+  .problem-text strong { color: var(--text); font-weight: 600; }
+
+  /* 데이터 테이블 */
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin: 10px 0;
+    font-family: var(--font-code);
+  }
+  .data-table th {
+    background: var(--surface3);
+    color: var(--accent2);
+    padding: 6px 12px;
+    text-align: center;
+    border: 1px solid var(--border);
+    font-size: 12px;
+  }
+  .data-table td {
+    padding: 5px 12px;
+    text-align: center;
+    border: 1px solid var(--border);
+    color: var(--text);
+  }
+  .data-table tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+
+  /* 수식 블록 */
+  .math {
+    background: var(--surface2);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 6px 6px 0;
+    padding: 10px 14px;
+    font-family: var(--font-code);
+    font-size: 13px;
+    color: #a5f3fc;
+    margin: 10px 0;
+    overflow-x: auto;
+  }
+
+  /* 변형 포인트 */
+  .variation-badge {
+    background: rgba(139,92,246,0.12);
+    border: 1px solid rgba(139,92,246,0.3);
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 12px;
+    color: #c4b5fd;
+    margin-top: 12px;
+    font-family: var(--font-code);
+  }
+  .variation-badge::before {
+    content: '◈ 변형 포인트 — ';
+    color: #8b5cf6;
+    font-weight: 600;
+  }
+
+  /* 문제 목록 */
+  .sub-list {
+    list-style: none;
+    counter-reset: sub;
+    margin: 10px 0;
+  }
+  .sub-list li {
+    counter-increment: sub;
+    display: flex;
+    gap: 8px;
+    margin-bottom: 6px;
+    font-size: 13.5px;
+    color: var(--text-muted);
+  }
+  .sub-list li::before {
+    content: counter(sub) '.';
+    color: var(--accent);
+    font-family: var(--font-code);
+    font-size: 12px;
+    min-width: 16px;
+    padding-top: 2px;
+  }
+
+  /* 정답 토글 */
+  .toggle-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 10px 20px;
+    background: var(--surface2);
+    border: none;
+    border-top: 1px solid var(--border);
+    color: var(--text-dim);
+    font-family: var(--font-body);
+    font-size: 13px;
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.2s, color 0.2s;
+  }
+  .toggle-btn:hover { background: var(--surface3); color: var(--text); }
+  .toggle-btn .arrow {
+    margin-left: auto;
+    transition: transform 0.3s;
+    font-size: 11px;
+  }
+  .toggle-btn.open { color: var(--accent2); }
+  .toggle-btn.open .arrow { transform: rotate(180deg); }
+
+  .answer-panel {
+    display: none;
+    padding: 18px 20px;
+    background: rgba(6,182,212,0.04);
+    border-top: 1px solid rgba(6,182,212,0.15);
+    font-size: 13.5px;
+    line-height: 1.85;
+  }
+  .answer-panel.open { display: block; }
+
+  .ans-step {
+    margin-bottom: 10px;
+    color: var(--text-muted);
+  }
+  .ans-step strong { color: var(--accent2); font-family: var(--font-code); }
+  .ans-final {
+    background: rgba(16,185,129,0.12);
+    border: 1px solid rgba(16,185,129,0.3);
+    border-radius: 6px;
+    padding: 8px 14px;
+    font-family: var(--font-code);
+    font-size: 13px;
+    color: #6ee7b7;
+    margin-top: 8px;
+  }
+  .ans-point {
+    background: rgba(139,92,246,0.1);
+    border: 1px solid rgba(139,92,246,0.25);
+    border-radius: 6px;
+    padding: 8px 14px;
+    font-size: 12px;
+    color: #c4b5fd;
+    margin-top: 10px;
+  }
+  .ans-point::before { content: '📌 '; }
+
+  /* 구분선 */
+  .divider { border: none; border-top: 1px solid var(--border); margin: 36px 0; }
+
+  /* 스크롤 */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<!-- ── 헤더 ── -->
+<div class="hero">
+  <div class="hero-label">인천대학교 컴퓨터공학부 · 기계학습 2026-1</div>
+  <h1>연습문제 <span>2</span> — 응용 문제집</h1>
+  <div class="hero-sub">선형 회귀 · 이진 분류 · 가우시안 분류 · 다중클래스 MLE</div>
+  <div class="hero-badges">
+    <span class="badge badge-blue">원본 4문제</span>
+    <span class="badge badge-purple">응용 8문제</span>
+    <span class="badge badge-cyan">정답 토글 제공</span>
+  </div>
+</div>
+
+<div class="container">
+
+<!-- ════════════════════════════════ 문제 1 ════════════════════════════════ -->
+<div class="section-header">
+  <div class="section-num">01</div>
+  <div class="section-info">
+    <h2>선형 회귀 — MSE 최소화</h2>
+    <p>Linear Regression · Normal Equation · Least Squares</p>
+  </div>
+</div>
+
+<!-- 응용 1-A -->
+<div class="problem-pair">
+
+  <!-- 원본 요약 -->
+  <div class="problem-card">
+    <div class="card-tag orig"><span class="tag-dot"></span>원본 문제 요약</div>
+    <div class="card-body">
+      <div class="card-title">문제 1 <span class="diff diff-2">⭐⭐ 보통</span></div>
+      <div class="problem-text">
+        N=3 데이터 포인트에 대해 <strong>ŷ = θ₁x + θ₀</strong> 모델 학습.<br>
+        편미분=0 연립방정식으로 θ*₀, θ*₁ 도출 후 x=4 예측.
+      </div>
+      <table class="data-table">
+        <tr><th>i</th><th>1</th><th>2</th><th>3</th></tr>
+        <tr><td>xᵢ</td><td>1</td><td>2</td><td>3</td></tr>
+        <tr><td>yᵢ</td><td>1</td><td>3</td><td>2</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- 응용 1-A -->
+  <div class="problem-card">
+    <div class="card-tag apply"><span class="tag-dot"></span>[응용 1-A] 수치 변형</div>
+    <div class="card-body">
+      <div class="card-title">데이터 변경 + 예측 확장 <span class="diff diff-2">⭐⭐ 보통</span></div>
+      <div class="problem-text">
+        아래 <strong>N=3</strong> 데이터에 대해 동일한 MSE 손실 함수를 사용한다.
+      </div>
+      <table class="data-table">
+        <tr><th>i</th><th>1</th><th>2</th><th>3</th></tr>
+        <tr><td>xᵢ</td><td>1</td><td>2</td><td>3</td></tr>
+        <tr><td>yᵢ</td><td>2</td><td>2</td><td>4</td></tr>
+      </table>
+      <ol class="sub-list">
+        <li>Σxᵢ, Σyᵢ, Σxᵢ², Σxᵢyᵢ 를 계산하라.</li>
+        <li>편미분=0 조건으로 연립방정식 두 개를 세워라.</li>
+        <li>θ*₀, θ*₁ 을 구하라.</li>
+        <li>x=5 일 때 예측값 ŷ 를 구하라.</li>
+      </ol>
+      <div class="variation-badge">y값 변경 (1,3,2 → 2,2,4), 예측 지점 x=4 → x=5</div>
+    </div>
+    <button class="toggle-btn" onclick="toggle(this)">
+      정답 및 풀이 보기 <span class="arrow">▼</span>
+    </button>
+    <div class="answer-panel">
+      <div class="ans-step"><strong>Step 1 합산값</strong><br>
+        Σxᵢ = 1+2+3 = 6, &nbsp; Σyᵢ = 2+2+4 = 8<br>
+        Σxᵢ² = 1+4+9 = 14, &nbsp; Σxᵢyᵢ = 1·2+2·2+3·4 = 2+4+12 = 18
+      </div>
+      <div class="ans-step"><strong>Step 2 연립방정식</strong><br>
+        ∂J/∂θ₀=0 : &nbsp; θ₀·N + θ₁·Σxᵢ = Σyᵢ<br>
+        &nbsp;&nbsp;&nbsp;→ 3θ₀ + 6θ₁ = 8 &nbsp; … ①<br>
+        ∂J/∂θ₁=0 : &nbsp; θ₀·Σxᵢ + θ₁·Σxᵢ² = Σxᵢyᵢ<br>
+        &nbsp;&nbsp;&nbsp;→ 6θ₀ + 14θ₁ = 18 &nbsp; … ②
+      </div>
+      <div class="ans-step"><strong>Step 3 풀이</strong><br>
+        ①×2 : 6θ₀ + 12θ₁ = 16<br>
+        ②−①×2 : 2θ₁ = 2 &nbsp;→ <em>θ*₁ = 1</em><br>
+        ①에 대입 : 3θ₀ = 8−6 = 2 &nbsp;→ <em>θ*₀ = 2/3</em>
+      </div>
+      <div class="ans-step"><strong>Step 4 예측</strong><br>
+        ŷ(5) = 1·5 + 2/3 = 5 + 2/3
+      </div>
+      <div class="ans-final">θ*₀ = 2/3, &nbsp; θ*₁ = 1, &nbsp; ŷ(5) = 17/3 ≈ 5.67</div>
+      <div class="ans-point">y값 분포가 바뀌어도 연립방정식 풀이 구조(①×2 → 소거)는 동일함. Σxᵢ, Σxᵢ²는 x가 같으므로 변하지 않는다.</div>
+    </div>
+  </div>
+</div>
+
+<!-- 응용 1-B -->
+<div class="problem-pair">
+  <div class="problem-card" style="border-color: rgba(139,92,246,0.3);">
+    <div class="card-tag apply"><span class="tag-dot"></span>[응용 1-B] 역방향 문제</div>
+    <div class="card-body">
+      <div class="card-title">θ*₁ 역산 <span class="diff diff-3">⭐⭐⭐ 어려움</span></div>
+      <div class="problem-text">
+        원본 데이터(xᵢ = 1,2,3)를 유지하되, 아래 조건을 만족시키고자 한다.
+      </div>
+      <div class="math">ŷ(x=4) = 3 &nbsp;&nbsp; (즉, 4에서의 예측값이 정확히 3)</div>
+      <ol class="sub-list">
+        <li>θ*₁과 θ*₀ 사이의 관계식 <code>θ*₀ = 3 − 4θ*₁</code> 을 도출하라.</li>
+        <li>원본 문제의 연립방정식 구조를 활용하여, 이 조건을 만족하는 yᵢ 값의 조합 하나를 역으로 제시하라. (Σyᵢ 와 Σxᵢyᵢ 를 먼저 결정하라.)</li>
+        <li>원본 데이터(yᵢ = 1,3,2)와 비교했을 때, ŷ(4)가 달라지는 이유를 θ*₁의 변화 관점에서 설명하라.</li>
+      </ol>
+      <div class="variation-badge">결과값(ŷ=3) 고정 → θ*, yᵢ 역산. 풀이 방향이 순방향과 반대.</div>
+    </div>
+    <button class="toggle-btn" onclick="toggle(this)">
+      정답 및 풀이 보기 <span class="arrow">▼</span>
+    </button>
+    <div class="answer-panel">
+      <div class="ans-step"><strong>Step 1 조건 설정</strong><br>
+        ŷ(4) = 4θ*₁ + θ*₀ = 3 &nbsp;→ θ*₀ = 3 − 4θ*₁ &nbsp; … (*)
+      </div>
+      <div class="ans-step"><strong>Step 2 역산</strong><br>
+        xᵢ = 1,2,3 고정이므로 Σxᵢ=6, Σxᵢ²=14는 변하지 않는다.<br>
+        연립방정식 구조 :<br>
+        &nbsp; ① 3θ₀ + 6θ₁ = Σyᵢ<br>
+        &nbsp; ② 6θ₀ + 14θ₁ = Σxᵢyᵢ<br>
+        (*)를 ①에 대입: 3(3−4θ₁) + 6θ₁ = Σyᵢ → 9−6θ₁ = Σyᵢ<br>
+        θ₁을 자유롭게 선택. 예) <em>θ*₁ = 1</em> → θ*₀ = −1, Σyᵢ = 3<br>
+        → yᵢ 예시: (0, 1, 2) — 이를 검증하면 Σxᵢyᵢ = 0+2+6=8 일치.
+      </div>
+      <div class="ans-step"><strong>Step 3 비교 설명</strong><br>
+        원본 데이터의 최적 기울기 θ*₁ = 1/2이었으나,<br>
+        ŷ(4)=3이 되려면 θ*₁=1이 되어야 하므로 기울기가 커져야 하며<br>
+        이는 y값의 증가 폭이 더 가파른 데이터로 변경해야 가능하다.
+      </div>
+      <div class="ans-final">yᵢ = (0,1,2) 등 Σyᵢ=3, Σxᵢyᵢ=8 을 만족하는 조합<br>→ θ*₀=−1, θ*₁=1, ŷ(4)=3 ✓</div>
+      <div class="ans-point">역방향 문제 핵심: 결과(ŷ)→θ 조건→(Σyᵢ, Σxᵢyᵢ)→yᵢ 역산 순서로 접근.</div>
+    </div>
+  </div>
+
+  <div class="problem-card" style="background: var(--surface2); border-style: dashed; border-color: var(--border); align-items: center; justify-content: center;">
+    <div class="card-body" style="text-align:center; color: var(--text-dim);">
+      <div style="font-size:32px; margin-bottom:12px;">📐</div>
+      <div style="font-family: var(--font-code); font-size:12px;">원본 1-B는 역방향 단독 문제<br>별도 원본 비교 없음</div>
+    </div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ════════════════════════════════ 문제 2 ════════════════════════════════ -->
+<div class="section-header">
+  <div class="section-num">02</div>
+  <div class="section-info">
+    <h2>이진 분류 — Chain Rule과 경사하강법</h2>
+    <p>Logistic Regression · BCE Loss · Gradient Descent</p>
+  </div>
+</div>
+
+<!-- 응용 2-A -->
+<div class="problem-pair">
+  <div class="problem-card">
+    <div class="card-tag orig"><span class="tag-dot"></span>원본 문제 요약</div>
+    <div class="card-body">
+      <div class="card-title">문제 2 <span class="diff diff-2">⭐⭐ 보통</span></div>
+      <div class="problem-text">
+        N=4, θ₀=θ₁=0, <strong>α=1</strong><br>
+        BCE 손실, Chain Rule 그래디언트 유도, 1스텝 경사하강법.
+      </div>
+      <table class="data-table">
+        <tr><th>i</th><th>1</th><th>2</th><th>3</th><th>4</th></tr>
+        <tr><td>xᵢ</td><td>0</td><td>1</td><td>2</td><td>3</td></tr>
+        <tr><td>yᵢ</td><td>0</td><td>0</td><td>1</td><td>1</td></tr>
+      </table>
+      <div class="math">θ ← θ − α·∂J/∂θ, &nbsp; α = 1</div>
+    </div>
+  </div>
+
+  <div class="problem-card">
+    <div class="card-tag apply"><span class="tag-dot"></span>[응용 2-A] 학습률 + 데이터 변형</div>
+    <div class="card-body">
+      <div class="card-title">α 축소 + x범위 이동 <span class="diff diff-2">⭐⭐ 보통</span></div>
+      <div class="problem-text">
+        아래 데이터와 조건으로 동일한 로지스틱 회귀를 수행한다.<br>
+        초기 파라미터 θ₀=0, θ₁=0, <strong>학습률 α=0.5</strong>.
+      </div>
+      <table class="data-table">
+        <tr><th>i</th><th>1</th><th>2</th><th>3</th><th>4</th></tr>
+        <tr><td>xᵢ</td><td>−1</td><td>0</td><td>1</td><td>2</td></tr>
+        <tr><td>yᵢ</td><td>0</td><td>0</td><td>1</td><td>1</td></tr>
+      </table>
+      <ol class="sub-list">
+        <li>초기 파라미터에서 모든 ŷᵢ와 오차 ŷᵢ−yᵢ를 구하라. (σ(0)=0.5 사용)</li>
+        <li>전체 손실 J를 계산하라. (log 0.5 = −log 2 ≈ −0.693)</li>
+        <li>∂J/∂θ₀, ∂J/∂θ₁ 을 계산하라.</li>
+        <li>α=0.5로 1스텝 업데이트 후 θ₀⁽¹⁾, θ₁⁽¹⁾ 을 구하고, x=1에서 예측 확률을 구하라.</li>
+      </ol>
+      <div class="variation-badge">x범위 (0,1,2,3) → (−1,0,1,2) 이동, 학습률 α=1 → α=0.5</div>
+    </div>
+    <button class="toggle-btn" onclick="toggle(this)">
+      정답 및 풀이 보기 <span class="arrow">▼</span>
+    </button>
+    <div class="answer-panel">
+      <div class="ans-step"><strong>Step 1 초기 예측</strong><br>
+        θ₀=θ₁=0 → 모든 zᵢ = 0 → ŷᵢ = σ(0) = 0.5<br>
+        오차: i=1: 0.5−0=0.5, i=2: 0.5, i=3: 0.5−1=−0.5, i=4: −0.5
+      </div>
+      <div class="ans-step"><strong>Step 2 손실</strong><br>
+        L₁=L₂ = −log(0.5) = log2 ≈ 0.693<br>
+        L₃=L₄ = −log(0.5) = log2 ≈ 0.693<br>
+        J = 0.693 (원본과 동일 — x가 이동해도 z=0이므로)
+      </div>
+      <div class="ans-step"><strong>Step 3 그래디언트</strong><br>
+        ∂J/∂θ₀ = (1/4)·Σ(ŷᵢ−yᵢ) = (1/4)(0.5+0.5−0.5−0.5) = <em>0</em><br>
+        ∂J/∂θ₁ = (1/4)·Σxᵢ(ŷᵢ−yᵢ)<br>
+        = (1/4)[(−1)(0.5)+(0)(0.5)+(1)(−0.5)+(2)(−0.5)]<br>
+        = (1/4)[−0.5+0−0.5−1] = (1/4)(−2) = <em>−0.5</em>
+      </div>
+      <div class="ans-step"><strong>Step 4 업데이트</strong><br>
+        θ₀⁽¹⁾ = 0 − 0.5·0 = <em>0</em><br>
+        θ₁⁽¹⁾ = 0 − 0.5·(−0.5) = <em>0.25</em><br>
+        z(x=1) = 0 + 0.25·1 = 0.25<br>
+        P(y=1|x=1) = σ(0.25) ≈ 0.562
+      </div>
+      <div class="ans-final">θ₀⁽¹⁾=0, θ₁⁽¹⁾=0.25, P(y=1|x=1) = σ(0.25) ≈ 0.562</div>
+      <div class="ans-point">원본과 ∂J/∂θ₀=0 구조가 유사하지만 ∂J/∂θ₁ 계산 시 x=−1 항으로 인해 부호 변화에 주의. α 축소로 θ₁ 업데이트 폭이 절반으로 줄어든다.</div>
+    </div>
+  </div>
+</div>
+
+<!-- 응용 2-B -->
+<div class="problem-pair">
+  <div class="problem-card" style="border-color: rgba(139,92,246,0.3);">
+    <div class="card-tag apply"><span class="tag-dot"></span>[응용 2-B] 초기 파라미터 변형</div>
+    <div class="card-body">
+      <div class="card-title">θ₀≠0 시작 조건 <span class="diff diff-3">⭐⭐⭐ 어려움</span></div>
+      <div class="problem-text">
+        원본 데이터(xᵢ=0,1,2,3, yᵢ=0,0,1,1)를 그대로 사용하되,<br>
+        초기 파라미터를 <strong>θ₀=0.5, θ₁=0</strong>으로 변경한다. α=1.
+      </div>
+      <ol class="sub-list">
+        <li>초기 파라미터에서 모든 zᵢ와 ŷᵢ를 구하라. (σ(0.5) ≈ 0.622)</li>
+        <li>오차 ŷᵢ−yᵢ를 모두 구하라.</li>
+        <li>∂J/∂θ₀, ∂J/∂θ₁을 계산하라.</li>
+        <li>1스텝 경사하강법 후 θ₀⁽¹⁾, θ₁⁽¹⁾을 구하라.</li>
+        <li>원본(θ₀=0 시작)과 비교하여 θ₁ 업데이트 방향이 왜 동일한지 설명하라.</li>
+      </ol>
+      <div class="variation-badge">초기값 θ₀=0→0.5 변경. zᵢ≠0이 되어 ŷᵢ가 모두 달라짐.</div>
+    </div>
+    <button class="toggle-btn" onclick="toggle(this)">
+      정답 및 풀이 보기 <span class="arrow">▼</span>
+    </button>
+    <div class="answer-panel">
+      <div class="ans-step"><strong>Step 1 초기 예측</strong><br>
+        zᵢ = 0.5 + 0·xᵢ = 0.5 (모든 i)<br>
+        ŷᵢ = σ(0.5) ≈ 0.622 (모든 i)
+      </div>
+      <div class="ans-step"><strong>Step 2 오차</strong><br>
+        i=1(y=0): 0.622−0 = 0.622<br>
+        i=2(y=0): 0.622<br>
+        i=3(y=1): 0.622−1 = −0.378<br>
+        i=4(y=1): −0.378
+      </div>
+      <div class="ans-step"><strong>Step 3 그래디언트</strong><br>
+        ∂J/∂θ₀ = (1/4)(0.622+0.622−0.378−0.378) = (1/4)(0.488) = <em>0.122</em><br>
+        ∂J/∂θ₁ = (1/4)[0·0.622 + 1·0.622 + 2·(−0.378) + 3·(−0.378)]<br>
+        = (1/4)[0 + 0.622 − 0.756 − 1.134] = (1/4)(−1.268) = <em>−0.317</em>
+      </div>
+      <div class="ans-step"><strong>Step 4 업데이트 (α=1)</strong><br>
+        θ₀⁽¹⁾ = 0.5 − 0.122 = <em>0.378</em><br>
+        θ₁⁽¹⁾ = 0 − (−0.317) = <em>0.317</em>
+      </div>
+      <div class="ans-step"><strong>Step 5 비교 설명</strong><br>
+        θ₁ 업데이트 방향은 ∂J/∂θ₁의 부호에 의존. ∂J/∂θ₁ = (1/N)Σxᵢ(ŷᵢ−yᵢ)에서<br>
+        x가 작은 곳(y=0)의 ŷ이 크고, x가 큰 곳(y=1)의 ŷ이 작으므로<br>
+        음의 그래디언트가 나타나 θ₁은 증가한다. 이 구조는 초기 θ₀값과 무관하게 성립한다.
+      </div>
+      <div class="ans-final">θ₀⁽¹⁾ ≈ 0.378, &nbsp; θ₁⁽¹⁾ ≈ 0.317</div>
+      <div class="ans-point">원본(θ₀=0)과 달리 ∂J/∂θ₀≠0이 되어 편향도 함께 업데이트됨. θ₁이 증가하는 방향은 데이터의 레이블 패턴(작은 x→0, 큰 x→1)에서 결정.</div>
+    </div>
+  </div>
+
+  <div class="problem-card" style="background: var(--surface2); border-style: dashed; border-color: var(--border); align-items: center; justify-content: center;">
+    <div class="card-body" style="text-align:center; color: var(--text-dim);">
+      <div style="font-size:32px; margin-bottom:12px;">🔗</div>
+      <div style="font-family: var(--font-code); font-size:12px;">응용 2-B는 독립 문제<br>원본 데이터 그대로 사용</div>
+    </div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ════════════════════════════════ 문제 3 ════════════════════════════════ -->
+<div class="section-header">
+  <div class="section-num">03</div>
+  <div class="section-info">
+    <h2>가우시안 분류 — 결정 경계</h2>
+    <p>Gaussian Classification · MLE · Decision Boundary</p>
+  </div>
+</div>
+
+<!-- 응용 3-A -->
+<div class="problem-pair">
+  <div class="problem-card">
+    <div class="card-tag orig"><span class="tag-dot"></span>원본 문제 요약</div>
+    <div class="card-body">
+      <div class="card-title">문제 3 <span class="diff diff-2">⭐⭐ 보통</span></div>
+      <div class="problem-text">
+        C1={1,2,3}, C2={5,6,7}, 동일 분산 σ².<br>
+        MLE로 µ₁, µ₂, σ² 추정 후 결정 경계 x* 계산.<br>
+        P(C1)=P(C2)=1/2 (등사전확률)
+      </div>
+      <div class="math">x* = (µ₁ + µ₂)/2 &nbsp; (등사전확률, 동일분산 조건)</div>
+    </div>
+  </div>
+
+  <div class="problem-card">
+    <div class="card-tag apply"><span class="tag-dot"></span>[응용 3-A] 수치 변형</div>
+    <div class="card-body">
+      <div class="card-title">데이터 스케일 2배 이동 <span class="diff diff-2">⭐⭐ 보통</span></div>
+      <div class="problem-text">
+        두 클래스가 아래와 같이 주어졌다. 동일 분산 가정, P(C1)=P(C2)=1/2.
+      </div>
+      <table class="data-table">
+        <tr><th>클래스</th><th>데이터</th><th>nₖ</th></tr>
+        <tr><td>C1</td><td>{2, 4, 6}</td><td>3</td></tr>
+        <tr><td>C2</td><td>{8, 10, 12}</td><td>3</td></tr>
+      </table>
+      <ol class="sub-list">
+        <li>MLE로 µ̂₁, µ̂₂ 를 구하라.</li>
+        <li>공유 분산 σ̂² 를 계산하라.</li>
+        <li>로그 우도비를 전개하여 결정 경계가 x에 대한 일차식임을 보여라.</li>
+        <li>결정 경계 x* 를 구하라.</li>
+        <li>x=6과 x=9를 분류하라.</li>
+      </ol>
+      <div class="variation-badge">C1={1,2,3}→{2,4,6}, C2={5,6,7}→{8,10,12} (스케일 2배), 예측 지점 변경</div>
+    </div>
+    <button class="toggle-btn" onclick="toggle(this)">
+      정답 및 풀이 보기 <span class="arrow">▼</span>
+    </button>
+    <div class="answer-panel">
+      <div class="ans-step"><strong>Step 1 평균</strong><br>
+        µ̂₁ = (2+4+6)/3 = <em>4</em>, &nbsp; µ̂₂ = (8+10+12)/3 = <em>10</em>
+      </div>
+      <div class="ans-step"><strong>Step 2 공유 분산</strong><br>
+        C1 편차²: (2−4)²+(4−4)²+(6−4)² = 4+0+4 = 8<br>
+        C2 편차²: (8−10)²+(10−10)²+(12−10)² = 4+0+4 = 8<br>
+        σ̂² = (8+8)/(3+3) = 16/6 = <em>8/3 ≈ 2.667</em>
+      </div>
+      <div class="ans-step"><strong>Step 3 로그 우도비</strong><br>
+        log[P(x|C1)/P(x|C2)] = [−(x−µ₁)²+（x−µ₂)²] / (2σ²)<br>
+        = [−(x−4)²+(x−10)²] / (2σ²)<br>
+        분자: −(x²−8x+16)+(x²−20x+100) = 12x−116 + (84) → 12x − 84<br>
+        ※ x² 소거 확인 ✓<br>
+        → (12x−84)/(2σ²) &nbsp; (x의 일차식)
+      </div>
+      <div class="ans-step"><strong>Step 4 결정 경계</strong><br>
+        log 우도비 = 0 → 12x−84 = 0 → <em>x* = 7</em><br>
+        (= (µ₁+µ₂)/2 = (4+10)/2 = 7 ✓)
+      </div>
+      <div class="ans-step"><strong>Step 5 분류</strong><br>
+        x=6 : 6 &lt; 7 → <em>C1</em><br>
+        x=9 : 9 &gt; 7 → <em>C2</em>
+      </div>
+      <div class="ans-final">µ̂₁=4, µ̂₂=10, σ̂²=8/3, x*=7 &nbsp;|&nbsp; x=6→C1, x=9→C2</div>
+      <div class="ans-point">원본 대비 모든 수치가 2배 스케일이지만 결정 경계는 여전히 (µ₁+µ₂)/2. 분산도 4배(원본 4/3→8/3)로 커지지만 등사전확률·동일분산 조건에서 결정 경계 위치엔 분산값이 영향 없음.</div>
+    </div>
+  </div>
+</div>
+
+<!-- 응용 3-B -->
+<div class="problem-pair">
+  <div class="problem-card" style="border-color: rgba(139,92,246,0.3);">
+    <div class="card-tag apply"><span class="tag-dot"></span>[응용 3-B] 조건 변형 — 비대칭 사전확률</div>
+    <div class="card-body">
+      <div class="card-title">P(C1)≠P(C2) 조건 <span class="diff diff-3">⭐⭐⭐ 어려움</span></div>
+      <div class="problem-text">
+        원본 데이터(C1={1,2,3}, C2={5,6,7})를 그대로 사용하되,<br>
+        사전 확률을 <strong>P(C1)=1/3, P(C2)=2/3</strong> 으로 변경한다.
+      </div>
+      <ol class="sub-list">
+        <li>원본에서 구한 µ̂₁=2, µ̂₂=6, σ̂²=4/3 을 사용하여 로그 우도비를 전개하라.</li>
+        <li>등사전확률이 아닐 때 결정 경계 방정식은 다음과 같다:<br>
+          <code>log P(x|C1) + log P(C1) = log P(x|C2) + log P(C2)</code><br>
+          log(1/3)과 log(2/3) 항을 포함하여 결정 경계 x*를 구하라.</li>
+        <li>원본 x*=4와 비교하여 결정 경계가 어느 방향으로 이동했는지 설명하라.</li>
+        <li>x=3.5를 어느 클래스로 분류하는가? 원본 분류 결과와 다른가?</li>
+      </ol>
+      <div class="variation-badge">P(C1)=1/2→1/3, P(C2)=1/2→2/3 (비대칭 사전확률). 결정 경계 이동 분석.</div>
+    </div>
+    <button class="toggle-btn" onclick="toggle(this)">
+      정답 및 풀이 보기 <span class="arrow">▼</span>
+    </button>
+    <div class="answer-panel">
+      <div class="ans-step"><strong>Step 1 로그 우도비 전개</strong><br>
+        µ₁=2, µ₂=6, σ²=4/3<br>
+        log[P(x|C1)/P(x|C2)] = [−(x−2)²+(x−6)²]/(2·4/3)<br>
+        분자: −x²+4x−4+x²−12x+36 = −8x+32<br>
+        = (−8x+32)/(8/3) = 3(−8x+32)/8 = (−3x+12)·1 → 비례식으로 부호만 중요<br>
+        정리: log 우도비 ∝ −8x+32 (x의 감소 함수)
+      </div>
+      <div class="ans-step"><strong>Step 2 비등사전확률 결정 경계</strong><br>
+        log P(x|C1) + log P(C1) = log P(x|C2) + log P(C2)<br>
+        → log[P(x|C1)/P(x|C2)] = log[P(C2)/P(C1)]<br>
+        → (−8x+32)/(8/3) = log(2/3 ÷ 1/3) = log 2 ≈ 0.693<br>
+        → (−8x+32)·(3/8) = 0.693<br>
+        → −3x+12 = 0.693<br>
+        → x* = (12−0.693)/3 ≈ <em>3.769</em>
+      </div>
+      <div class="ans-step"><strong>Step 3 이동 방향</strong><br>
+        원본 x*=4 → 새 x*≈3.769: C1 방향(왼쪽)으로 이동.<br>
+        P(C2)가 더 크므로 C2 영역이 넓어져 경계가 C1 쪽으로 당겨진다.
+      </div>
+      <div class="ans-step"><strong>Step 4 x=3.5 분류</strong><br>
+        3.5 &lt; 3.769 = x* → <em>C1</em><br>
+        원본(x*=4)에서도 3.5 &lt; 4 → C1 → 분류 결과 동일.<br>
+        (단, x∈(3.769, 4) 범위에서는 분류 결과가 달라짐)
+      </div>
+      <div class="ans-final">x* ≈ 3.769 (원본 4보다 C1 방향 이동) &nbsp;|&nbsp; x=3.5 → C1 (원본과 동일)</div>
+      <div class="ans-point">P(C2)>P(C1)이면 경계가 C1 쪽으로 이동 → C1 영역이 좁아짐. 원본 대비 (3.769, 4) 구간의 포인트는 C1→C2로 재분류됨.</div>
+    </div>
+  </div>
+
+  <div class="problem-card" style="background: var(--surface2); border-style: dashed; border-color: var(--border); align-items: center; justify-content: center;">
+    <div class="card-body" style="text-align:center; color: var(--text-dim);">
+      <div style="font-size:32px; margin-bottom:12px;">📊</div>
+      <div style="font-family: var(--font-code); font-size:12px;">응용 3-B는 조건 변형 독립 문제<br>원본 µ, σ² 값 재사용</div>
+    </div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ════════════════════════════════ 문제 4 ════════════════════════════════ -->
+<div class="section-header">
+  <div class="section-num">04</div>
+  <div class="section-info">
+    <h2>다중 클래스 MLE — 라그랑주 승수법</h2>
+    <p>Categorical MLE · Lagrange Multiplier · Constrained Optimization</p>
+  </div>
+</div>
+
+<!-- 응용 4-A -->
+<div class="problem-pair">
+  <div class="problem-card">
+    <div class="card-tag orig"><span class="tag-dot"></span>원본 문제 요약</div>
+    <div class="card-body">
+      <div class="card-title">문제 4 <span class="diff diff-3">⭐⭐⭐ 어려움</span></div>
+      <div class="problem-text">
+        3클래스 A,B,C, 관측 횟수 (4,3,3), n=10.<br>
+        제약 조건 πA+πB+πC=1 하에서<br>
+        라그랑주 승수법으로 πˆₖ = nₖ/n 유도.
+      </div>
+      <div class="math">ℓ = 4log πA + 3log πB + 3log πC</div>
+    </div>
+  </div>
+
+  <div class="problem-card">
+    <div class="card-tag apply"><span class="tag-dot"></span>[응용 4-A] 4클래스 확장</div>
+    <div class="card-body">
+      <div class="card-title">클래스 수 3→4 확장 <span class="diff diff-3">⭐⭐⭐ 어려움</span></div>
+      <div class="problem-text">
+        4클래스 A,B,C,D, 총 n=10 관측값.
+      </div>
+      <table class="data-table">
+        <tr><th>클래스</th><th>A</th><th>B</th><th>C</th><th>D</th></tr>
+        <tr><td>관측 횟수 nₖ</td><td>3</td><td>3</td><td>2</td><td>2</td></tr>
+      </table>
+      <div class="math">ℓ = 3log πA + 3log πB + 2log πC + 2log πD</div>
+      <ol class="sub-list">
+        <li>제약 조건 없이 πA만으로 ∂ℓ/∂πA=0 을 풀면 어떤 결과가 나오는가? 왜 의미 없는가?</li>
+        <li>라그랑주 함수 L = ℓ − λ(πA+πB+πC+πD−1) 을 정의하고, ∂L/∂πₖ=0 (k=A,B,C,D) 조건을 써라.</li>
+        <li>각 πₖ를 λ의 식으로 표현하라.</li>
+        <li>제약 조건에 대입하여 λ를 구하고, πˆₖ를 계산하라.</li>
+        <li>결과가 nₖ/n과 일치함을 확인하라.</li>
+      </ol>
+      <div class="variation-badge">클래스 수 3→4 확장 (D 추가), 관측 분포 변경 (4,3,3)→(3,3,2,2)</div>
+    </div>
+    <button class="toggle-btn" onclick="toggle(this)">
+      정답 및 풀이 보기 <span class="arrow">▼</span>
+    </button>
+    <div class="answer-panel">
+      <div class="ans-step"><strong>Step 1 제약 없는 최대화</strong><br>
+        ∂ℓ/∂πA = 3/πA = 0 → 해 없음 (πA→∞ 로 발산)<br>
+        확률이 1 이상이 될 수 있어 의미 없음.
+      </div>
+      <div class="ans-step"><strong>Step 2 라그랑주 함수</strong><br>
+        L = 3log πA + 3log πB + 2log πC + 2log πD − λ(πA+πB+πC+πD−1)<br>
+        ∂L/∂πA = 3/πA − λ = 0<br>
+        ∂L/∂πB = 3/πB − λ = 0<br>
+        ∂L/∂πC = 2/πC − λ = 0<br>
+        ∂L/∂πD = 2/πD − λ = 0
+      </div>
+      <div class="ans-step"><strong>Step 3 λ로 표현</strong><br>
+        πA = 3/λ, &nbsp; πB = 3/λ, &nbsp; πC = 2/λ, &nbsp; πD = 2/λ
+      </div>
+      <div class="ans-step"><strong>Step 4 λ 결정 및 πˆₖ</strong><br>
+        πA+πB+πC+πD = (3+3+2+2)/λ = 10/λ = 1<br>
+        → λ = 10<br>
+        πˆA = 3/10, &nbsp; πˆB = 3/10, &nbsp; πˆC = 2/10, &nbsp; πˆD = 2/10
+      </div>
+      <div class="ans-step"><strong>Step 5 확인</strong><br>
+        πˆₖ = nₖ/n: 3/10, 3/10, 2/10, 2/10 ✓
+      </div>
+      <div class="ans-final">λ = n = 10, &nbsp; πˆA=πˆB=0.3, &nbsp; πˆC=πˆD=0.2</div>
+      <div class="ans-point">클래스가 4개로 늘어도 λ=Σnₖ=n임이 동일하게 성립. 라그랑주 승수법의 결론(πˆₖ=nₖ/n)은 클래스 수에 무관한 일반 결과임을 확인할 수 있다.</div>
+    </div>
+  </div>
+</div>
+
+<!-- 응용 4-B -->
+<div class="problem-pair">
+  <div class="problem-card" style="border-color: rgba(139,92,246,0.3);">
+    <div class="card-tag apply"><span class="tag-dot"></span>[응용 4-B] 역방향 문제</div>
+    <div class="card-body">
+      <div class="card-title">πˆA → nA 역산 <span class="diff diff-3">⭐⭐⭐ 어려움</span></div>
+      <div class="problem-text">
+        3클래스 A,B,C, 총 n=10. 아래 조건이 주어진다.
+      </div>
+      <div class="math">πˆA = 0.5, &nbsp; nB = nC (B와 C는 동수)</div>
+      <ol class="sub-list">
+        <li>πˆA = nA/n = 0.5 임을 이용하여 nA를 구하라.</li>
+        <li>n=10에서 nA를 빼고 nB=nC 조건으로 nB, nC를 구하라.</li>
+        <li>로그 우도 함수 ℓ 을 명시하라.</li>
+        <li>라그랑주 승수법을 적용하여 πˆB, πˆC 를 구하라.</li>
+        <li>∇ℓ = λ·∇g 조건에서 πˆA의 그래디언트 크기(nA/πˆA)와 πˆB의 그래디언트 크기를 비교하여 nA>nB이면 어떤 의미인지 서술하라.</li>
+      </ol>
+      <div class="variation-badge">결과(πˆA=0.5) 고정 → nA 역산 후 나머지 분포 결정. 역방향 + 개념 결합.</div>
+    </div>
+    <button class="toggle-btn" onclick="toggle(this)">
+      정답 및 풀이 보기 <span class="arrow">▼</span>
+    </button>
+    <div class="answer-panel">
+      <div class="ans-step"><strong>Step 1 nA 결정</strong><br>
+        πˆA = nA/10 = 0.5 → <em>nA = 5</em>
+      </div>
+      <div class="ans-step"><strong>Step 2 nB, nC 결정</strong><br>
+        nB + nC = 10 − 5 = 5, &nbsp; nB = nC<br>
+        → <em>nB = nC = 2.5</em><br>
+        ※ 실제 횟수는 정수여야 하므로 이 조건을 정확히 만족하는 정수해는 없다.<br>
+        이론적으로는 nB = nC = 2.5로 처리하거나, n=12(nA=6, nB=nC=3)로 스케일 변환 가능.
+      </div>
+      <div class="ans-step"><strong>Step 3 로그 우도</strong><br>
+        ℓ = 5log πA + 2.5log πB + 2.5log πC (이론값)<br>
+        또는 n=12 기준: ℓ = 6log πA + 3log πB + 3log πC
+      </div>
+      <div class="ans-step"><strong>Step 4 πˆB, πˆC</strong><br>
+        λ = n = 10 (또는 12)<br>
+        πˆB = nB/n = 2.5/10 = <em>0.25</em> (이론), 또는 3/12 = 0.25<br>
+        πˆC = 0.25 (동일)
+      </div>
+      <div class="ans-step"><strong>Step 5 그래디언트 해석</strong><br>
+        ∂ℓ/∂πˆA = nA/πˆA = 5/0.5 = 10<br>
+        ∂ℓ/∂πˆB = nB/πˆB = 2.5/0.25 = 10<br>
+        모든 클래스에서 nₖ/πˆₖ = λ = n 으로 동일하다.<br>
+        이것이 최적 조건(∇ℓ = λ∇g)의 본질 — 모든 클래스의 한계 기여가 동등해지는 점에서 최대화됨.
+      </div>
+      <div class="ans-final">nA=5, nB=nC=2.5, πˆA=0.5, πˆB=πˆC=0.25</div>
+      <div class="ans-point">역방향 핵심: πˆₖ=nₖ/n 관계를 역으로 사용하여 nₖ를 역산. 정수 제약 위반은 이론과 현실의 차이를 논의하는 지점으로 활용 가능.</div>
+    </div>
+  </div>
+
+  <div class="problem-card" style="background: var(--surface2); border-style: dashed; border-color: var(--border); align-items: center; justify-content: center;">
+    <div class="card-body" style="text-align:center; color: var(--text-dim);">
+      <div style="font-size:32px; margin-bottom:12px;">🎯</div>
+      <div style="font-family: var(--font-code); font-size:12px;">응용 4-B는 역방향 독립 문제<br>πˆ → n 역산 구조</div>
+    </div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- 하단 요약 -->
+<div style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 28px 32px; margin-top: 20px;">
+  <div style="font-family: var(--font-head); font-size: 18px; letter-spacing: 2px; color: var(--text-dim); margin-bottom: 20px;">SUMMARY</div>
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+    <div style="background: var(--surface2); border-radius: 8px; padding: 16px; border-left: 3px solid var(--accent);">
+      <div style="font-family: var(--font-code); font-size: 11px; color: var(--text-dim); margin-bottom: 6px;">응용 1-A · 수치 변형</div>
+      <div style="font-size: 13px; color: var(--text-muted);">y값 변경 → 연립방정식 재계산. x² 소거 구조는 동일.</div>
+    </div>
+    <div style="background: var(--surface2); border-radius: 8px; padding: 16px; border-left: 3px solid var(--accent3);">
+      <div style="font-family: var(--font-code); font-size: 11px; color: var(--text-dim); margin-bottom: 6px;">응용 1-B · 역방향</div>
+      <div style="font-size: 13px; color: var(--text-muted);">ŷ→θ→(Σy, Σxy)→y 역산. 역방향 접근법 훈련.</div>
+    </div>
+    <div style="background: var(--surface2); border-radius: 8px; padding: 16px; border-left: 3px solid var(--accent2);">
+      <div style="font-family: var(--font-code); font-size: 11px; color: var(--text-dim); margin-bottom: 6px;">응용 2-A · 학습률 변형</div>
+      <div style="font-size: 13px; color: var(--text-muted);">α 축소로 업데이트 폭 감소. x 이동이 그래디언트에 미치는 영향.</div>
+    </div>
+    <div style="background: var(--surface2); border-radius: 8px; padding: 16px; border-left: 3px solid var(--accent3);">
+      <div style="font-family: var(--font-code); font-size: 11px; color: var(--text-dim); margin-bottom: 6px;">응용 2-B · 초기값 변형</div>
+      <div style="font-size: 13px; color: var(--text-muted);">θ₀≠0 시작 → ŷᵢ≠0.5. ∂J/∂θ₀도 0이 아님.</div>
+    </div>
+    <div style="background: var(--surface2); border-radius: 8px; padding: 16px; border-left: 3px solid var(--green);">
+      <div style="font-family: var(--font-code); font-size: 11px; color: var(--text-dim); margin-bottom: 6px;">응용 3-A · 스케일 변형</div>
+      <div style="font-size: 13px; color: var(--text-muted);">2배 스케일에서도 x*=(µ₁+µ₂)/2 성립. 분산은 변화.</div>
+    </div>
+    <div style="background: var(--surface2); border-radius: 8px; padding: 16px; border-left: 3px solid var(--yellow);">
+      <div style="font-family: var(--font-code); font-size: 11px; color: var(--text-dim); margin-bottom: 6px;">응용 3-B · 사전확률 변형</div>
+      <div style="font-size: 13px; color: var(--text-muted);">P(C2)>P(C1) → 경계 C1 방향 이동. log 비율 항 추가.</div>
+    </div>
+    <div style="background: var(--surface2); border-radius: 8px; padding: 16px; border-left: 3px solid var(--accent);">
+      <div style="font-family: var(--font-code); font-size: 11px; color: var(--text-dim); margin-bottom: 6px;">응용 4-A · 클래스 확장</div>
+      <div style="font-size: 13px; color: var(--text-muted);">4클래스로 확장. λ=n 결론은 클래스 수 무관.</div>
+    </div>
+    <div style="background: var(--surface2); border-radius: 8px; padding: 16px; border-left: 3px solid var(--red);">
+      <div style="font-family: var(--font-code); font-size: 11px; color: var(--text-dim); margin-bottom: 6px;">응용 4-B · 역방향</div>
+      <div style="font-size: 13px; color: var(--text-muted);">πˆ→n 역산. 정수 제약 문제. 최적 조건 해석.</div>
+    </div>
+  </div>
+</div>
+
+<div style="text-align: center; margin-top: 40px; font-family: var(--font-code); font-size: 11px; color: var(--text-dim);">
+  인천대학교 컴퓨터공학부 · 기계학습 2026-1 · 응용 문제집 · generated by Claude
+</div>
+
+</div><!-- /container -->
+
+<script>
+  function toggle(btn) {
+    const panel = btn.nextElementSibling;
+    const isOpen = panel.classList.contains('open');
+    panel.classList.toggle('open', !isOpen);
+    btn.classList.toggle('open', !isOpen);
+    btn.querySelector('.arrow').textContent = isOpen ? '▼' : '▲';
+    btn.textContent = btn.textContent.replace(isOpen ? '숨기기' : '보기', isOpen ? '보기' : '숨기기');
+    // 텍스트 업데이트
+    const span = document.createElement('span');
+    span.className = 'arrow';
+    span.textContent = isOpen ? '▼' : '▲';
+    btn.innerHTML = (isOpen ? '정답 및 풀이 보기 ' : '정답 및 풀이 숨기기 ');
+    btn.appendChild(span);
+  }
+</script>
+</body>
+</html>
