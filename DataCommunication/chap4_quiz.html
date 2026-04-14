@@ -1,0 +1,1288 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>제 4장 디지털전송 — 퀴즈</title>
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --surface: #111827;
+    --surface2: #1a2236;
+    --surface3: #1e2d45;
+    --border: #2a3a55;
+    --accent: #38bdf8;
+    --accent2: #818cf8;
+    --accent3: #34d399;
+    --accent4: #fb923c;
+    --accent5: #f472b6;
+    --text: #e2e8f0;
+    --text-muted: #94a3b8;
+    --text-dim: #64748b;
+    --code-bg: #0d1117;
+    --heading-font: 'Impact', 'Arial Narrow', Arial, sans-serif;
+    --body-font: 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', sans-serif;
+    --code-font: 'Menlo', 'Courier New', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--body-font);
+    font-size: 15px;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: linear-gradient(135deg, #0c1a2e 0%, #1a2a4a 60%, #0a1628 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 36px 48px;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    top: -80px; right: -80px;
+    width: 260px; height: 260px;
+    background: radial-gradient(circle, rgba(56,189,248,0.1) 0%, transparent 70%);
+  }
+  .header-tag { font-size: 11px; letter-spacing: 3px; color: var(--accent); text-transform: uppercase; margin-bottom: 10px; font-family: var(--heading-font); }
+  .header h1 { font-family: var(--heading-font); font-size: 36px; letter-spacing: 1px; }
+  .header h1 span { color: var(--accent); }
+  .header-sub { color: var(--text-muted); font-size: 13px; margin-top: 8px; }
+  .header-badges { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
+  .badge { background: rgba(56,189,248,0.1); border: 1px solid rgba(56,189,248,0.3); color: var(--accent); font-size: 11px; padding: 3px 10px; border-radius: 20px; font-family: var(--heading-font); letter-spacing: 1px; }
+  .badge.g { background: rgba(52,211,153,0.1); border-color: rgba(52,211,153,0.3); color: var(--accent3); }
+  .badge.o { background: rgba(251,146,60,0.1); border-color: rgba(251,146,60,0.3); color: var(--accent4); }
+
+  /* ── SCOREBOARD ── */
+  .scoreboard {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin: 32px 48px;
+    padding: 20px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .score-info { display: flex; align-items: center; gap: 24px; }
+  .score-num { font-family: var(--heading-font); font-size: 40px; color: var(--accent); line-height: 1; }
+  .score-label { color: var(--text-muted); font-size: 13px; }
+  .score-detail { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+  .progress-bar { flex: 1; min-width: 180px; }
+  .progress-track { background: var(--surface2); border-radius: 4px; height: 8px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 4px; transition: width 0.5s ease; width: 0%; }
+  .btn-score {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #0a0e1a;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-family: var(--heading-font);
+    font-size: 14px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .btn-score:hover { opacity: 0.85; }
+  .btn-reset {
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-family: var(--heading-font);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-reset:hover { border-color: var(--accent4); color: var(--accent4); }
+
+  /* ── MAIN ── */
+  .main { padding: 0 48px 60px; max-width: 900px; }
+
+  /* ── SECTION TITLE ── */
+  .section-divider {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 40px 0 24px;
+  }
+  .section-divider-line { flex: 1; height: 1px; background: var(--border); }
+  .section-divider-label {
+    font-family: var(--heading-font);
+    font-size: 12px;
+    letter-spacing: 3px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  /* ── QUIZ CARD ── */
+  .quiz-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px 28px;
+    margin-bottom: 18px;
+    transition: border-color 0.2s;
+    position: relative;
+  }
+  .quiz-card:hover { border-color: rgba(56,189,248,0.25); }
+  .quiz-card.correct { border-color: rgba(52,211,153,0.5); background: rgba(52,211,153,0.03); }
+  .quiz-card.wrong { border-color: rgba(251,146,60,0.5); background: rgba(251,146,60,0.03); }
+
+  .quiz-top {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+  .quiz-num {
+    font-family: var(--heading-font);
+    font-size: 28px;
+    color: rgba(56,189,248,0.25);
+    line-height: 1;
+    min-width: 36px;
+  }
+  .quiz-meta { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-bottom: 6px; }
+  .q-type {
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-family: var(--heading-font);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .qt-obj { background: rgba(56,189,248,0.12); color: var(--accent); }
+  .qt-ox { background: rgba(52,211,153,0.12); color: var(--accent3); }
+  .qt-short { background: rgba(129,140,248,0.12); color: var(--accent2); }
+  .qt-calc { background: rgba(251,146,60,0.12); color: var(--accent4); }
+  .qt-desc { background: rgba(244,114,182,0.12); color: var(--accent5); }
+  .q-applied {
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-family: var(--heading-font);
+    letter-spacing: 1px;
+    background: rgba(251,146,60,0.15);
+    color: var(--accent4);
+    border: 1px solid rgba(251,146,60,0.3);
+  }
+  .q-difficulty { font-size: 12px; color: var(--text-dim); }
+  .q-slide { font-size: 10px; color: var(--text-dim); font-family: var(--code-font); padding: 2px 7px; background: var(--surface2); border-radius: 4px; border: 1px solid var(--border); }
+
+  .quiz-question {
+    font-size: 15px;
+    color: var(--text);
+    line-height: 1.7;
+    margin-bottom: 16px;
+  }
+  .quiz-question strong { color: var(--accent); }
+
+  /* ── OPTIONS ── */
+  .options { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+  .option {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--text-muted);
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .option:hover { border-color: var(--accent); color: var(--text); }
+  .option.selected { border-color: var(--accent2); color: var(--text); background: rgba(129,140,248,0.08); }
+  .option.correct-opt { border-color: var(--accent3) !important; background: rgba(52,211,153,0.08) !important; color: var(--accent3) !important; }
+  .option.wrong-opt { border-color: var(--accent4) !important; background: rgba(251,146,60,0.08) !important; color: var(--accent4) !important; }
+  .option-label {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--surface3); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-family: var(--heading-font);
+    flex-shrink: 0; transition: all 0.15s;
+  }
+  .option.selected .option-label { background: var(--accent2); border-color: var(--accent2); color: #0a0e1a; }
+  .option.correct-opt .option-label { background: var(--accent3); border-color: var(--accent3); color: #0a0e1a; }
+  .option.wrong-opt .option-label { background: var(--accent4); border-color: var(--accent4); color: #0a0e1a; }
+
+  /* ── OX ── */
+  .ox-options { display: flex; gap: 12px; margin-bottom: 14px; }
+  .ox-btn {
+    flex: 1;
+    padding: 14px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text-muted);
+    font-family: var(--heading-font);
+    font-size: 22px;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: center;
+  }
+  .ox-btn:hover { border-color: var(--accent); color: var(--text); }
+  .ox-btn.selected { border-color: var(--accent2); background: rgba(129,140,248,0.1); color: var(--accent2); }
+  .ox-btn.correct-opt { border-color: var(--accent3) !important; background: rgba(52,211,153,0.1) !important; color: var(--accent3) !important; }
+  .ox-btn.wrong-opt { border-color: var(--accent4) !important; background: rgba(251,146,60,0.1) !important; color: var(--accent4) !important; }
+
+  /* ── INPUT ── */
+  .answer-input {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    color: var(--text);
+    font-family: var(--body-font);
+    font-size: 14px;
+    margin-bottom: 10px;
+    resize: vertical;
+    min-height: 50px;
+    transition: border-color 0.2s;
+  }
+  .answer-input:focus { outline: none; border-color: var(--accent2); }
+  .answer-input.correct-opt { border-color: var(--accent3); background: rgba(52,211,153,0.05); }
+  .answer-input.wrong-opt { border-color: var(--accent4); background: rgba(251,146,60,0.05); }
+
+  /* ── TOGGLE ANSWER ── */
+  .btn-answer {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    padding: 7px 16px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-family: var(--heading-font);
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-answer:hover { border-color: var(--accent); color: var(--accent); }
+
+  .answer-box {
+    display: none;
+    margin-top: 14px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+  }
+  .answer-box.show { display: block; }
+  .answer-label {
+    font-family: var(--heading-font);
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--accent3);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+  .answer-text { color: var(--text); font-size: 14px; line-height: 1.7; }
+  .answer-text strong { color: var(--accent); }
+  .answer-text .formula {
+    background: var(--surface3);
+    border-left: 3px solid var(--accent);
+    padding: 10px 16px;
+    border-radius: 0 6px 6px 0;
+    font-family: var(--code-font);
+    font-size: 14px;
+    color: var(--accent);
+    margin: 8px 0;
+  }
+  .explain-label {
+    font-family: var(--heading-font);
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--accent4);
+    margin-top: 12px;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+  }
+  .explain-text { color: var(--text-muted); font-size: 13.5px; line-height: 1.7; }
+  .explain-text strong { color: var(--text); }
+
+  /* ── RESULT MODAL ── */
+  .modal-overlay {
+    display: none;
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 40px 48px;
+    max-width: 480px;
+    width: 90%;
+    text-align: center;
+    position: relative;
+  }
+  .modal-emoji { font-size: 56px; margin-bottom: 16px; }
+  .modal-title { font-family: var(--heading-font); font-size: 28px; color: var(--text); letter-spacing: 1px; margin-bottom: 8px; }
+  .modal-score { font-family: var(--heading-font); font-size: 52px; color: var(--accent); line-height: 1; margin: 16px 0; }
+  .modal-sub { color: var(--text-muted); font-size: 14px; margin-bottom: 24px; }
+  .modal-breakdown { display: flex; justify-content: center; gap: 24px; margin-bottom: 28px; }
+  .modal-item { text-align: center; }
+  .modal-item-num { font-family: var(--heading-font); font-size: 24px; }
+  .modal-item-label { font-size: 11px; color: var(--text-dim); font-family: var(--heading-font); letter-spacing: 1px; }
+  .modal-close {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #0a0e1a; border: none; padding: 12px 32px;
+    border-radius: 8px; font-family: var(--heading-font);
+    font-size: 14px; letter-spacing: 1px; cursor: pointer;
+  }
+
+  /* ── CODE ── */
+  .code-block {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px 16px;
+    font-family: var(--code-font);
+    font-size: 13px;
+    color: var(--accent3);
+    margin: 8px 0;
+    overflow-x: auto;
+  }
+
+  p { color: var(--text-muted); }
+  ul, ol { padding-left: 20px; color: var(--text-muted); }
+  li { margin-bottom: 4px; }
+  li strong { color: var(--text); }
+
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-tag">데이터통신 · 최승식 교수</div>
+  <h1>제 4장 <span>디지털전송</span> — 퀴즈</h1>
+  <div class="header-sub">총 20문제 · 기본 10문제 + [응용] 10문제 · 강의자료 기반</div>
+  <div class="header-badges">
+    <span class="badge">Line Coding</span>
+    <span class="badge g">PCM / 나이퀴스트</span>
+    <span class="badge o">전송 방식</span>
+  </div>
+</div>
+
+<!-- SCOREBOARD -->
+<div class="scoreboard">
+  <div class="score-info">
+    <div>
+      <div class="score-num" id="scoreNum">0</div>
+      <div class="score-label">/ 20 정답</div>
+    </div>
+    <div>
+      <div class="score-detail" id="scorePercent">0%</div>
+      <div class="score-detail" id="scoreAnswered">0문제 풀었음</div>
+    </div>
+  </div>
+  <div class="progress-bar">
+    <div style="font-size:11px; color:var(--text-dim); margin-bottom:6px; font-family:var(--heading-font); letter-spacing:1px;">진행률</div>
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+  </div>
+  <div style="display:flex; gap:8px;">
+    <button class="btn-score" onclick="showResult()">채점하기</button>
+    <button class="btn-reset" onclick="resetAll()">초기화</button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- ── SECTION 1: 기본 문제 ── -->
+  <div class="section-divider">
+    <div class="section-divider-line"></div>
+    <div class="section-divider-label">📘 기본 문제 (1–10)</div>
+    <div class="section-divider-line"></div>
+  </div>
+
+  <!-- Q1 -->
+  <div class="quiz-card" id="card1">
+    <div class="quiz-top">
+      <div class="quiz-num">01</div>
+      <div style="flex:1">
+        <div class="quiz-meta">
+          <span class="q-type qt-obj">객관식</span>
+          <span class="q-difficulty">⭐</span>
+          <span class="q-slide">Slide 2–3</span>
+        </div>
+        <div class="quiz-question">
+          회선 부호화(Line Coding)에 대한 설명으로 <strong>옳은 것</strong>은?
+        </div>
+      </div>
+    </div>
+    <div class="options">
+      <div class="option" onclick="selectOption(this,1,'A')"><span class="option-label">A</span> 아날로그 신호를 디지털 데이터로 변환하는 작업이다.</div>
+      <div class="option" onclick="selectOption(this,1,'B')"><span class="option-label">B</span> 일련의 2진 비트 데이터를 디지털 신호로 바꾸는 작업이다.</div>
+      <div class="option" onclick="selectOption(this,1,'C')"><span class="option-label">C</span> 디지털 신호를 아날로그 신호로 변조하는 작업이다.</div>
+      <div class="option" onclick="selectOption(this,1,'D')"><span class="option-label">D</span> 수신측에서만 수행되는 복호화 작업이다.</div>
+    </div>
+    <button class="btn-answer" onclick="toggleAnswer('ans1')">정답 보기</button>
+    <div class="answer-box" id="ans1">
+      <div class="answer-label">✅ 정답</div>
+      <div class="answer-text"><strong>B</strong> — 일련의 2진 비트 데이터를 디지털 신호로 바꾸는 작업이다.</div>
+      <div class="explain-label">해설</div>
+      <div class="explain-text">회선 부호화는 <strong>송신측</strong>에서 디지털 데이터(비트열)를 디지털 신호로 변환하는 작업이다. 수신측에서는 반대로 <strong>복호화(Decoding)</strong>가 이루어진다. A는 PCM(아날로그→디지털), C는 변조(Modulation)에 대한 설명이다.</div>
+    </div>
+  </div>
+
+  <!-- Q2 -->
+  <div class="quiz-card" id="card2">
+    <div class="quiz-top">
+      <div class="quiz-num">02</div>
+      <div style="flex:1">
+        <div class="quiz-meta">
+          <span class="q-type qt-ox">OX 문제</span>
+          <span class="q-difficulty">⭐</span>
+          <span class="q-slide">Slide 3</span>
+        </div>
+        <div class="quiz-question">
+          신호 요소(Signal Element)는 데이터를 나타내는 가장 작은 단위이며, 단위는 비트(bit)이다.
+        </div>
+      </div>
+    </div>
+    <div class="ox-options">
+      <div class="ox-btn" onclick="selectOX(this,2,'O')">O</div>
+      <div class="ox-btn" onclick="selectOX(this,2,'X')">X</div>
+    </div>
+    <button class="btn-answer" onclick="toggleAnswer('ans2')">정답 보기</button>
+    <div class="answer-box" id="ans2">
+      <div class="answer-label">✅ 정답</div>
+      <div class="answer-text"><strong>X (거짓)</strong></div>
+      <div class="explain-label">해설</div>
+      <div class="explain-text">설명은 <strong>데이터 요소(Data Element)</strong>에 해당한다. <strong>신호 요소(Signal Element)</strong>는 디지털 신호의 가장 짧은 단위이다. 즉, 신호 요소와 데이터 요소는 구별되는 개념이며, 변수 r = 데이터 요소 / 신호 요소로 그 관계를 나타낸다.</div>
+    </div>
+  </div>
+
+  <!-- Q3 -->
+  <div class="quiz-card" id="card3">
+    <div class="quiz-top">
+      <div class="quiz-num">03</div>
+      <div style="flex:1">
+        <div class="quiz-meta">
+          <span class="q-type qt-obj">객관식</span>
+          <span class="q-difficulty">⭐⭐</span>
+          <span class="q-slide">Slide 10</span>
+        </div>
+        <div class="quiz-question">
+          맨체스터(Manchester) 부호화에서 비트 값을 결정하는 방식으로 <strong>옳은 것</strong>은?
+        </div>
+      </div>
+    </div>
+    <div class="options">
+      <div class="option" onclick="selectOption(this,3,'A')"><span class="option-label">A</span> 비트 간격 시작점에서의 전환 여부로 비트를 결정한다.</div>
+      <div class="option" onclick="selectOption(this,3,'B')"><span class="option-label">B</span> 전압 준위의 높고 낮음으로 비트를 결정한다.</div>
+      <div class="option" onclick="selectOption(this,3,'C')"><span class="option-label">C</span> 각 비트 간격 중간에서의 신호 반전 방향으로 비트를 결정한다.</div>
+      <div class="option" onclick="selectOption(this,3,'D')"><span class="option-label">D</span> 신호가 0으로 복귀하는 시점으로 비트를 결정한다.</div>
+    </div>
+    <button class="btn-answer" onclick="toggleAnswer('ans3')">정답 보기</button>
+    <div class="answer-box" id="ans3">
+      <div class="answer-label">✅ 정답</div>
+      <div class="answer-text"><strong>C</strong> — 각 비트 간격 중간에서의 신호 반전 방향으로 비트를 결정한다.</div>
+      <div class="explain-label">해설</div>
+      <div class="explain-text">맨체스터 부호화는 각 비트 간격 <strong>중간에서 반드시 전환</strong>이 일어나며, 이 전환의 방향이 비트값을 결정한다 (낮→높: 0, 높→낮: 1). A는 <strong>차분 맨체스터</strong>의 설명이고, B는 NRZ-L, D는 RZ 방식의 특징이다.</div>
+    </div>
+  </div>
+
+  <!-- Q4 -->
+  <div class="quiz-card" id="card4">
+    <div class="quiz-top">
+      <div class="quiz-num">04</div>
+      <div style="flex:1">
+        <div class="quiz-meta">
+          <span class="q-type qt-short">단답형</span>
+          <span class="q-difficulty">⭐⭐</span>
+          <span class="q-slide">Slide 5</span>
+        </div>
+        <div class="quiz-question">
+          회선 부호화의 <strong>3가지 문제점</strong>을 모두 쓰시오.
+        </div>
+      </div>
+    </div>
+    <textarea class="answer-input" id="input4" placeholder="답을 입력하세요..."></textarea>
+    <button class="btn-answer" onclick="toggleAnswer('ans4')">정답 보기</button>
+    <div class="answer-box" id="ans4">
+      <div class="answer-label">✅ 정답</div>
+      <div class="answer-text">
+        <ol>
+          <li><strong>기준선 표류(Baseline Wandering)</strong></li>
+          <li><strong>직류 성분(DC Component)</strong></li>
+          <li><strong>자기 동기화(Self-Synchronization)</strong></li>
+        </ol>
+      </div>
+      <div class="explain-label">해설</div>
+      <div class="explain-text">
+        <strong>① 기준선 표류</strong>: 수신 신호의 평균을 기준으로 데이터를 결정하는데, 연속된 0 또는 1이 지속되면 기준선이 이동하여 복호화 오류 발생.<br>
+        <strong>② 직류 성분</strong>: 저주파(DC) 성분은 전선·변압기를 통과하지 못하므로 제거 필요.<br>
+        <strong>③ 자기 동기화</strong>: 송·수신자의 비트 간격이 일치하지 않으면 복호화 오류 발생.
+      </div>
+    </div>
+  </div>
+
+  <!-- Q5 -->
+  <div class="quiz-card" id="card5">
+    <div class="quiz-top">
+      <div class="quiz-num">05</div>
+      <div style="flex:1">
+        <div class="quiz-meta">
+          <span class="q-type qt-calc">계산형</span>
+          <span class="q-difficulty">⭐⭐</span>
+          <span class="q-slide">Slide 4</span>
+        </div>
+        <div class="quiz-question">
+          데이터 전송률(N)이 <strong>4,000 bps</strong>이고, 하나의 신호 요소가 <strong>2개의 데이터 요소</strong>를 나타낼 때, 신호 전송률(S)은 얼마인가? (단위 포함)
+        </div>
+      </div>
+    </div>
+    <textarea class="answer-input" id="input5" placeholder="풀이 과정과 답을 입력하세요..."></textarea>
+    <button class="btn-answer" onclick="toggleAnswer('ans5')">정답 보기</button>
+    <div class="answer-box" id="ans5">
+      <div class="answer-label">✅ 정답</div>
+      <div class="answer-text"><strong>2,000 baud</strong></div>
+      <div class="explain-label">풀이</div>
+      <div class="explain-text">
+        공식: <strong>S = N / r</strong>
+        <div class="formula">r = 2 (신호 요소 1개당 데이터 요소 2개)<br>S = 4,000 / 2 = <strong>2,000 baud</strong></div>
+        r이 2이므로, 하나의 신호가 2비트를 표현 → 신호 전송률은 데이터 전송률의 절반이 된다.
+      </div>
+    </div>
+  </div>
+
+  <!-- Q6 -->
+  <div class="quiz-card" id="card6">
+    <div class="quiz-top">
+      <div class="quiz-num">06</div>
+      <div style="flex:1">
+        <div class="quiz-meta">
+          <span class="q-type qt-obj">객관식</span>
+          <span class="q-difficulty">⭐</span>
+          <span class="q-slide">Slide 12–17</span>
+        </div>
+        <div class="quiz-question">
+          PCM(Pulse Code Modulation)의 3단계 과정을 <strong>올바른 순서</strong>로 나열한 것은?
+        </div>
+      </div>
+    </div>
+    <div class="options">
+      <div class="option" onclick="selectOption(this,6,'A')"><span class="option-label">A</span> 부호화 → 표본화 → 양자화</div>
+      <div class="option" onclick="selectOption(this,6,'B')"><span class="option-label">B</span> 양자화 → 표본화 → 부호화</div>
+      <div class="option" onclick="selectOption(this,6,'C')"><span class="option-label">C</span> 표본화 → 양자화 → 부호화</div>
+      <div class="option" onclick="selectOption(this,6,'D')"><span class="option-label">D</span> 표본화 → 부호화 → 양자화</div>
+    </div>
+    <button class="btn-answer" onclick="toggleAnswer('ans6')">정답 보기</button>
+    <div class="answer-box" id="ans6">
+      <div class="answer-label">✅ 정답</div>
+      <div class="answer-text"><strong>C</strong> — 표본화 → 양자화 → 부호화</div>
+      <div class="explain-label">해설</div>
+      <div class="explain-text"><strong>①표본화</strong>(Sampling): 아날로그 신호의 진폭을 일정 간격으로 측정 → <strong>②양자화</strong>(Quantizing): 측정값에 정수값(0~L-1) 할당 → <strong>③부호화</strong>(Encoding): 정수값을 n비트 이진 코드로 변환. 이 순서가 PCM의 핵심 변환 과정이다.</div>
+    </div>
+  </div>
+
+  <!-- Q7 -->
+  <div class="quiz-card" id="card7">
+    <div class="quiz-top">
+      <div class="quiz-num">07</div>
+      <div style="flex:1">
+        <div class="quiz-meta">
+          <span class="q-type qt-short">단답형</span>
+          <span class="q-difficulty">⭐⭐</span>
+          <span class="q-slide">Slide 13–14</span>
+        </div>
+        <div class="quiz-question">
+          나이퀴스트 정리(Nyquist Theorem)에 따르면, 최대 주파수가 <strong>4,000 Hz</strong>인 전화 음성 신호를 디지털화할 때 필요한 최소 표본화율(Sampling Rate)은 얼마인가? 또한 이 조건이 왜 필요한지 간략히 설명하시오.
+        </div>
+      </div>
+    </div>
+    <textarea class="answer-input" id="input7" placeholder="답과 이유를 입력하세요..." style="min-height:70px"></textarea>
+    <button class="btn-answer" onclick="toggleAnswer('ans7')">정답 보기</button>
+    <div class="answer-box" id="ans7">
+      <div class="answer-label">✅ 정답</div>
+      <div class="answer-text"><strong>8,000 samples/sec (8,000 Hz)</strong></div>
+      <div class="explain-label">풀이 및 해설</div>
+      <div class="explain-text">
+        나이퀴스트 정리: <strong>f<sub>s</sub> ≥ 2 × f<sub>max</sub></strong>
+        <div class="formula">f<sub>s</sub> = 2 × 4,000 = <strong>8,000 samples/sec</strong></div>
+        표본화율이 최대 주파수의 2배 미만이면 <strong>에일리어싱(Aliasing)</strong>이 발생하여 원래 신호를 정확히 복원할 수 없기 때문에 이 조건이 필요하다.
+      </div>
+    </div>
+  </div>
+
+  <!-- Q8 -->
+  <div class="quiz-card" id="card8">
+    <div class="quiz-top">
+      <div class="quiz-num">08</div>
+      <div style="flex:1">
+        <div class="quiz-meta">
+          <span class="q-type qt-calc">계산형</span>
+          <span class="q-difficulty">⭐⭐</span>
+          <span class="q-slide">Slide 17–18</span>
+        </div>
+        <div class="quiz-question">
+          인간의 목소리(0~4,000 Hz)를 디지털화할 때, 표본당 <strong>8 bits</strong>를 사용한다면 PCM 비트율(Bit Rate)은 얼마인가? (강의 예제 4.14)
+        </div>
+      </div>
+    </div>
+    <textarea class="answer-input" id="input8" placeholder="풀이 과정과 답을 입력하세요..."></textarea>
+    <button class="btn-answer" onclick="toggleAnswer('ans8')">정답 보기</button>
+    <div class="answer-box" id="ans8">
+      <div class="answer-label">✅ 정답</div>
+      <div class="answer-text"><strong>64,000 bps (64 Kbps)</strong></div>
+      <div class="explain-label">풀이</div>
+      <div class="explain-text">
+        <div class="formula">Bit Rate = f<sub>s</sub> × n<sub>b</sub><br>f<sub>s</sub> = 2 × 4,000 = 8,000 samples/sec<br>Bit Rate = 8,000 × 8 = <strong>64,000 bps = 64 Kbps</strong></div>
+        이 값(64 Kbps)이 전화 음성 채널 1개의 표준 디지털 대역폭이다.
+      </div>
+    </div>
+  </div>
+
+  <!-- Q9 -->
+  <div class="quiz-card" id="card9">
+    <div class="quiz-top">
+      <div class="quiz-num">09</div>
+      <div style="flex:1">
+        <div class="quiz-meta">
+          <span class="q-type qt-ox">OX 문제</span>
+          <span class="q-difficulty">⭐⭐</span>
+          <span class="q-slide">Slide 25–26</span>
+        </div>
+        <div class="quiz-question">
+          동기식 전송(Synchronous Transmission)은 각 바이트 앞뒤에 시작 비트와 정지 비트를 추가하여 수신기가 바이트마다 재동기화한다.
+        </div>
+      </div>
+    </div>
+    <div class="ox-options">
+      <div class="ox-btn" onclick="selectOX(this,9,'O')">O</div>
+      <div class="ox-btn" onclick="selectOX(this,9,'X')">X</div>
+    </div>
+    <button class="btn-answer" onclick="toggleAnswer('ans9')">정답 보기</button>
+    <div class="answer-box" id="ans9">
+      <div class="answer-label">✅ 정답</div>
+      <div class="answer-text"><strong>X (거짓)</strong></div>
+      <div class="explain-label">해설</div>
+      <div class="explain-text">지문의 설명은 <strong>비동기식 전송</strong>에 해당한다. 비동기식은 각 바이트마다 시작 비트(0)와 정지 비트(1)를 추가하여 수신기가 바이트마다 재동기화한다.<br>반면 <strong>동기식 전송</strong>은 여러 바이트를 프레임으로 묶어 전송하며, 바이트 사이에 간격이 없고 동기화는 <strong>데이터 링크 계층</strong>에서 수행한다.</div>
+    </div>
+  </div>
+
+  <!-- Q10 -->
+  <div class="quiz-card" id="card10">
+    <div class="quiz-top">
+      <div class="quiz-num">10</div>
+      <div style="flex:1">
+        <div class="quiz-meta">
+          <span class="q-type qt-obj">객관식</span>
+          <span class="q-difficulty">⭐⭐</span>
+          <span class="q-slide">Slide 11</span>
+        </div>
+        <div class="quiz-question">
+          4D-PAM5에 대한 설명으로 <strong>옳지 않은 것</strong>은?
+        </div>
+      </div>
+    </div>
+    <div class="options">
+      <div class="option" onclick="selectOption(this,10,'A')"><span class="option-label">A</span> 데이터가 4개의 회선으로 동시에 전송된다.</div>
+      <div class="option" onclick="selectOption(this,10,'B')"><span class="option-label">B</span> 사용하는 준위는 −2, −1, 0, +1, +2의 5가지이다.</div>
+      <div class="option" onclick="selectOption(this,10,'C')"><span class="option-label">C</span> 1G bps LAN에 사용된다.</div>
+      <div class="option" onclick="selectOption(this,10,'D')"><span class="option-label">D</span> 0 준위는 데이터 전송에 사용되지 않고 항상 유휴 상태를 나타낸다.</div>
+    </div>
+    <button class="btn-answer" onclick="toggleAnswer('ans10')">정답 보기</button>
+    <div class="answer-box" id="ans10">
+      <div class="answer-label">✅ 정답</div>
+      <div class="answer-text"><strong>D</strong> — 0 준위는 유휴 상태가 아니라 <strong>오류 검출</strong>에 사용된다.</div>
+      <div class="explain-label">해설</div>
+      <div class="explain-text">4D-PAM5는 5개의 준위(−2,−1,0,+1,+2)를 사용하며, <strong>0 준위는 오류 검출 목적</strong>으로 사용된다. 나머지 4개 준위(±1, ±2)가 실제 데이터 전송에 사용된다. A, B, C는 모두 올바른 설명이다.</div>
+    </div>
+  </div>
+
+  <!-- ── SECTION 2: 응용 문제 ── -->
+  <div class="section-divider">
+    <div class="section-divider-line"></div>
+    <div class="section-divider-label">🔥 [응용] 문제 (11–20)</div>
+    <div class="section-divider-line"></div>
+  </div>
+
+  <!-- Q11 -->
+  <div class="quiz-card" id="card11">
+    <div class="quiz-top">
+      <div class="quiz-num">11</div>
+      <div style="flex:1">
+        <div class="quiz-meta">
+          <span class="q-type qt-calc">계산형</span>
+          <span class="q-applied">[응용] 역방향</span>
+          <span class="q-difficulty">⭐⭐</span>
+          <span class="q-slide">Slide 4</span>
+        </div>
+        <div class="quiz-question">
+          어떤 시스템에서 데이터 전송률(N)이 <strong>12,000 bps</strong>이고, 신호 전송률(S)이 <strong>4,000 baud</strong>로 측정되었다. 이 시스템에서 변수 <strong>r</strong> (신호 요소당 데이터 요소 수)은 얼마인가? 또한 이것이 의미하는 바를 설명하시오.
+        </div>
+      </div>
+    </div>
+    <textarea class="answer-input" id="input11" placeholder="풀이 과정과 답을 입력하세요..." style="min-height:70px"></textarea>
+    <button class="btn-answer" onclick="toggleAnswer('ans11')">정답 보기</button>
+    <div class="answer-box" id="ans11">
+      <div class="answer-label">✅ 정답</div>
+      <div class="answer-text"><strong>r = 3</strong></div>
+      <div class="explain-label">풀이 과정</div>
+      <div class="explain-text">
+        공식 S = N / r 을 r에 대해 역산:
+        <div class="formula">r = N / S = 12,000 / 4,000 = <strong>3</strong></div>
+        <strong>의미</strong>: r = 3이란 하나의 신호 요소가 <strong>3개의 데이터 비트</strong>를 나타낸다는 뜻이다. 예를 들어 8준위(2³) 신호 방식이 이에 해당한다. r이 클수록 동일한 대역폭으로 더 많은 데이터를 전송할 수 있어 효율적이다.
+      </div>
+    </div>
+  </div>
+
+  <!-- Q12 -->
+  <div class="quiz-card" id="card12">
+    <div class="quiz-top">
+      <div class="quiz-num">12</div>
+      <div style="flex:1">
+        <div class="quiz-meta">
+          <span class="q-type qt-obj">객관식</span>
+          <span class="q-applied">[응용] 파형 해석</span>
+          <span class="q-difficulty">⭐⭐⭐</span>
+          <span class="q-slide">Slide 10</span>
+        </div>
+        <div class="quiz-question">
+          차분 맨체스터(Differential Manchester) 부호화에서 다음 조건이 주어졌을 때, 전송된 비트열로 <strong>올바른 것</strong>은?<br><br>
+          <span style="font-family:var(--code-font); font-size:13px; color:var(--accent); background:var(--surface2); padding:8px 12px; border-radius:6px; display:block; margin-top:8px; line-height:2">
+            비트 간격 1: 시작점 전환 없음<br>
+            비트 간격 2: 시작점 전환 있음<br>
+            비트 간격 3: 시작점 전환 없음<br>
+            비트 간격 4: 시작점 전환 있음
+          </span>
+        </div>
+      </div>
+    </div>
+    <div class="options">
+      <div class="option" onclick="selectOption(this,12,'A')"><span class="option-label">A</span> 0 1 0 1</div>
+      <div class="option" onclick="selectOption(this,12,'B')"><span class="option-label">B</span> 1 0 1 0</div>
+      <div class="option" onclick="selectOption(this,12,'C')"><span class="option-label">C</span> 1 1 0 0</div>
+      <div class="option" onclick="selectOption(this,12,'D')"><span class="option-label">D</span> 0 0 1 1</div>
+    </div>
+    <button class="btn-answer" onclick="toggleAnswer('ans12')">정답 보기</button>
+    <div class="answer-box" id="ans12">
+      <div class="answer-label">✅ 정답</div>
+      <div class="answer-text"><strong>B</strong> — 1 0 1 0</div>
+      <div class="explain-label">풀이 과정</div>
+      <div class="explain-text">
+        차분 맨체스터의 비트 결정 규칙:
+        <ul style="margin: 8px 0 8px 0">
+          <li><strong>시작점 전환 없음 → 비트 1</strong></li>
+          <li><strong>시작점 전환 있음 → 비트 0</strong></li>
+        </ul>
+        적용:
+        <div class="formula">
+          간격1: 전환 없음 → <strong>1</strong><br>
+          간격2: 전환 있음 → <strong>0</strong><br>
+          간격3: 전환 없음 → <strong>1</strong><br>
+          간격4: 전환 있음 → <strong>0</strong><br>
+          결과: <strong>1 0 1 0</strong>
+        </div>
+        중간 전환은 <strong>동기화 전용</strong>으로 항상 발생하므로 비트 결정에 사용하지 않는다.
+      </div>
+    </div>
+  </div>
+
+  <!-- Q13 -->
+  <div class="quiz-card" id="card13">
+    <div class="quiz-top">
+      <div class="quiz-num">13</div>
+      <div style="flex:1">
+        <div class="quiz-meta">
+          <span class="q-type qt-calc">계산형</span>
+          <span class="q-applied">[응용] 수치 변형</span>
+          <span class="q-difficulty">⭐⭐</span>
+          <span class="q-slide">Slide 13–14</span>
+        </div>
+        <div class="quiz-question">
+          의료용 초음파 장비는 최대 주파수 <strong>22,000 Hz</strong>의 신호를 디지털화해야 한다. 나이퀴스트 정리를 적용하여 필요한 최소 표본화율을 구하고, 전화 음성(4,000 Hz) 대비 몇 배인지 계산하시오.
+        </div>
+      </div>
+    </div>
+    <textarea class="answer-input" id="input13" placeholder="풀이 과정과 답을 입력하세요..." style="min-height:70px"></textarea>
+    <button class="btn-answer" onclick="toggleAnswer('ans13')">정답 보기</button>
+    <div class="answer-box" id="ans13">
+      <div class="answer-label">✅ 정답</div>
+      <div class="answer-text"><strong>44,000 samples/sec (44,000 Hz) — 전화 음성 대비 5.5배</strong></div>
+      <div class="explain-label">풀이 과정</div>
+      <div class="explain-text">
+        <div class="formula">
+          f<sub>s</sub> = 2 × f<sub>max</sub> = 2 × 22,000 = <strong>44,000 samples/sec</strong>
+        </div>
+        전화 음성의 표본화율: 8,000 samples/sec
+        <div class="formula">
+          44,000 / 8,000 = <strong>5.5배</strong>
+        </div>
+        참고로 CD 음질 표준(44,100 Hz)이 이 값과 유사한 이유가 바로 나이퀴스트 정리에 의한 것이다 (가청 주파수 최대 약 20,000 Hz).
+      </div>
+    </div>
+  </div>
+
+  <!-- Q14 -->
+  <div class="quiz-card" id="card14">
+    <div class="quiz-top">
+      <div class="quiz-num">14</div>
+      <div style="flex:1">
+        <div class="quiz-meta">
+          <span class="q-type qt-desc">서술형</span>
+          <span class="q-applied">[응용] 개념 비교</span>
+          <span class="q-difficulty">⭐⭐⭐</span>
+          <span class="q-slide">Slide 9–10</span>
+        </div>
+        <div class="quiz-question">
+          맨체스터(Manchester)와 차분 맨체스터(Differential Manchester) 부호화의 <strong>공통점 1가지</strong>와 <strong>차이점 2가지</strong>를 서술하시오.
+        </div>
+      </div>
+    </div>
+    <textarea class="answer-input" id="input14" placeholder="공통점과 차이점을 구분하여 작성하세요..." style="min-height:90px"></textarea>
+    <button class="btn-answer" onclick="toggleAnswer('ans14')">정답 보기</button>
+    <div class="answer-box" id="ans14">
+      <div class="answer-label">✅ 모범 답안</div>
+      <div class="answer-text">
+        <strong>공통점</strong><br>
+        비트 간격 중간에서 반드시 전환(반전)이 발생하여 <strong>자기 동기화</strong>를 달성하고, DC 성분이 없다.
+        <br><br>
+        <strong>차이점 ①</strong> — 비트 결정 방법:<br>
+        · 맨체스터: <strong>중간 전환의 방향</strong>으로 비트를 결정 (높→낮: 1, 낮→높: 0)<br>
+        · 차분 맨체스터: <strong>시작점 전환 여부</strong>로 비트를 결정 (전환 있음: 0, 없음: 1)
+        <br><br>
+        <strong>차이점 ②</strong> — 중간 전환의 역할:<br>
+        · 맨체스터: 중간 전환이 <strong>동기화 + 데이터 표현</strong> 모두 담당<br>
+        · 차분 맨체스터: 중간 전환은 <strong>동기화 전용</strong>이며, 데이터는 시작점에서 결정
+      </div>
+    </div>
+  </div>
+
+  <!-- Q15 -->
+  <div class="quiz-card" id="card15">
+    <div class="quiz-top">
+      <div class="quiz-num">15</div>
+      <div style="flex:1">
+        <div class="quiz-meta">
+          <span class="q-type qt-calc">계산형</span>
+          <span class="q-applied">[응용] 수치 변형</span>
+          <span class="q-difficulty">⭐⭐</span>
+          <span class="q-slide">Slide 17–18</span>
+        </div>
+        <div class="quiz-question">
+          고음질 음악 스트리밍 서비스에서 최대 주파수 <strong>20,000 Hz</strong>의 오디오 신호를 표본당 <strong>16 bits</strong>로 디지털화하고, <strong>2채널(스테레오)</strong>로 전송한다면 총 비트율(Bit Rate)은 얼마인가?
+        </div>
+      </div>
+    </div>
+    <textarea class="answer-input" id="input15" placeholder="풀이 과정과 답을 입력하세요..." style="min-height:70px"></textarea>
+    <button class="btn-answer" onclick="toggleAnswer('ans15')">정답 보기</button>
+    <div class="answer-box" id="ans15">
+      <div class="answer-label">✅ 정답</div>
+      <div class="answer-text"><strong>1,280,000 bps = 1.28 Mbps</strong></div>
+      <div class="explain-label">풀이 과정</div>
+      <div class="explain-text">
+        <div class="formula">
+          Step 1: f<sub>s</sub> = 2 × 20,000 = 40,000 samples/sec<br>
+          Step 2: 1채널 Bit Rate = 40,000 × 16 = 640,000 bps<br>
+          Step 3: 스테레오(2채널) = 640,000 × 2 = <strong>1,280,000 bps = 1.28 Mbps</strong>
+        </div>
+        <strong>개념 적용</strong>: 표본화율은 나이퀴스트 정리(f<sub>s</sub>≥2×f<sub>max</sub>)를 적용하고, PCM 공식(Bit Rate = f<sub>s</sub> × n<sub>b</sub>)을 채널 수만큼 곱한다. CD 음질(44,100 Hz × 16bit × 2ch = 1.4 Mbps)과 유사한 값이다.
+      </div>
+    </div>
+  </div>
+
+  <!-- Q16 -->
+  <div class="quiz-card" id="card16">
+    <div class="quiz-top">
+      <div class="quiz-num">16</div>
+      <div style="flex:1">
+        <div class="quiz-meta">
+          <span class="q-type qt-ox">OX 문제</span>
+          <span class="q-applied">[응용] 조건 변형</span>
+          <span class="q-difficulty">⭐⭐⭐</span>
+          <span class="q-slide">Slide 15</span>
+        </div>
+        <div class="quiz-question">
+          양자화 구간 수(L)를 8에서 16으로 늘리면, 양자화 잡음(Quantization Noise)은 감소하지만 부호화에 필요한 비트 수(n<sub>b</sub>)도 반드시 증가한다.
+        </div>
+      </div>
+    </div>
+    <div class="ox-options">
+      <div class="ox-btn" onclick="selectOX(this,16,'O')">O</div>
+      <div class="ox-btn" onclick="selectOX(this,16,'X')">X</div>
+    </div>
+    <button class="btn-answer" onclick="toggleAnswer('ans16')">정답 보기</button>
+    <div class="answer-box" id="ans16">
+      <div class="answer-label">✅ 정답</div>
+      <div class="answer-text"><strong>O (참)</strong></div>
+      <div class="explain-label">해설</div>
+      <div class="explain-text">
+        <strong>양자화 잡음 감소</strong>: L이 클수록 구간 높이 Δ가 작아져 근사 오차(잡음) 감소 → ✅ 참<br>
+        <strong>비트 수 증가</strong>: L개 구간을 표현하려면 n<sub>b</sub> = log₂L 비트가 필요.
+        <div class="formula">
+          L=8  → n<sub>b</sub> = log₂8 = <strong>3 bits</strong><br>
+          L=16 → n<sub>b</sub> = log₂16 = <strong>4 bits</strong>
+        </div>
+        따라서 L을 늘리면 잡음은 줄지만 <strong>비트율(Bit Rate)이 증가</strong>하는 트레이드오프가 발생한다. 두 명제 모두 참이므로 전체 문장은 <strong>O</strong>이다.
+      </div>
+    </div>
+  </div>
+
+  <!-- Q17 -->
+  <div class="quiz-card" id="card17">
+    <div class="quiz-top">
+      <div class="quiz-num">17</div>
+      <div style="flex:1">
+        <div class="quiz-meta">
+          <span class="q-type qt-obj">객관식</span>
+          <span class="q-applied">[응용] 시나리오 분석</span>
+          <span class="q-difficulty">⭐⭐⭐</span>
+          <span class="q-slide">Slide 5, 7–8</span>
+        </div>
+        <div class="quiz-question">
+          NRZ-L 방식으로 데이터를 전송할 때, 수신기에서 복호화 오류가 발생할 가능성이 <strong>가장 높은 비트열</strong>은? (기준선 표류 관점에서 판단)
+        </div>
+      </div>
+    </div>
+    <div class="options">
+      <div class="option" onclick="selectOption(this,17,'A')"><span class="option-label">A</span> 1 0 1 0 1 0 1 0 (교번 패턴)</div>
+      <div class="option" onclick="selectOption(this,17,'B')"><span class="option-label">B</span> 1 1 1 1 1 1 1 1 (연속 1)</div>
+      <div class="option" onclick="selectOption(this,17,'C')"><span class="option-label">C</span> 1 0 0 1 1 0 1 0 (혼합)</div>
+      <div class="option" onclick="selectOption(this,17,'D')"><span class="option-label">D</span> 1 1 0 0 1 1 0 0 (2개씩 반복)</div>
+    </div>
+    <button class="btn-answer" onclick="toggleAnswer('ans17')">정답 보기</button>
+    <div class="answer-box" id="ans17">
+      <div class="answer-label">✅ 정답</div>
+      <div class="answer-text"><strong>B</strong> — 1 1 1 1 1 1 1 1 (연속 1)</div>
+      <div class="explain-label">해설</div>
+      <div class="explain-text">
+        기준선 표류는 <strong>지속적인 0 또는 1</strong>이 전송될 때 발생한다. NRZ-L에서 연속 1은 계속 음(−V) 전압이 유지되어 수신기의 평균 기준선이 음의 방향으로 이동한다.<br><br>
+        · <strong>A (교번)</strong>: 0과 1이 균등 → 기준선 안정, 오류 낮음<br>
+        · <strong>B (연속 1)</strong>: 기준선이 지속적으로 음 방향으로 표류 → <strong>가장 위험</strong><br>
+        · <strong>C, D</strong>: 혼합/짧은 반복 → 중간 수준의 위험
+      </div>
+    </div>
+  </div>
+
+  <!-- Q18 -->
+  <div class="quiz-card" id="card18">
+    <div class="quiz-top">
+      <div class="quiz-num">18</div>
+      <div style="flex:1">
+        <div class="quiz-meta">
+          <span class="q-type qt-calc">계산형</span>
+          <span class="q-applied">[응용] 역방향</span>
+          <span class="q-difficulty">⭐⭐⭐</span>
+          <span class="q-slide">Slide 17</span>
+        </div>
+        <div class="quiz-question">
+          어떤 PCM 시스템의 비트율(Bit Rate)이 <strong>176,400 bps</strong>이고, 표본화율이 <strong>44,100 samples/sec</strong>일 때, 표본당 비트 수(n<sub>b</sub>)는 얼마인가? 그리고 이 시스템이 표현할 수 있는 양자화 구간 수(L)는?
+        </div>
+      </div>
+    </div>
+    <textarea class="answer-input" id="input18" placeholder="풀이 과정과 답을 입력하세요..." style="min-height:70px"></textarea>
+    <button class="btn-answer" onclick="toggleAnswer('ans18')">정답 보기</button>
+    <div class="answer-box" id="ans18">
+      <div class="answer-label">✅ 정답</div>
+      <div class="answer-text"><strong>n<sub>b</sub> = 4 bits, L = 16구간</strong></div>
+      <div class="explain-label">풀이 과정</div>
+      <div class="explain-text">
+        PCM 공식: Bit Rate = f<sub>s</sub> × n<sub>b</sub> 를 n<sub>b</sub>에 대해 역산
+        <div class="formula">
+          n<sub>b</sub> = Bit Rate / f<sub>s</sub><br>
+          n<sub>b</sub> = 176,400 / 44,100 = <strong>4 bits</strong>
+        </div>
+        양자화 구간 수:
+        <div class="formula">
+          L = 2<sup>n<sub>b</sub></sup> = 2<sup>4</sup> = <strong>16 구간</strong>
+        </div>
+        <strong>해석</strong>: 이 시스템은 44,100 Hz 표본화율(나이퀴스트 기준 최대 22,050 Hz 재생 가능)에 4비트(16단계) 양자화를 사용한다. 실제 CD 음질(16비트)에 비해 양자화 단계가 매우 적어 음질이 낮다.
+      </div>
+    </div>
+  </div>
+
+  <!-- Q19 -->
+  <div class="quiz-card" id="card19">
+    <div class="quiz-top">
+      <div class="quiz-num">19</div>
+      <div style="flex:1">
+        <div class="quiz-meta">
+          <span class="q-type qt-desc">서술형</span>
+          <span class="q-applied">[응용] 개념 결합</span>
+          <span class="q-difficulty">⭐⭐⭐</span>
+          <span class="q-slide">Slide 21–26</span>
+        </div>
+        <div class="quiz-question">
+          8비트 데이터를 전송하는 상황에서 <strong>병렬 전송</strong>과 <strong>직렬-비동기 전송</strong>의 실제 전송 비트 수를 비교하고, 비동기 전송의 오버헤드 비율(%)을 계산하시오. 또한 어떤 상황에서 직렬 전송이 병렬보다 유리한지 설명하시오.
+        </div>
+      </div>
+    </div>
+    <textarea class="answer-input" id="input19" placeholder="계산과 설명을 모두 작성하세요..." style="min-height:100px"></textarea>
+    <button class="btn-answer" onclick="toggleAnswer('ans19')">정답 보기</button>
+    <div class="answer-box" id="ans19">
+      <div class="answer-label">✅ 모범 답안</div>
+      <div class="answer-text">
+        <strong>전송 비트 수 비교:</strong>
+        <div class="formula">
+          병렬 전송: 8비트 데이터 → 8개 전선으로 동시 전송 (추가 비트 없음)<br>
+          비동기 직렬: 시작 비트(1) + 데이터(8) + 정지 비트(1) = <strong>총 10비트</strong>
+        </div>
+        <strong>오버헤드 비율:</strong>
+        <div class="formula">
+          오버헤드 = 2 / 10 × 100 = <strong>20%</strong>
+        </div>
+        <strong>직렬 전송이 유리한 상황:</strong><br>
+        ① <strong>장거리 통신</strong>: 병렬은 전선 수 증가로 비용·간섭 문제 발생, 직렬은 단일 채널로 해결<br>
+        ② <strong>비용 절감</strong>: 직렬은 병렬 대비 1/n 비용으로 동일 데이터 전송 가능<br>
+        ③ <strong>원거리 네트워크</strong>: 인터넷, 모뎀 등 장거리 환경에서 실질적으로 직렬만 사용 가능
+      </div>
+    </div>
+  </div>
+
+  <!-- Q20 -->
+  <div class="quiz-card" id="card20">
+    <div class="quiz-top">
+      <div class="quiz-num">20</div>
+      <div style="flex:1">
+        <div class="quiz-meta">
+          <span class="q-type qt-calc">계산형</span>
+          <span class="q-applied">[응용] 복합</span>
+          <span class="q-difficulty">⭐⭐⭐</span>
+          <span class="q-slide">Slide 4, 13–18</span>
+        </div>
+        <div class="quiz-question">
+          다음 조건을 모두 만족하는 PCM 시스템을 설계하시오.<br><br>
+          <span style="font-family:var(--code-font); font-size:13px; color:var(--accent); background:var(--surface2); padding:10px 14px; border-radius:6px; display:block; margin-top:8px; line-height:2.2">
+            • 최대 신호 주파수: 8,000 Hz<br>
+            • 양자화 구간 수: 256 단계<br>
+            • 신호 요소 1개가 데이터 요소 1개를 표현 (r = 1)
+          </span>
+          <br>
+          ① PCM 비트율(Bit Rate)을 구하시오.<br>
+          ② 신호 전송률(S, baud)을 구하시오.<br>
+          ③ 비트율을 절반으로 줄이려면 양자화 구간 수를 어떻게 바꿔야 하는지, 그 부작용은 무엇인지 설명하시오.
+        </div>
+      </div>
+    </div>
+    <textarea class="answer-input" id="input20" placeholder="①②③ 모두 작성하세요..." style="min-height:110px"></textarea>
+    <button class="btn-answer" onclick="toggleAnswer('ans20')">정답 보기</button>
+    <div class="answer-box" id="ans20">
+      <div class="answer-label">✅ 정답 및 풀이</div>
+      <div class="answer-text">
+        <strong>① PCM 비트율</strong>
+        <div class="formula">
+          f<sub>s</sub> = 2 × 8,000 = 16,000 samples/sec<br>
+          n<sub>b</sub> = log₂256 = 8 bits<br>
+          Bit Rate = 16,000 × 8 = <strong>128,000 bps = 128 Kbps</strong>
+        </div>
+        <strong>② 신호 전송률</strong>
+        <div class="formula">
+          r = 1 이므로 S = N / r = 128,000 / 1 = <strong>128,000 baud</strong>
+        </div>
+        <strong>③ 비트율 절반으로 줄이기</strong>
+        <div class="formula">
+          목표 Bit Rate = 64,000 bps<br>
+          n<sub>b</sub> = 64,000 / 16,000 = 4 bits<br>
+          → L = 2<sup>4</sup> = <strong>16 구간</strong>으로 줄여야 함 (256 → 16)
+        </div>
+        <strong>부작용</strong>: 양자화 구간 수가 256→16으로 크게 줄어들면 각 구간의 높이(Δ)가 16배 커진다. 이로 인해 <strong>양자화 잡음(Quantization Noise)이 크게 증가</strong>하여 원래 아날로그 신호와의 차이(왜곡)가 심해지고 음질/신호 품질이 현저히 저하된다.
+      </div>
+    </div>
+  </div>
+
+</div><!-- end main -->
+
+<!-- RESULT MODAL -->
+<div class="modal-overlay" id="resultModal">
+  <div class="modal">
+    <div class="modal-emoji" id="modalEmoji">🎉</div>
+    <div class="modal-title" id="modalTitle">채점 결과</div>
+    <div class="modal-score" id="modalScore">—</div>
+    <div class="modal-sub" id="modalSub"></div>
+    <div class="modal-breakdown">
+      <div class="modal-item">
+        <div class="modal-item-num" style="color:var(--accent3)" id="correctCount">0</div>
+        <div class="modal-item-label">정답</div>
+      </div>
+      <div class="modal-item">
+        <div class="modal-item-num" style="color:var(--accent4)" id="wrongCount">0</div>
+        <div class="modal-item-label">오답</div>
+      </div>
+      <div class="modal-item">
+        <div class="modal-item-num" style="color:var(--text-dim)" id="skipCount">0</div>
+        <div class="modal-item-label">미응답</div>
+      </div>
+    </div>
+    <button class="modal-close" onclick="closeModal()">확인</button>
+  </div>
+</div>
+
+<script>
+  // 정답 정의 (객관식/OX만 자동 채점)
+  const answers = {
+    1: 'B', 2: 'X', 3: 'C',
+    6: 'C', 9: 'X', 10: 'D',
+    12: 'B', 16: 'O', 17: 'B'
+  };
+  // 주관식/계산형은 토글 방식 (자가 채점)
+  const subjectiveQ = [4, 5, 7, 8, 11, 13, 14, 15, 18, 19, 20];
+
+  const userAnswers = {};
+  let score = 0;
+  let answered = 0;
+
+  function selectOption(el, qNum, val) {
+    const card = document.getElementById('card' + qNum);
+    card.querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+    userAnswers[qNum] = val;
+    updateScore();
+  }
+
+  function selectOX(el, qNum, val) {
+    const card = document.getElementById('card' + qNum);
+    card.querySelectorAll('.ox-btn').forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+    userAnswers[qNum] = val;
+    updateScore();
+  }
+
+  function updateScore() {
+    score = 0;
+    answered = Object.keys(userAnswers).length + subjectiveQ.filter(q => {
+      const el = document.getElementById('input' + q);
+      return el && el.value.trim().length > 0;
+    }).length;
+
+    // auto-grade
+    for (let q in answers) {
+      if (userAnswers[q] === answers[q]) score++;
+    }
+
+    // subjective count by input
+    let subAnswered = subjectiveQ.filter(q => {
+      const el = document.getElementById('input' + q);
+      return el && el.value.trim().length > 0;
+    }).length;
+
+    let totalAnswered = Object.keys(userAnswers).length + subAnswered;
+    let pct = Math.round((totalAnswered / 20) * 100);
+
+    document.getElementById('scoreAnswered').textContent = totalAnswered + '문제 풀었음';
+    document.getElementById('scorePercent').textContent = pct + '% 진행';
+    document.getElementById('progressFill').style.width = pct + '%';
+  }
+
+  function toggleAnswer(id) {
+    const box = document.getElementById(id);
+    box.classList.toggle('show');
+    const qNum = parseInt(id.replace('ans',''));
+    if (subjectiveQ.includes(qNum)) {
+      const inp = document.getElementById('input' + qNum);
+      if (inp) updateScore();
+    }
+  }
+
+  function showResult() {
+    let autoCorrect = 0;
+    let autoWrong = 0;
+    let autoSkip = 0;
+
+    // auto-grade objective/OX
+    for (let q in answers) {
+      const qNum = parseInt(q);
+      const card = document.getElementById('card' + qNum);
+      if (userAnswers[qNum] === undefined) {
+        autoSkip++;
+      } else if (userAnswers[qNum] === answers[qNum]) {
+        autoCorrect++;
+        card.classList.add('correct');
+        // highlight correct option
+        card.querySelectorAll('.option, .ox-btn').forEach(o => {
+          if (o.classList.contains('selected')) o.classList.add('correct-opt');
+        });
+      } else {
+        autoWrong++;
+        card.classList.add('wrong');
+        card.querySelectorAll('.option, .ox-btn').forEach(o => {
+          if (o.classList.contains('selected')) o.classList.add('wrong-opt');
+        });
+        // show correct
+        if (card.querySelectorAll('.option').length > 0) {
+          const opts = card.querySelectorAll('.option');
+          const labels = ['A','B','C','D'];
+          opts.forEach((o, i) => {
+            if (labels[i] === answers[qNum]) o.classList.add('correct-opt');
+          });
+        } else {
+          const oxBtns = card.querySelectorAll('.ox-btn');
+          oxBtns.forEach(o => {
+            if ((o.textContent === 'O' && answers[qNum] === 'O') ||
+                (o.textContent === 'X' && answers[qNum] === 'X')) {
+              o.classList.add('correct-opt');
+            }
+          });
+        }
+      }
+    }
+
+    let subAnswered = subjectiveQ.filter(q => {
+      const el = document.getElementById('input' + q);
+      return el && el.value.trim().length > 0;
+    }).length;
+    let subSkip = subjectiveQ.length - subAnswered;
+
+    let totalSkip = autoSkip + subSkip;
+    let totalAnswered = 20 - totalSkip;
+
+    document.getElementById('scoreNum').textContent = autoCorrect;
+    document.getElementById('correctCount').textContent = autoCorrect + ' / ' + Object.keys(answers).length;
+    document.getElementById('wrongCount').textContent = autoWrong;
+    document.getElementById('skipCount').textContent = totalSkip;
+
+    let ratio = autoCorrect / Object.keys(answers).length;
+    let emoji = ratio >= 0.9 ? '🏆' : ratio >= 0.7 ? '👍' : ratio >= 0.5 ? '📚' : '💪';
+    let title = ratio >= 0.9 ? '우수!' : ratio >= 0.7 ? '잘했어요!' : ratio >= 0.5 ? '조금 더!' : '다시 도전!';
+
+    document.getElementById('modalEmoji').textContent = emoji;
+    document.getElementById('modalTitle').textContent = title;
+    document.getElementById('modalScore').textContent = autoCorrect + ' / ' + Object.keys(answers).length;
+    document.getElementById('modalSub').textContent = '객관식·OX 자동채점 기준 | 주관식 ' + subjectiveQ.length + '문제는 정답 토글로 자가 채점';
+
+    document.getElementById('resultModal').classList.add('show');
+  }
+
+  function closeModal() {
+    document.getElementById('resultModal').classList.remove('show');
+  }
+
+  function resetAll() {
+    if (!confirm('모든 답을 초기화할까요?')) return;
+    for (let k in userAnswers) delete userAnswers[k];
+    document.querySelectorAll('.option, .ox-btn').forEach(el => {
+      el.classList.remove('selected','correct-opt','wrong-opt');
+    });
+    document.querySelectorAll('.answer-input').forEach(el => el.value = '');
+    document.querySelectorAll('.answer-box').forEach(el => el.classList.remove('show'));
+    document.querySelectorAll('.quiz-card').forEach(el => el.classList.remove('correct','wrong'));
+    document.getElementById('scoreNum').textContent = '0';
+    document.getElementById('scorePercent').textContent = '0%';
+    document.getElementById('scoreAnswered').textContent = '0문제 풀었음';
+    document.getElementById('progressFill').style.width = '0%';
+  }
+</script>
+</body>
+</html>
