@@ -1,0 +1,1627 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>제 5장 퀴즈 — 아날로그 전송 (변복조)</title>
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --surface: #111827;
+    --surface2: #1a2235;
+    --surface3: #1e2d45;
+    --border: #1e3a5f;
+    --accent: #3b82f6;
+    --accent2: #06b6d4;
+    --accent3: #8b5cf6;
+    --accent4: #10b981;
+    --accent5: #f59e0b;
+    --accent6: #ef4444;
+    --text: #e2e8f0;
+    --text-muted: #94a3b8;
+    --text-dim: #64748b;
+    --font-body: 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', sans-serif;
+    --font-code: 'Menlo', 'Courier New', monospace;
+    --font-header: 'Impact', 'Arial Narrow', 'Arial', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  /* ── TOP BAR ── */
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: #0d1320ee;
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+  }
+
+  .topbar-title {
+    font-family: var(--font-header);
+    font-size: 16px;
+    letter-spacing: 1px;
+    color: var(--text);
+  }
+
+  .topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .score-badge {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 6px 16px;
+    font-size: 13px;
+    color: var(--text-muted);
+    font-family: var(--font-code);
+  }
+
+  .score-badge span { color: var(--accent4); font-weight: 700; }
+
+  .btn-score {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 20px;
+    font-size: 13px;
+    font-family: var(--font-body);
+    cursor: pointer;
+    font-weight: 600;
+    transition: opacity 0.2s;
+  }
+
+  .btn-score:hover { opacity: 0.85; }
+
+  .btn-reset {
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-family: var(--font-body);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-reset:hover { border-color: var(--accent6); color: var(--accent6); }
+
+  /* ── MAIN ── */
+  .main {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 40px 32px 80px;
+  }
+
+  .page-header {
+    margin-bottom: 40px;
+    padding-bottom: 28px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .chapter-badge {
+    display: inline-block;
+    background: var(--accent3);
+    color: #fff;
+    font-family: var(--font-header);
+    font-size: 11px;
+    letter-spacing: 2px;
+    padding: 4px 12px;
+    border-radius: 3px;
+    margin-bottom: 12px;
+  }
+
+  .page-title {
+    font-family: var(--font-header);
+    font-size: 38px;
+    color: var(--text);
+    line-height: 1.2;
+    margin-bottom: 12px;
+  }
+
+  .meta-row {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+  }
+
+  .meta-pill {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 4px 14px;
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  /* ── PROGRESS ── */
+  .progress-bar-wrap {
+    background: var(--surface2);
+    border-radius: 4px;
+    height: 4px;
+    margin-bottom: 32px;
+    overflow: hidden;
+  }
+
+  .progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent3));
+    border-radius: 4px;
+    transition: width 0.4s ease;
+    width: 0%;
+  }
+
+  /* ── QUIZ CARD ── */
+  .quiz-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px 32px;
+    margin-bottom: 24px;
+    transition: border-color 0.3s;
+  }
+
+  .quiz-card.answered-correct { border-color: var(--accent4); }
+  .quiz-card.answered-wrong   { border-color: var(--accent6); }
+
+  .quiz-top {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+
+  .quiz-num {
+    font-family: var(--font-header);
+    font-size: 28px;
+    color: var(--accent);
+    opacity: 0.35;
+    line-height: 1;
+    min-width: 42px;
+  }
+
+  .quiz-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+  }
+
+  .quiz-tags {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .tag {
+    display: inline-block;
+    font-size: 11px;
+    padding: 2px 9px;
+    border-radius: 4px;
+    font-family: var(--font-code);
+    font-weight: 600;
+  }
+
+  .tag-type  { background: #1e3a5f; color: var(--accent2); }
+  .tag-diff  { background: #1a2235; color: var(--text-muted); }
+  .tag-app   { background: #2e1065; color: #c4b5fd; }
+  .tag-slide { background: #0d2a1a; color: #6ee7b7; font-size: 10px; }
+  .tag-req   { background: #451a03; color: #fcd34d; }
+
+  .quiz-question {
+    font-size: 15px;
+    line-height: 1.8;
+    color: var(--text);
+  }
+
+  .kterm { color: var(--accent2); font-weight: 600; }
+  .formula { font-family: var(--font-code); color: #93c5fd; }
+
+  /* ── OPTIONS ── */
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 16px;
+  }
+
+  .option {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    font-size: 14px;
+  }
+
+  .option:hover:not(.disabled) {
+    border-color: var(--accent);
+    background: #1a2a45;
+  }
+
+  .option.selected { border-color: var(--accent); background: #1a2a45; }
+  .option.correct  { border-color: var(--accent4) !important; background: #0a2a1a !important; }
+  .option.wrong    { border-color: var(--accent6) !important; background: #2a0a0a !important; }
+  .option.disabled { cursor: default; }
+
+  .opt-label {
+    font-family: var(--font-header);
+    font-size: 13px;
+    color: var(--accent);
+    min-width: 20px;
+    padding-top: 1px;
+  }
+
+  .option.correct .opt-label { color: var(--accent4); }
+  .option.wrong   .opt-label { color: var(--accent6); }
+
+  /* ── OX BUTTONS ── */
+  .ox-wrap {
+    display: flex;
+    gap: 16px;
+    margin-top: 16px;
+  }
+
+  .ox-btn {
+    flex: 1;
+    padding: 16px;
+    border-radius: 10px;
+    border: 2px solid var(--border);
+    background: var(--surface2);
+    cursor: pointer;
+    font-size: 28px;
+    text-align: center;
+    transition: all 0.2s;
+    font-family: var(--font-header);
+  }
+
+  .ox-btn:hover:not(.disabled) { border-color: var(--accent); background: #1a2a45; }
+  .ox-btn.selected { border-color: var(--accent); background: #1a2a45; }
+  .ox-btn.correct  { border-color: var(--accent4) !important; background: #0a2a1a !important; }
+  .ox-btn.wrong    { border-color: var(--accent6) !important; background: #2a0a0a !important; }
+  .ox-btn.disabled { cursor: default; }
+
+  /* ── SHORT ANSWER ── */
+  .short-wrap {
+    margin-top: 14px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .short-input {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 16px;
+    color: var(--text);
+    font-size: 15px;
+    font-family: var(--font-code);
+    outline: none;
+    min-width: 200px;
+    transition: border-color 0.2s;
+  }
+
+  .short-input:focus { border-color: var(--accent); }
+  .short-input.correct { border-color: var(--accent4); }
+  .short-input.wrong   { border-color: var(--accent6); }
+
+  .btn-submit {
+    background: var(--surface3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 18px;
+    color: var(--text);
+    font-size: 14px;
+    font-family: var(--font-body);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-submit:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ── TOGGLE ANSWER ── */
+  .toggle-wrap {
+    margin-top: 18px;
+  }
+
+  .toggle-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 18px;
+    color: var(--text-muted);
+    font-size: 13px;
+    font-family: var(--font-body);
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .toggle-btn:hover { border-color: var(--accent3); color: var(--accent3); }
+
+  .toggle-arrow { transition: transform 0.25s; display: inline-block; }
+  .toggle-btn.open .toggle-arrow { transform: rotate(90deg); }
+
+  .answer-box {
+    display: none;
+    margin-top: 14px;
+    background: #0d1b2e;
+    border: 1px solid #1e3a5f;
+    border-radius: 10px;
+    padding: 20px 24px;
+  }
+
+  .answer-box.show { display: block; }
+
+  .answer-label {
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--accent4);
+    font-weight: 700;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+  }
+
+  .answer-correct {
+    font-family: var(--font-code);
+    font-size: 16px;
+    color: #6ee7b7;
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+
+  .explain {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.8;
+    border-top: 1px solid #1e3a5f;
+    padding-top: 12px;
+    margin-top: 10px;
+  }
+
+  .formula-box {
+    background: #080d18;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 18px;
+    font-family: var(--font-code);
+    font-size: 14px;
+    color: #93c5fd;
+    margin: 10px 0;
+    line-height: 2;
+  }
+
+  .formula-box .var { color: #f9a8d4; }
+  .formula-box .eq  { color: #6ee7b7; }
+  .formula-box .op  { color: #fbbf24; }
+
+  /* ── SVG wrap ── */
+  .svg-wrap {
+    width: 100%;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #080d18;
+    border: 1px solid var(--border);
+    margin: 14px 0;
+  }
+
+  .svg-wrap svg { display: block; width: 100%; }
+
+  /* ── RESULT MODAL ── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: #000000cc;
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-overlay.show { display: flex; }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 40px 48px;
+    max-width: 460px;
+    width: 90%;
+    text-align: center;
+  }
+
+  .modal-emoji { font-size: 56px; margin-bottom: 16px; }
+
+  .modal-title {
+    font-family: var(--font-header);
+    font-size: 28px;
+    margin-bottom: 8px;
+  }
+
+  .modal-score {
+    font-size: 48px;
+    font-weight: 700;
+    margin: 16px 0;
+  }
+
+  .modal-sub { color: var(--text-muted); font-size: 14px; margin-bottom: 24px; }
+
+  .modal-btn {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 28px;
+    font-size: 15px;
+    font-family: var(--font-body);
+    cursor: pointer;
+    font-weight: 600;
+  }
+
+  /* ── STATUS ICONS ── */
+  .status-icon {
+    display: none;
+    margin-left: auto;
+    font-size: 18px;
+  }
+
+  .quiz-card.answered-correct .status-icon { display: block; }
+  .quiz-card.answered-wrong   .status-icon { display: block; }
+
+  /* highlight box */
+  .hl { background: #1a2a45; border-left: 3px solid var(--accent); border-radius: 0 6px 6px 0; padding: 10px 14px; margin: 8px 0; font-size:13px; }
+  .hl.green { border-left-color: var(--accent4); }
+  .hl.amber { border-left-color: var(--accent5); }
+  .hl.purple { border-left-color: var(--accent3); }
+
+  @media (max-width: 700px) {
+    .main { padding: 24px 16px 60px; }
+    .topbar { padding: 10px 16px; }
+    .quiz-card { padding: 20px 18px; }
+    .modal { padding: 28px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-title">📡 5장 퀴즈 — 아날로그 전송</div>
+  <div class="topbar-right">
+    <div class="score-badge">채점: <span id="live-score">0</span> / <span id="live-total">0</span></div>
+    <button class="btn-score" onclick="showResult()">최종 채점</button>
+    <button class="btn-reset" onclick="resetAll()">초기화</button>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div style="padding: 0 32px; max-width:900px; margin:0 auto;">
+  <div class="progress-bar-wrap" style="margin-top:12px;">
+    <div class="progress-bar" id="progress-bar"></div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="page-header">
+    <div class="chapter-badge">CHAPTER 05 QUIZ</div>
+    <h1 class="page-title">아날로그 전송<br>연습문제</h1>
+    <div class="meta-row">
+      <div class="meta-pill">📝 총 20문제</div>
+      <div class="meta-pill">⭐ 기본 10문제</div>
+      <div class="meta-pill">🔥 응용 10문제</div>
+      <div class="meta-pill">🎯 QPSK 파형 3문제 · QAM 계산 3문제 포함</div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       Q1 — QPSK 파형 그리기 (객관식) ★★
+  ══════════════════════════════════════════ -->
+  <div class="quiz-card" id="qcard-1">
+    <div class="quiz-top">
+      <div class="quiz-num">01</div>
+      <div class="quiz-meta">
+        <div class="quiz-tags">
+          <span class="tag tag-type">객관식</span>
+          <span class="tag tag-req">QPSK 파형</span>
+          <span class="tag tag-diff">⭐⭐ 보통</span>
+          <span class="tag tag-slide">Slide 14</span>
+        </div>
+      </div>
+      <div class="status-icon" id="si-1"></div>
+    </div>
+    <div class="quiz-question">
+      QPSK에서 I채널(동위상)과 Q채널(구상)의 파형이 아래와 같다.<br>
+      두 신호를 합성한 최종 QPSK 신호의 진폭은 얼마인가?<br><br>
+      <span class="formula">I(t) = A·cos(2πf꜀t),&nbsp; Q(t) = A·sin(2πf꜀t)</span>
+    </div>
+    <div class="svg-wrap" style="margin-top:14px;">
+      <svg viewBox="0 0 560 180" xmlns="http://www.w3.org/2000/svg">
+        <rect width="560" height="180" fill="#080d18"/>
+        <!-- I channel -->
+        <text x="16" y="52" fill="#3b82f6" font-size="11" font-weight="bold">I채널</text>
+        <line x1="60" y1="50" x2="540" y2="50" stroke="#1e3a5f" stroke-width="0.5"/>
+        <path d="M60,50 C80,15 100,15 120,50 C140,85 160,85 180,50 C200,15 220,15 240,50 C260,85 280,85 300,50 C320,15 340,15 360,50 C380,85 400,85 420,50 C440,15 460,15 480,50 C500,85 520,85 540,50" stroke="#3b82f6" stroke-width="2" fill="none"/>
+        <!-- Q channel -->
+        <text x="16" y="132" fill="#10b981" font-size="11" font-weight="bold">Q채널</text>
+        <line x1="60" y1="130" x2="540" y2="130" stroke="#1e3a5f" stroke-width="0.5"/>
+        <path d="M60,130 C70,130 80,95 100,95 C120,95 130,130 140,130 C150,165 160,165 180,130 C190,130 200,165 220,165 C240,165 250,130 260,130 C270,130 280,95 300,95 C320,95 330,130 340,130 C350,165 360,165 380,130 C400,130 410,95 430,95 C450,95 460,130 470,130 C480,165 490,165 510,130 C530,130 535,130 540,130" stroke="#10b981" stroke-width="2" fill="none"/>
+        <text x="300" y="170" fill="#94a3b8" font-size="10" text-anchor="middle">위상 90° 차이 — I = cos, Q = sin</text>
+      </svg>
+    </div>
+    <div class="options" id="opts-1">
+      <div class="option" onclick="selectOpt(1,this,'wrong')"><span class="opt-label">A</span> A (단일 진폭, 위상만 변함)</div>
+      <div class="option" onclick="selectOpt(1,this,'correct')"><span class="opt-label">B</span> √2 · A (두 채널 합성으로 진폭 증가)</div>
+      <div class="option" onclick="selectOpt(1,this,'wrong')"><span class="opt-label">C</span> 2A (단순 합산)</div>
+      <div class="option" onclick="selectOpt(1,this,'wrong')"><span class="opt-label">D</span> 0 (위상차 90°로 상쇄)</div>
+    </div>
+    <div class="toggle-wrap">
+      <button class="toggle-btn" onclick="toggleAns(this)"><span class="toggle-arrow">▶</span> 정답 및 해설 보기</button>
+      <div class="answer-box">
+        <div class="answer-label">정답</div>
+        <div class="answer-correct">B — √2 · A</div>
+        <div class="explain">
+          QPSK는 I채널(<span class="formula">A·cos</span>)과 Q채널(<span class="formula">A·sin</span>)을 합성한다.<br>
+          합성 신호: <span class="formula">S(t) = A·cos + A·sin = √2·A · cos(2πf꜀t − 45°)</span><br>
+          진폭의 크기: <span class="formula">√(A² + A²) = √2·A</span><br>
+          → 위상은 45° 이동하지만 진폭은 <strong>√2배</strong>가 된다. 두 채널이 직교(90° 차이)하므로 에너지가 더해진다.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       Q2 — QPSK 비트열 → 위상 매핑 (단답형) ★★
+  ══════════════════════════════════════════ -->
+  <div class="quiz-card" id="qcard-2">
+    <div class="quiz-top">
+      <div class="quiz-num">02</div>
+      <div class="quiz-meta">
+        <div class="quiz-tags">
+          <span class="tag tag-type">단답형</span>
+          <span class="tag tag-req">QPSK 파형</span>
+          <span class="tag tag-diff">⭐⭐ 보통</span>
+          <span class="tag tag-slide">Slide 14</span>
+        </div>
+      </div>
+      <div class="status-icon" id="si-2"></div>
+    </div>
+    <div class="quiz-question">
+      QPSK에서 아래 위상 매핑 표를 참고하여, 비트열 <span class="formula">1100</span>을 전송할 때<br>
+      순서대로 나타나는 위상을 쉼표로 구분하여 써라.<br><br>
+      <div style="margin-top:10px;overflow-x:auto;">
+        <table style="border-collapse:collapse;font-size:13px;font-family:var(--font-code);">
+          <tr style="background:#1a2235;">
+            <th style="padding:8px 16px;border:1px solid #1e3a5f;color:#06b6d4;">비트 쌍 (Q,I)</th>
+            <th style="padding:8px 16px;border:1px solid #1e3a5f;color:#06b6d4;">위상</th>
+          </tr>
+          <tr><td style="padding:8px 16px;border:1px solid #1e3a5f;">00</td><td style="padding:8px 16px;border:1px solid #1e3a5f;">45°</td></tr>
+          <tr><td style="padding:8px 16px;border:1px solid #1e3a5f;">01</td><td style="padding:8px 16px;border:1px solid #1e3a5f;">135°</td></tr>
+          <tr><td style="padding:8px 16px;border:1px solid #1e3a5f;">10</td><td style="padding:8px 16px;border:1px solid #1e3a5f;">−45° (315°)</td></tr>
+          <tr><td style="padding:8px 16px;border:1px solid #1e3a5f;">11</td><td style="padding:8px 16px;border:1px solid #1e3a5f;">−135° (225°)</td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="short-wrap">
+      <input class="short-input" id="inp-2" type="text" placeholder="예: 45°, 135°" />
+      <button class="btn-submit" onclick="checkShort(2, ['225°, 45°', '-135°, 45°', '225, 45'])">제출</button>
+    </div>
+    <div class="toggle-wrap">
+      <button class="toggle-btn" onclick="toggleAns(this)"><span class="toggle-arrow">▶</span> 정답 및 해설 보기</button>
+      <div class="answer-box">
+        <div class="answer-label">정답</div>
+        <div class="answer-correct">−135° (225°), 45°</div>
+        <div class="explain">
+          비트열 <span class="formula">1100</span>을 2비트씩 나누면: <span class="formula">11</span>, <span class="formula">00</span><br>
+          • <span class="formula">11</span> → 위상 <strong>−135° (225°)</strong><br>
+          • <span class="formula">00</span> → 위상 <strong>45°</strong><br>
+          QPSK는 2비트를 묶어 하나의 신호 요소로 전송하므로 4비트 → 2개의 신호 요소가 생성된다.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       Q3 — QPSK I+Q 합성 최종 파형 (객관식) ★★★
+  ══════════════════════════════════════════ -->
+  <div class="quiz-card" id="qcard-3">
+    <div class="quiz-top">
+      <div class="quiz-num">03</div>
+      <div class="quiz-meta">
+        <div class="quiz-tags">
+          <span class="tag tag-type">객관식</span>
+          <span class="tag tag-req">QPSK 파형</span>
+          <span class="tag tag-app">[응용]</span>
+          <span class="tag tag-diff">⭐⭐⭐ 어려움</span>
+          <span class="tag tag-slide">Slide 14-15</span>
+        </div>
+      </div>
+      <div class="status-icon" id="si-3"></div>
+    </div>
+    <div class="quiz-question">
+      아래는 QPSK 전송 시 I채널과 Q채널의 파형이다.<br>
+      <strong>1구간 (비트 11)</strong>과 <strong>2구간 (비트 00)</strong>에서 합성된 최종 신호의 위상 변화로 옳은 것은?<br><br>
+      <div class="hl purple" style="margin:10px 0;">
+        • 1구간: I = +A·cos, Q = +A·sin (둘 다 양수)<br>
+        • 2구간: I = −A·cos, Q = −A·sin (둘 다 음수)
+      </div>
+    </div>
+    <div class="svg-wrap">
+      <svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg">
+        <rect width="560" height="220" fill="#080d18"/>
+
+        <!-- 구간 배경 -->
+        <rect x="60" y="10" width="240" height="200" fill="#3b82f611" rx="2"/>
+        <rect x="300" y="10" width="240" height="200" fill="#8b5cf611" rx="2"/>
+        <text x="180" y="25" fill="#3b82f6" font-size="11" text-anchor="middle" font-weight="bold">1구간 (비트: 11)</text>
+        <text x="420" y="25" fill="#8b5cf6" font-size="11" text-anchor="middle" font-weight="bold">2구간 (비트: 00)</text>
+
+        <!-- I channel -->
+        <text x="16" y="72" fill="#3b82f6" font-size="10">I채널</text>
+        <line x1="60" y1="70" x2="540" y2="70" stroke="#1e3a5f" stroke-width="0.5"/>
+        <!-- 1구간 I: +cos (positive) -->
+        <path d="M60,70 C80,35 100,35 120,70 C140,105 160,105 180,70 C200,35 220,35 240,70 C255,90 260,100 300,70" stroke="#3b82f6" stroke-width="2" fill="none"/>
+        <!-- 2구간 I: -cos (negative = inverted) -->
+        <path d="M300,70 C320,105 340,105 360,70 C380,35 400,35 420,70 C440,105 460,105 480,70 C500,35 520,35 540,70" stroke="#3b82f6" stroke-width="2" fill="none"/>
+
+        <!-- Q channel -->
+        <text x="16" y="152" fill="#10b981" font-size="10">Q채널</text>
+        <line x1="60" y1="150" x2="540" y2="150" stroke="#1e3a5f" stroke-width="0.5"/>
+        <!-- 1구간 Q: +sin (positive) -->
+        <path d="M60,150 C70,150 80,115 100,115 C120,115 130,150 140,150 C150,185 170,185 190,150 C210,115 230,115 250,150 C270,170 280,175 300,150" stroke="#10b981" stroke-width="2" fill="none"/>
+        <!-- 2구간 Q: -sin (negative = inverted) -->
+        <path d="M300,150 C320,185 340,185 360,150 C380,115 400,115 420,150 C440,185 460,185 480,150 C500,115 520,115 540,150" stroke="#10b981" stroke-width="2" fill="none"/>
+
+        <!-- divider -->
+        <line x1="300" y1="10" x2="300" y2="210" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="4,3"/>
+        <text x="300" y="215" fill="#f59e0b" font-size="9" text-anchor="middle">비트 경계</text>
+      </svg>
+    </div>
+    <div class="options" id="opts-3">
+      <div class="option" onclick="selectOpt(3,this,'wrong')"><span class="opt-label">A</span> 1구간: 45°, 2구간: 45° (위상 변화 없음)</div>
+      <div class="option" onclick="selectOpt(3,this,'wrong')"><span class="opt-label">B</span> 1구간: 45°, 2구간: 90°</div>
+      <div class="option" onclick="selectOpt(3,this,'correct')"><span class="opt-label">C</span> 1구간: 45°, 2구간: 225° (위상 180° 점프)</div>
+      <div class="option" onclick="selectOpt(3,this,'wrong')"><span class="opt-label">D</span> 1구간: 135°, 2구간: 315°</div>
+    </div>
+    <div class="toggle-wrap">
+      <button class="toggle-btn" onclick="toggleAns(this)"><span class="toggle-arrow">▶</span> 정답 및 해설 보기</button>
+      <div class="answer-box">
+        <div class="answer-label">정답</div>
+        <div class="answer-correct">C — 1구간: 45°, 2구간: 225°</div>
+        <div class="explain">
+          합성 위상 = arctan(Q/I)<br>
+          • <strong>1구간</strong>: I=+A, Q=+A → arctan(+/+) = <strong>45°</strong><br>
+          • <strong>2구간</strong>: I=−A, Q=−A → arctan(−/−) = 180°+45° = <strong>225°</strong><br>
+          → 비트 11(45°)에서 비트 00(225°)으로 이동 시 <strong>위상이 180° 점프</strong>한다.<br>
+          이것이 QPSK의 핵심: 2비트 변화마다 위상이 크게 바뀔 수 있다.
+          <div class="hl green" style="margin-top:10px;">
+            성운도에서 보면 (45°)→(225°) 이동은 대각선 반대편으로 이동하는 것과 같다.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       Q4 — QAM: r 구하고 비트전송률 계산 ★★
+  ══════════════════════════════════════════ -->
+  <div class="quiz-card" id="qcard-4">
+    <div class="quiz-top">
+      <div class="quiz-num">04</div>
+      <div class="quiz-meta">
+        <div class="quiz-tags">
+          <span class="tag tag-type">계산형</span>
+          <span class="tag tag-req">QAM 계산</span>
+          <span class="tag tag-diff">⭐⭐ 보통</span>
+          <span class="tag tag-slide">Slide 17</span>
+        </div>
+      </div>
+      <div class="status-icon" id="si-4"></div>
+    </div>
+    <div class="quiz-question">
+      <strong>64-QAM</strong>에서 신호율이 <span class="formula">S = 2000 Baud</span>일 때,<br>
+      ① 신호 요소 하나가 나르는 비트 수 <span class="formula">r</span>을 구하고,<br>
+      ② 비트율 <span class="formula">N</span>을 계산하라.
+    </div>
+    <div class="short-wrap" style="flex-direction:column;align-items:flex-start;gap:10px;">
+      <div style="display:flex;gap:10px;align-items:center;">
+        <span style="font-size:13px;color:var(--text-muted);min-width:60px;">① r =</span>
+        <input class="short-input" id="inp-4a" type="text" placeholder="숫자만 입력" style="min-width:120px;"/>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;">
+        <span style="font-size:13px;color:var(--text-muted);min-width:60px;">② N =</span>
+        <input class="short-input" id="inp-4b" type="text" placeholder="단위 포함 (예: 12000 bps)" style="min-width:180px;"/>
+        <button class="btn-submit" onclick="checkDouble(4,'6','12000')">제출</button>
+      </div>
+    </div>
+    <div class="toggle-wrap">
+      <button class="toggle-btn" onclick="toggleAns(this)"><span class="toggle-arrow">▶</span> 정답 및 해설 보기</button>
+      <div class="answer-box">
+        <div class="answer-label">정답</div>
+        <div class="answer-correct">① r = 6 &nbsp;/&nbsp; ② N = 12,000 bps</div>
+        <div class="explain">
+          <div class="formula-box">
+            ① r = log₂ L = log₂ 64 = <strong>6</strong>
+            <br>② N = S × r = 2000 × 6 = <strong>12,000 bps</strong>
+          </div>
+          64-QAM은 6비트를 한 신호 요소로 전송한다. 같은 신호율(Baud)에서 BPSK(r=1)보다 6배 많은 데이터를 전송할 수 있다.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       Q5 — QAM: N과 L 주고 S 역산 ★★
+  ══════════════════════════════════════════ -->
+  <div class="quiz-card" id="qcard-5">
+    <div class="quiz-top">
+      <div class="quiz-num">05</div>
+      <div class="quiz-meta">
+        <div class="quiz-tags">
+          <span class="tag tag-type">계산형</span>
+          <span class="tag tag-req">QAM 계산</span>
+          <span class="tag tag-app">[응용]</span>
+          <span class="tag tag-diff">⭐⭐ 보통</span>
+          <span class="tag tag-slide">Slide 17</span>
+        </div>
+      </div>
+      <div class="status-icon" id="si-5"></div>
+    </div>
+    <div class="quiz-question">
+      <strong>256-QAM</strong>을 사용하여 비트율 <span class="formula">N = 16,000 bps</span>로 데이터를 전송하려 한다.<br>
+      필요한 신호율 <span class="formula">S</span> (Baud)를 구하라.
+    </div>
+    <div class="short-wrap">
+      <input class="short-input" id="inp-5" type="text" placeholder="예: 2000 Baud" />
+      <button class="btn-submit" onclick="checkShort(5, ['2000','2000 baud','2000 Baud'])">제출</button>
+    </div>
+    <div class="toggle-wrap">
+      <button class="toggle-btn" onclick="toggleAns(this)"><span class="toggle-arrow">▶</span> 정답 및 해설 보기</button>
+      <div class="answer-box">
+        <div class="answer-label">정답</div>
+        <div class="answer-correct">S = 2,000 Baud</div>
+        <div class="explain">
+          <div class="formula-box">
+            r = log₂ 256 = <strong>8</strong>
+            <br>S = N / r = 16,000 / 8 = <strong>2,000 Baud</strong>
+          </div>
+          <div class="hl amber">
+            <strong>[응용 개념]</strong> 역방향 문제: 비트율과 변조 방식이 주어졌을 때 필요한 신호율을 구한다.<br>
+            256-QAM은 신호 하나에 8비트를 담으므로 신호율은 비트율의 1/8이 된다.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       Q6 — QAM: 대역폭 주고 S 계산 ★★★
+  ══════════════════════════════════════════ -->
+  <div class="quiz-card" id="qcard-6">
+    <div class="quiz-top">
+      <div class="quiz-num">06</div>
+      <div class="quiz-meta">
+        <div class="quiz-tags">
+          <span class="tag tag-type">계산형</span>
+          <span class="tag tag-req">QAM 계산</span>
+          <span class="tag tag-app">[응용]</span>
+          <span class="tag tag-diff">⭐⭐⭐ 어려움</span>
+          <span class="tag tag-slide">Slide 17</span>
+        </div>
+      </div>
+      <div class="status-icon" id="si-6"></div>
+    </div>
+    <div class="quiz-question">
+      대역폭 <span class="formula">B = 4,000 Hz</span>, 변조 계수 <span class="formula">d = 1</span>인 채널에서<br>
+      신호율 <span class="formula">S</span>를 구하고, 이 채널에서 <strong>16-QAM</strong>을 사용할 경우<br>
+      최대 비트율 <span class="formula">N</span>은 얼마인지 계산하라.<br><br>
+      <div class="hl" style="font-size:13px;">공식: <span class="formula">S = B / (1 + d)</span></div>
+    </div>
+    <div class="short-wrap" style="flex-direction:column;align-items:flex-start;gap:10px;">
+      <div style="display:flex;gap:10px;align-items:center;">
+        <span style="font-size:13px;color:var(--text-muted);min-width:60px;">S =</span>
+        <input class="short-input" id="inp-6a" type="text" placeholder="Baud" style="min-width:140px;"/>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;">
+        <span style="font-size:13px;color:var(--text-muted);min-width:60px;">N =</span>
+        <input class="short-input" id="inp-6b" type="text" placeholder="bps" style="min-width:140px;"/>
+        <button class="btn-submit" onclick="checkDouble(6,'2000','8000')">제출</button>
+      </div>
+    </div>
+    <div class="toggle-wrap">
+      <button class="toggle-btn" onclick="toggleAns(this)"><span class="toggle-arrow">▶</span> 정답 및 해설 보기</button>
+      <div class="answer-box">
+        <div class="answer-label">정답</div>
+        <div class="answer-correct">S = 2,000 Baud &nbsp;/&nbsp; N = 8,000 bps</div>
+        <div class="explain">
+          <div class="formula-box">
+            S = B / (1 + d) = 4000 / (1 + 1) = <strong>2,000 Baud</strong>
+            <br>r = log₂ 16 = <strong>4</strong>
+            <br>N = S × r = 2000 × 4 = <strong>8,000 bps</strong>
+          </div>
+          <div class="hl amber">
+            <strong>[응용 개념]</strong> 대역폭 → S → N의 3단계 계산.<br>
+            d=1은 실제 전송에서 흔히 쓰는 값으로, 최대 신호율은 대역폭의 절반이 된다.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       Q7 — 객관식: 어떤 변조가 진폭만 변하나 ★
+  ══════════════════════════════════════════ -->
+  <div class="quiz-card" id="qcard-7">
+    <div class="quiz-top">
+      <div class="quiz-num">07</div>
+      <div class="quiz-meta">
+        <div class="quiz-tags">
+          <span class="tag tag-type">객관식</span>
+          <span class="tag tag-diff">⭐ 쉬움</span>
+          <span class="tag tag-slide">Slide 8</span>
+        </div>
+      </div>
+      <div class="status-icon" id="si-7"></div>
+    </div>
+    <div class="quiz-question">
+      다음 중 반송파의 <strong>진폭(Amplitude)만 변화</strong>시키고 주파수와 위상은 고정하는 변조 방식은?
+    </div>
+    <div class="options" id="opts-7">
+      <div class="option" onclick="selectOpt(7,this,'wrong')"><span class="opt-label">A</span> FSK (Frequency Shift Keying)</div>
+      <div class="option" onclick="selectOpt(7,this,'correct')"><span class="opt-label">B</span> ASK (Amplitude Shift Keying)</div>
+      <div class="option" onclick="selectOpt(7,this,'wrong')"><span class="opt-label">C</span> PSK (Phase Shift Keying)</div>
+      <div class="option" onclick="selectOpt(7,this,'wrong')"><span class="opt-label">D</span> QAM (Quadrature Amplitude Modulation)</div>
+    </div>
+    <div class="toggle-wrap">
+      <button class="toggle-btn" onclick="toggleAns(this)"><span class="toggle-arrow">▶</span> 정답 및 해설 보기</button>
+      <div class="answer-box">
+        <div class="answer-label">정답</div>
+        <div class="answer-correct">B — ASK</div>
+        <div class="explain">
+          ASK는 진폭(Amplitude)을 변화시켜 0/1을 표현한다. 주파수와 위상은 고정.<br>
+          QAM은 진폭과 위상을 <em>동시에</em> 변화시키므로 오답이다.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       Q8 — OX: FSK 잡음 내성 ★
+  ══════════════════════════════════════════ -->
+  <div class="quiz-card" id="qcard-8">
+    <div class="quiz-top">
+      <div class="quiz-num">08</div>
+      <div class="quiz-meta">
+        <div class="quiz-tags">
+          <span class="tag tag-type">OX 문제</span>
+          <span class="tag tag-diff">⭐ 쉬움</span>
+          <span class="tag tag-slide">Slide 10</span>
+        </div>
+      </div>
+      <div class="status-icon" id="si-8"></div>
+    </div>
+    <div class="quiz-question">
+      다음 문장이 옳으면 O, 틀리면 X를 선택하라.<br><br>
+      <strong>"FSK(주파수편이 변조)는 잡음(noise)에 대해 ASK(진폭편이 변조)보다 강하다."</strong>
+    </div>
+    <div class="ox-wrap" id="opts-8">
+      <div class="ox-btn" onclick="selectOX(8,this,'correct')">O</div>
+      <div class="ox-btn" onclick="selectOX(8,this,'wrong')">X</div>
+    </div>
+    <div class="toggle-wrap">
+      <button class="toggle-btn" onclick="toggleAns(this)"><span class="toggle-arrow">▶</span> 정답 및 해설 보기</button>
+      <div class="answer-box">
+        <div class="answer-label">정답</div>
+        <div class="answer-correct">O (참)</div>
+        <div class="explain">
+          ASK는 진폭을 기반으로 신호를 구분하므로, 잡음이 신호 세기를 변화시키면 오류가 발생하기 쉽다.<br>
+          FSK는 주파수를 기반으로 구분하므로 진폭 변화(잡음)의 영향을 덜 받아 <strong>잡음 내성이 더 강하다</strong>.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       Q9 — 단답형: 비트율/신호율 단위 ★
+  ══════════════════════════════════════════ -->
+  <div class="quiz-card" id="qcard-9">
+    <div class="quiz-top">
+      <div class="quiz-num">09</div>
+      <div class="quiz-meta">
+        <div class="quiz-tags">
+          <span class="tag tag-type">단답형</span>
+          <span class="tag tag-diff">⭐ 쉬움</span>
+          <span class="tag tag-slide">Slide 4</span>
+        </div>
+      </div>
+      <div class="status-icon" id="si-9"></div>
+    </div>
+    <div class="quiz-question">
+      빈칸을 채워라.<br><br>
+      비트율(Bit Rate)의 단위는 <strong>( ① )</strong>이고,<br>
+      신호율(Signal Rate / Baud Rate)의 단위는 <strong>( ② )</strong>이다.
+    </div>
+    <div class="short-wrap" style="flex-direction:column;align-items:flex-start;gap:10px;">
+      <div style="display:flex;gap:10px;align-items:center;">
+        <span style="font-size:13px;color:var(--text-muted);min-width:30px;">①</span>
+        <input class="short-input" id="inp-9a" type="text" placeholder="단위" style="min-width:120px;"/>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;">
+        <span style="font-size:13px;color:var(--text-muted);min-width:30px;">②</span>
+        <input class="short-input" id="inp-9b" type="text" placeholder="단위" style="min-width:120px;"/>
+        <button class="btn-submit" onclick="checkDouble(9,'bps','baud')">제출</button>
+      </div>
+    </div>
+    <div class="toggle-wrap">
+      <button class="toggle-btn" onclick="toggleAns(this)"><span class="toggle-arrow">▶</span> 정답 및 해설 보기</button>
+      <div class="answer-box">
+        <div class="answer-label">정답</div>
+        <div class="answer-correct">① bps &nbsp;/&nbsp; ② Baud</div>
+        <div class="explain">
+          • <strong>bps</strong> = bits per second (초당 비트 수)<br>
+          • <strong>Baud</strong> = 초당 신호 요소의 수 (신호 변화 횟수)<br>
+          r=1이면 bps = Baud이지만, r>1이면 bps > Baud이다.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       Q10 — 객관식: 성운도 X축 의미 ★
+  ══════════════════════════════════════════ -->
+  <div class="quiz-card" id="qcard-10">
+    <div class="quiz-top">
+      <div class="quiz-num">10</div>
+      <div class="quiz-meta">
+        <div class="quiz-tags">
+          <span class="tag tag-type">객관식</span>
+          <span class="tag tag-diff">⭐ 쉬움</span>
+          <span class="tag tag-slide">Slide 15</span>
+        </div>
+      </div>
+      <div class="status-icon" id="si-10"></div>
+    </div>
+    <div class="quiz-question">
+      성운그림(Constellation Diagram)에서 <strong>수평선 X축</strong>이 나타내는 것은?
+    </div>
+    <div class="options" id="opts-10">
+      <div class="option" onclick="selectOpt(10,this,'wrong')"><span class="opt-label">A</span> 구상(Quadrature) 반송파</div>
+      <div class="option" onclick="selectOpt(10,this,'correct')"><span class="opt-label">B</span> 동위상(In-phase) 반송파</div>
+      <div class="option" onclick="selectOpt(10,this,'wrong')"><span class="opt-label">C</span> 신호의 주파수</div>
+      <div class="option" onclick="selectOpt(10,this,'wrong')"><span class="opt-label">D</span> 비트율</div>
+    </div>
+    <div class="toggle-wrap">
+      <button class="toggle-btn" onclick="toggleAns(this)"><span class="toggle-arrow">▶</span> 정답 및 해설 보기</button>
+      <div class="answer-box">
+        <div class="answer-label">정답</div>
+        <div class="answer-correct">B — 동위상(In-phase) 반송파</div>
+        <div class="explain">
+          성운도에서:<br>
+          • <strong>X축 (수평)</strong> = 동위상(In-phase, I) 반송파<br>
+          • <strong>Y축 (수직)</strong> = 구상(Quadrature, Q) 반송파<br>
+          각 점의 X좌표는 I채널의 진폭, Y좌표는 Q채널의 진폭을 나타낸다.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       Q11 — 계산: Example 5.1 변형 ★★ [응용]
+  ══════════════════════════════════════════ -->
+  <div class="quiz-card" id="qcard-11">
+    <div class="quiz-top">
+      <div class="quiz-num">11</div>
+      <div class="quiz-meta">
+        <div class="quiz-tags">
+          <span class="tag tag-type">계산형</span>
+          <span class="tag tag-app">[응용]</span>
+          <span class="tag tag-diff">⭐⭐ 보통</span>
+          <span class="tag tag-slide">Slide 5 변형</span>
+        </div>
+      </div>
+      <div class="status-icon" id="si-11"></div>
+    </div>
+    <div class="quiz-question">
+      어떤 아날로그 신호가 신호 요소 하나당 <strong>3비트</strong>를 나른다.<br>
+      초당 <strong>2,000개의 신호 요소</strong>가 전송될 때, 비트율 N을 구하라.
+    </div>
+    <div class="short-wrap">
+      <input class="short-input" id="inp-11" type="text" placeholder="예: 6000 bps" />
+      <button class="btn-submit" onclick="checkShort(11, ['6000','6000 bps','6,000 bps'])">제출</button>
+    </div>
+    <div class="toggle-wrap">
+      <button class="toggle-btn" onclick="toggleAns(this)"><span class="toggle-arrow">▶</span> 정답 및 해설 보기</button>
+      <div class="answer-box">
+        <div class="answer-label">정답</div>
+        <div class="answer-correct">N = 6,000 bps</div>
+        <div class="explain">
+          <div class="formula-box">
+            r = 3, S = 2000
+            <br>N = S × r = 2000 × 3 = <strong>6,000 bps</strong>
+          </div>
+          <div class="hl amber">
+            <strong>[응용 포인트]</strong> 강의 예제 5.1(r=4, S=1000)과 동일한 공식이지만 수치를 변형.<br>
+            핵심 공식 N = S × r 만 기억하면 어떤 수치에도 적용 가능하다.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       Q12 — 계산: Example 5.2 변형 ★★ [응용]
+  ══════════════════════════════════════════ -->
+  <div class="quiz-card" id="qcard-12">
+    <div class="quiz-top">
+      <div class="quiz-num">12</div>
+      <div class="quiz-meta">
+        <div class="quiz-tags">
+          <span class="tag tag-type">계산형</span>
+          <span class="tag tag-app">[응용]</span>
+          <span class="tag tag-diff">⭐⭐ 보통</span>
+          <span class="tag tag-slide">Slide 6 변형</span>
+        </div>
+      </div>
+      <div class="status-icon" id="si-12"></div>
+    </div>
+    <div class="quiz-question">
+      아날로그 신호의 비트율이 <span class="formula">N = 12,000 bps</span>, 신호율이 <span class="formula">S = 1,500 Baud</span>이다.<br>
+      ① 신호 요소 하나가 나르는 비트 수 <span class="formula">r</span>과<br>
+      ② 신호 레벨 수 <span class="formula">L</span>을 구하라.
+    </div>
+    <div class="short-wrap" style="flex-direction:column;align-items:flex-start;gap:10px;">
+      <div style="display:flex;gap:10px;align-items:center;">
+        <span style="font-size:13px;color:var(--text-muted);min-width:60px;">① r =</span>
+        <input class="short-input" id="inp-12a" type="text" placeholder="숫자" style="min-width:120px;"/>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;">
+        <span style="font-size:13px;color:var(--text-muted);min-width:60px;">② L =</span>
+        <input class="short-input" id="inp-12b" type="text" placeholder="숫자" style="min-width:120px;"/>
+        <button class="btn-submit" onclick="checkDouble(12,'8','256')">제출</button>
+      </div>
+    </div>
+    <div class="toggle-wrap">
+      <button class="toggle-btn" onclick="toggleAns(this)"><span class="toggle-arrow">▶</span> 정답 및 해설 보기</button>
+      <div class="answer-box">
+        <div class="answer-label">정답</div>
+        <div class="answer-correct">① r = 8 &nbsp;/&nbsp; ② L = 256</div>
+        <div class="explain">
+          <div class="formula-box">
+            ① r = N / S = 12,000 / 1,500 = <strong>8</strong>
+            <br>② L = 2ʳ = 2⁸ = <strong>256</strong>
+          </div>
+          <div class="hl amber">
+            <strong>[응용 포인트]</strong> 강의 예제 5.2(N=8000, S=1000)의 수치 변형 버전.<br>
+            256가지 신호 레벨 → 256-QAM에 해당하는 수준이다.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       Q13 — OX: QPSK는 2비트/신호 ★
+  ══════════════════════════════════════════ -->
+  <div class="quiz-card" id="qcard-13">
+    <div class="quiz-top">
+      <div class="quiz-num">13</div>
+      <div class="quiz-meta">
+        <div class="quiz-tags">
+          <span class="tag tag-type">OX 문제</span>
+          <span class="tag tag-diff">⭐ 쉬움</span>
+          <span class="tag tag-slide">Slide 14</span>
+        </div>
+      </div>
+      <div class="status-icon" id="si-13"></div>
+    </div>
+    <div class="quiz-question">
+      다음 문장이 옳으면 O, 틀리면 X를 선택하라.<br><br>
+      <strong>"QPSK는 하나의 신호 요소로 2비트의 데이터를 전송한다."</strong>
+    </div>
+    <div class="ox-wrap" id="opts-13">
+      <div class="ox-btn" onclick="selectOX(13,this,'correct')">O</div>
+      <div class="ox-btn" onclick="selectOX(13,this,'wrong')">X</div>
+    </div>
+    <div class="toggle-wrap">
+      <button class="toggle-btn" onclick="toggleAns(this)"><span class="toggle-arrow">▶</span> 정답 및 해설 보기</button>
+      <div class="answer-box">
+        <div class="answer-label">정답</div>
+        <div class="answer-correct">O (참)</div>
+        <div class="explain">
+          QPSK(4위상 PSK): L = 4, r = log₂4 = <strong>2비트/신호</strong><br>
+          4가지 위상(45°, 135°, 225°, 315°)으로 2비트(00, 01, 10, 11)를 표현한다.<br>
+          따라서 BPSK에 비해 같은 신호율에서 2배의 비트를 전송할 수 있다.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       Q14 — 객관식: 성운도 원점 거리 ★★
+  ══════════════════════════════════════════ -->
+  <div class="quiz-card" id="qcard-14">
+    <div class="quiz-top">
+      <div class="quiz-num">14</div>
+      <div class="quiz-meta">
+        <div class="quiz-tags">
+          <span class="tag tag-type">객관식</span>
+          <span class="tag tag-diff">⭐⭐ 보통</span>
+          <span class="tag tag-slide">Slide 15</span>
+        </div>
+      </div>
+      <div class="status-icon" id="si-14"></div>
+    </div>
+    <div class="quiz-question">
+      성운그림(Constellation Diagram)에서 <strong>원점으로부터 점까지의 거리</strong>가 나타내는 것은?
+    </div>
+    <div class="options" id="opts-14">
+      <div class="option" onclick="selectOpt(14,this,'wrong')"><span class="opt-label">A</span> 신호의 위상(Phase)</div>
+      <div class="option" onclick="selectOpt(14,this,'correct')"><span class="opt-label">B</span> 신호의 진폭(Amplitude)</div>
+      <div class="option" onclick="selectOpt(14,this,'wrong')"><span class="opt-label">C</span> 신호의 주파수(Frequency)</div>
+      <div class="option" onclick="selectOpt(14,this,'wrong')"><span class="opt-label">D</span> 비트율(Bit Rate)</div>
+    </div>
+    <div class="toggle-wrap">
+      <button class="toggle-btn" onclick="toggleAns(this)"><span class="toggle-arrow">▶</span> 정답 및 해설 보기</button>
+      <div class="answer-box">
+        <div class="answer-label">정답</div>
+        <div class="answer-correct">B — 신호의 진폭(Amplitude)</div>
+        <div class="explain">
+          성운도에서:<br>
+          • <strong>원점까지의 거리</strong> = 신호의 <strong>진폭 크기</strong> (√(I² + Q²))<br>
+          • <strong>X축과의 각도</strong> = 신호의 <strong>위상</strong><br>
+          ASK의 성운도에서는 점들이 X축 위에 놓이며 거리(진폭)만 다르다.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       Q15 — 단답형: BPSK 위상 차이 ★
+  ══════════════════════════════════════════ -->
+  <div class="quiz-card" id="qcard-15">
+    <div class="quiz-top">
+      <div class="quiz-num">15</div>
+      <div class="quiz-meta">
+        <div class="quiz-tags">
+          <span class="tag tag-type">단답형</span>
+          <span class="tag tag-diff">⭐ 쉬움</span>
+          <span class="tag tag-slide">Slide 12</span>
+        </div>
+      </div>
+      <div class="status-icon" id="si-15"></div>
+    </div>
+    <div class="quiz-question">
+      BPSK(Binary Phase Shift Keying)에서 비트 <strong>0</strong>과 비트 <strong>1</strong>의<br>
+      위상 차이는 몇 도(°)인가?
+    </div>
+    <div class="short-wrap">
+      <input class="short-input" id="inp-15" type="text" placeholder="숫자만 입력 (단위: °)" />
+      <button class="btn-submit" onclick="checkShort(15, ['180','180°','180도'])">제출</button>
+    </div>
+    <div class="toggle-wrap">
+      <button class="toggle-btn" onclick="toggleAns(this)"><span class="toggle-arrow">▶</span> 정답 및 해설 보기</button>
+      <div class="answer-box">
+        <div class="answer-label">정답</div>
+        <div class="answer-correct">180°</div>
+        <div class="explain">
+          BPSK: 비트 1 → 위상 0°, 비트 0 → 위상 180°<br>
+          두 위상의 차이는 <strong>180°</strong> (완전 반전). 파형 상으로는 코사인 파형이 뒤집힌 형태로 나타난다.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       Q16 — 객관식: QPSK vs BPSK 대역폭 효율 ★★
+  ══════════════════════════════════════════ -->
+  <div class="quiz-card" id="qcard-16">
+    <div class="quiz-top">
+      <div class="quiz-num">16</div>
+      <div class="quiz-meta">
+        <div class="quiz-tags">
+          <span class="tag tag-type">객관식</span>
+          <span class="tag tag-diff">⭐⭐ 보통</span>
+          <span class="tag tag-slide">Slide 13-14</span>
+        </div>
+      </div>
+      <div class="status-icon" id="si-16"></div>
+    </div>
+    <div class="quiz-question">
+      동일한 신호율(Baud Rate)에서 <strong>QPSK</strong>가 <strong>BPSK</strong>에 비해 전송할 수 있는 비트율은?
+    </div>
+    <div class="options" id="opts-16">
+      <div class="option" onclick="selectOpt(16,this,'wrong')"><span class="opt-label">A</span> 동일하다</div>
+      <div class="option" onclick="selectOpt(16,this,'correct')"><span class="opt-label">B</span> 2배 더 많다</div>
+      <div class="option" onclick="selectOpt(16,this,'wrong')"><span class="opt-label">C</span> 4배 더 많다</div>
+      <div class="option" onclick="selectOpt(16,this,'wrong')"><span class="opt-label">D</span> 절반으로 줄어든다</div>
+    </div>
+    <div class="toggle-wrap">
+      <button class="toggle-btn" onclick="toggleAns(this)"><span class="toggle-arrow">▶</span> 정답 및 해설 보기</button>
+      <div class="answer-box">
+        <div class="answer-label">정답</div>
+        <div class="answer-correct">B — 2배</div>
+        <div class="explain">
+          BPSK: r = log₂2 = <strong>1비트/신호</strong><br>
+          QPSK: r = log₂4 = <strong>2비트/신호</strong><br>
+          → 같은 Baud Rate에서 QPSK는 BPSK의 <strong>2배</strong> 비트를 전송한다.<br>
+          N = S × r이므로 S가 같고 r이 2배이면 N도 2배.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       Q17 — 계산[응용]: r→L→QAM 종류 ★★★
+  ══════════════════════════════════════════ -->
+  <div class="quiz-card" id="qcard-17">
+    <div class="quiz-top">
+      <div class="quiz-num">17</div>
+      <div class="quiz-meta">
+        <div class="quiz-tags">
+          <span class="tag tag-type">계산+단답</span>
+          <span class="tag tag-app">[응용]</span>
+          <span class="tag tag-diff">⭐⭐⭐ 어려움</span>
+          <span class="tag tag-slide">Slide 17</span>
+        </div>
+      </div>
+      <div class="status-icon" id="si-17"></div>
+    </div>
+    <div class="quiz-question">
+      어느 시스템에서 신호 요소 하나가 <strong>4비트</strong>를 전달한다 (<span class="formula">r = 4</span>).<br>
+      ① 필요한 신호 레벨 수 <span class="formula">L</span>을 구하고,<br>
+      ② 이 시스템에 해당하는 QAM 방식의 이름을 써라.
+    </div>
+    <div class="short-wrap" style="flex-direction:column;align-items:flex-start;gap:10px;">
+      <div style="display:flex;gap:10px;align-items:center;">
+        <span style="font-size:13px;color:var(--text-muted);min-width:60px;">① L =</span>
+        <input class="short-input" id="inp-17a" type="text" placeholder="숫자" style="min-width:120px;"/>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;">
+        <span style="font-size:13px;color:var(--text-muted);min-width:60px;">② 이름</span>
+        <input class="short-input" id="inp-17b" type="text" placeholder="예: 16-QAM" style="min-width:160px;"/>
+        <button class="btn-submit" onclick="checkDouble(17,'16','16-qam')">제출</button>
+      </div>
+    </div>
+    <div class="toggle-wrap">
+      <button class="toggle-btn" onclick="toggleAns(this)"><span class="toggle-arrow">▶</span> 정답 및 해설 보기</button>
+      <div class="answer-box">
+        <div class="answer-label">정답</div>
+        <div class="answer-correct">① L = 16 &nbsp;/&nbsp; ② 16-QAM</div>
+        <div class="explain">
+          <div class="formula-box">
+            L = 2ʳ = 2⁴ = <strong>16</strong>
+          </div>
+          16가지 신호 레벨 → <strong>16-QAM</strong> (QAM 이름 = 레벨 수로 표기)<br>
+          성운도에서 4×4 격자 구조로 16개의 점이 배치된다.
+          <div class="hl amber" style="margin-top:8px;">
+            <strong>[응용]</strong> r → L → QAM 이름의 역방향 추론 문제. r과 L의 관계(L=2ʳ)를 확실히 이해해야 풀 수 있다.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       Q18 — OX[응용]: r 클수록 신호율 높다? ★★
+  ══════════════════════════════════════════ -->
+  <div class="quiz-card" id="qcard-18">
+    <div class="quiz-top">
+      <div class="quiz-num">18</div>
+      <div class="quiz-meta">
+        <div class="quiz-tags">
+          <span class="tag tag-type">OX 문제</span>
+          <span class="tag tag-app">[응용]</span>
+          <span class="tag tag-diff">⭐⭐ 보통</span>
+          <span class="tag tag-slide">Slide 4</span>
+        </div>
+      </div>
+      <div class="status-icon" id="si-18"></div>
+    </div>
+    <div class="quiz-question">
+      다음 문장이 옳으면 O, 틀리면 X를 선택하라.<br><br>
+      <strong>"같은 비트율(N)에서 r이 클수록(신호 레벨 수가 많을수록) 신호율(S)이 높아진다."</strong>
+    </div>
+    <div class="ox-wrap" id="opts-18">
+      <div class="ox-btn" onclick="selectOX(18,this,'wrong')">O</div>
+      <div class="ox-btn" onclick="selectOX(18,this,'correct')">X</div>
+    </div>
+    <div class="toggle-wrap">
+      <button class="toggle-btn" onclick="toggleAns(this)"><span class="toggle-arrow">▶</span> 정답 및 해설 보기</button>
+      <div class="answer-box">
+        <div class="answer-label">정답</div>
+        <div class="answer-correct">X (거짓)</div>
+        <div class="explain">
+          S = N / r이므로, N(비트율)이 고정될 때 r이 <strong>클수록</strong> 신호율 S는 <strong>낮아진다</strong>.<br>
+          <div class="formula-box">
+            S = N × (1/r) → r↑ 이면 S↓
+          </div>
+          <div class="hl amber">
+            <strong>[응용 포인트]</strong> r이 크면 신호율이 낮아져 대역폭을 절약할 수 있다. 이것이 고차 변조(16-QAM, 64-QAM 등)를 사용하는 핵심 이유다.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       Q19 — 서술형: ASK vs FSK 잡음 내성 ★★★
+  ══════════════════════════════════════════ -->
+  <div class="quiz-card" id="qcard-19">
+    <div class="quiz-top">
+      <div class="quiz-num">19</div>
+      <div class="quiz-meta">
+        <div class="quiz-tags">
+          <span class="tag tag-type">서술형</span>
+          <span class="tag tag-diff">⭐⭐⭐ 어려움</span>
+          <span class="tag tag-slide">Slide 8, 10</span>
+        </div>
+      </div>
+      <div class="status-icon" id="si-19"></div>
+    </div>
+    <div class="quiz-question">
+      <strong>ASK가 FSK보다 잡음에 취약한 이유</strong>를 두 변조 방식의 특성을 비교하여 서술하라.<br>
+      (2~3문장)
+    </div>
+    <div style="margin-top:14px;">
+      <textarea id="inp-19"
+        style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px 16px;color:var(--text);font-family:var(--font-body);font-size:14px;line-height:1.7;resize:vertical;min-height:80px;outline:none;"
+        placeholder="여기에 답안을 작성하세요..."></textarea>
+    </div>
+    <div class="toggle-wrap" style="margin-top:10px;">
+      <button class="toggle-btn" onclick="toggleAns(this)"><span class="toggle-arrow">▶</span> 모범 답안 보기</button>
+      <div class="answer-box">
+        <div class="answer-label">모범 답안</div>
+        <div class="explain" style="border-top:none;padding-top:0;margin-top:0;color:var(--text);font-size:14px;">
+          ASK는 <strong>진폭의 변화</strong>로 0과 1을 구분하므로, 전송 중 잡음이 신호의 세기(진폭)를 변화시키면 수신측에서 0인지 1인지 판별하기 어렵다.<br><br>
+          반면 FSK는 <strong>주파수의 변화</strong>로 데이터를 표현하므로, 잡음이 진폭을 바꿔도 주파수 자체는 크게 영향받지 않아 수신측이 더 정확하게 판별할 수 있다.<br><br>
+          따라서 FSK는 ASK에 비해 SNR(Signal-to-Noise Ratio)이 낮은 환경에서도 더 안정적으로 동작한다.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       Q20 — 객관식[응용]: 성운도 보고 변조 판별 ★★★
+  ══════════════════════════════════════════ -->
+  <div class="quiz-card" id="qcard-20">
+    <div class="quiz-top">
+      <div class="quiz-num">20</div>
+      <div class="quiz-meta">
+        <div class="quiz-tags">
+          <span class="tag tag-type">객관식</span>
+          <span class="tag tag-app">[응용]</span>
+          <span class="tag tag-diff">⭐⭐⭐ 어려움</span>
+          <span class="tag tag-slide">Slide 15-17</span>
+        </div>
+      </div>
+      <div class="status-icon" id="si-20"></div>
+    </div>
+    <div class="quiz-question">
+      아래 성운도를 보고, 해당하는 변조 방식을 고르라.
+    </div>
+    <div class="svg-wrap" style="max-width:340px;">
+      <svg viewBox="0 0 280 250" xmlns="http://www.w3.org/2000/svg">
+        <rect width="280" height="250" fill="#080d18"/>
+        <!-- axes -->
+        <line x1="20" y1="125" x2="260" y2="125" stroke="#1e3a5f" stroke-width="1"/>
+        <line x1="140" y1="20" x2="140" y2="230" stroke="#1e3a5f" stroke-width="1"/>
+        <text x="255" y="121" fill="#64748b" font-size="10" text-anchor="end">I</text>
+        <text x="144" y="28" fill="#64748b" font-size="10">Q</text>
+        <!-- 8 points: QPSK + more = 8-PSK? No: 8 points on circle at equal angles = 8-PSK -->
+        <!-- radius 80px, center (140,125) -->
+        <!-- angles: 0°,45°,90°,135°,180°,225°,270°,315° -->
+        <circle cx="220" cy="125" r="7" fill="#f59e0b"/>  <!-- 0° -->
+        <circle cx="196" cy="69"  r="7" fill="#f59e0b"/>  <!-- 45° -->
+        <circle cx="140" cy="45"  r="7" fill="#f59e0b"/>  <!-- 90° -->
+        <circle cx="84"  cy="69"  r="7" fill="#f59e0b"/>  <!-- 135° -->
+        <circle cx="60"  cy="125" r="7" fill="#f59e0b"/>  <!-- 180° -->
+        <circle cx="84"  cy="181" r="7" fill="#f59e0b"/>  <!-- 225° -->
+        <circle cx="140" cy="205" r="7" fill="#f59e0b"/>  <!-- 270° -->
+        <circle cx="196" cy="181" r="7" fill="#f59e0b"/>  <!-- 315° -->
+        <!-- circle guide -->
+        <circle cx="140" cy="125" r="80" stroke="#1e3a5f" stroke-width="0.5" fill="none" stroke-dasharray="3,3"/>
+        <!-- tick labels -->
+        <text x="228" y="140" fill="#64748b" font-size="9">0°</text>
+        <text x="200" y="64"  fill="#64748b" font-size="9">45°</text>
+        <text x="144" y="36"  fill="#64748b" font-size="9">90°</text>
+        <text x="60"  y="64"  fill="#64748b" font-size="9">135°</text>
+        <text x="30"  y="140" fill="#64748b" font-size="9">180°</text>
+        <text x="60"  y="196" fill="#64748b" font-size="9">225°</text>
+        <text x="130" y="220" fill="#64748b" font-size="9">270°</text>
+        <text x="186" y="196" fill="#64748b" font-size="9">315°</text>
+        <text x="140" y="242" fill="#94a3b8" font-size="10" text-anchor="middle">총 8개의 점 (등간격 배치)</text>
+      </svg>
+    </div>
+    <div class="options" id="opts-20">
+      <div class="option" onclick="selectOpt(20,this,'wrong')"><span class="opt-label">A</span> BPSK — 2개 위상 (0°, 180°)</div>
+      <div class="option" onclick="selectOpt(20,this,'wrong')"><span class="opt-label">B</span> QPSK — 4개 위상 (45°, 135°, 225°, 315°)</div>
+      <div class="option" onclick="selectOpt(20,this,'correct')"><span class="opt-label">C</span> 8-PSK — 8개 위상 (45° 간격), r = 3</div>
+      <div class="option" onclick="selectOpt(20,this,'wrong')"><span class="opt-label">D</span> 16-QAM — 16개 포인트, 진폭+위상 동시 변화</div>
+    </div>
+    <div class="toggle-wrap">
+      <button class="toggle-btn" onclick="toggleAns(this)"><span class="toggle-arrow">▶</span> 정답 및 해설 보기</button>
+      <div class="answer-box">
+        <div class="answer-label">정답</div>
+        <div class="answer-correct">C — 8-PSK (r = 3)</div>
+        <div class="explain">
+          성운도 분석:<br>
+          • 모든 점이 <strong>동일한 반지름</strong>의 원 위에 있음 → 진폭 일정 → PSK 계열<br>
+          • 점의 개수 = <strong>8개</strong>, 간격 = <strong>45°</strong> → 8-PSK<br>
+          • L = 8이므로 r = log₂8 = <strong>3비트/신호</strong><br><br>
+          16-QAM은 점들의 진폭이 달라 원 위에만 있지 않고 격자 형태로 배치된다.
+          <div class="hl purple" style="margin-top:8px;">
+            <strong>[응용 포인트]</strong> 성운도에서 ①점 개수 ②원형 배치 여부 ③진폭 균일성을 보고 변조 방식을 판별할 수 있다.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<!-- RESULT MODAL -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <div class="modal-emoji" id="modal-emoji">🎯</div>
+    <div class="modal-title" id="modal-title">채점 결과</div>
+    <div class="modal-score" id="modal-score-text" style="color:var(--accent4);">0 / 0</div>
+    <div class="modal-sub" id="modal-comment"></div>
+    <button class="modal-btn" onclick="document.getElementById('modal-overlay').classList.remove('show')">닫기</button>
+  </div>
+</div>
+
+<script>
+  // ── State ──
+  const answered = {};   // qNum → 'correct'|'wrong'
+  const TOTAL_GRADABLE = 19; // Q19 서술형 제외
+
+  function updateLiveScore() {
+    const correct = Object.values(answered).filter(v => v === 'correct').length;
+    const total   = Object.keys(answered).length;
+    document.getElementById('live-score').textContent = correct;
+    document.getElementById('live-total').textContent = total;
+    const pct = (Object.keys(answered).length / TOTAL_GRADABLE) * 100;
+    document.getElementById('progress-bar').style.width = Math.min(pct, 100) + '%';
+  }
+
+  // ── Options (MCQ) ──
+  function selectOpt(qNum, el, result) {
+    if (answered[qNum]) return;
+    const container = el.parentElement;
+    container.querySelectorAll('.option').forEach(o => o.classList.add('disabled'));
+    el.classList.add(result === 'correct' ? 'correct' : 'wrong');
+    if (result === 'correct') {
+      el.querySelector('.opt-label').textContent = '✓';
+    } else {
+      el.querySelector('.opt-label').textContent = '✗';
+      // highlight correct
+      const opts = container.querySelectorAll('.option');
+      opts.forEach(o => {
+        if (o.onclick && o.onclick.toString().includes("'correct'")) {
+          o.classList.add('correct');
+          o.querySelector('.opt-label').textContent = '✓';
+        }
+      });
+    }
+    answered[qNum] = result;
+    markCard(qNum, result);
+    updateLiveScore();
+  }
+
+  // ── OX ──
+  function selectOX(qNum, el, result) {
+    if (answered[qNum]) return;
+    const container = el.parentElement;
+    container.querySelectorAll('.ox-btn').forEach(o => o.classList.add('disabled'));
+    el.classList.add(result === 'correct' ? 'correct' : 'wrong');
+    if (result === 'wrong') {
+      container.querySelectorAll('.ox-btn').forEach(o => {
+        if (o !== el) o.classList.add('correct');
+      });
+    }
+    answered[qNum] = result;
+    markCard(qNum, result);
+    updateLiveScore();
+  }
+
+  // ── Short Answer ──
+  function checkShort(qNum, acceptList) {
+    if (answered[qNum]) return;
+    const inp = document.getElementById('inp-' + qNum);
+    const val = inp.value.trim().toLowerCase().replace(/,/g,'');
+    const correct = acceptList.some(a => val === a.toLowerCase().replace(/,/g,''));
+    inp.classList.add(correct ? 'correct' : 'wrong');
+    inp.disabled = true;
+    answered[qNum] = correct ? 'correct' : 'wrong';
+    markCard(qNum, answered[qNum]);
+    updateLiveScore();
+  }
+
+  // ── Double Short (r + N, or a + b) ──
+  function checkDouble(qNum, ans1, ans2) {
+    if (answered[qNum]) return;
+    const a = document.getElementById('inp-' + qNum + 'a');
+    const b = document.getElementById('inp-' + qNum + 'b');
+    const v1 = a.value.trim().toLowerCase().replace(/[,\s]/g,'');
+    const v2 = b.value.trim().toLowerCase().replace(/[,\s]/g,'');
+    const c1 = v1 === ans1.toLowerCase().replace(/[,\s]/g,'');
+    const c2 = v2 === ans2.toLowerCase().replace(/[,\s]/g,'');
+    a.classList.add(c1 ? 'correct' : 'wrong');
+    b.classList.add(c2 ? 'correct' : 'wrong');
+    a.disabled = true; b.disabled = true;
+    const result = (c1 && c2) ? 'correct' : 'wrong';
+    answered[qNum] = result;
+    markCard(qNum, result);
+    updateLiveScore();
+  }
+
+  // ── Card Mark ──
+  function markCard(qNum, result) {
+    const card = document.getElementById('qcard-' + qNum);
+    card.classList.add(result === 'correct' ? 'answered-correct' : 'answered-wrong');
+    const si = document.getElementById('si-' + qNum);
+    si.textContent = result === 'correct' ? '✅' : '❌';
+  }
+
+  // ── Toggle Answer ──
+  function toggleAns(btn) {
+    const box = btn.nextElementSibling;
+    const open = box.classList.toggle('show');
+    btn.classList.toggle('open', open);
+    btn.querySelector('.toggle-arrow').textContent = open ? '▼' : '▶';
+  }
+
+  // ── Show Result ──
+  function showResult() {
+    const correct = Object.values(answered).filter(v => v === 'correct').length;
+    const total   = Object.keys(answered).filter(k => k != 19).length; // exclude essay
+    const pct = total === 0 ? 0 : Math.round(correct / TOTAL_GRADABLE * 100);
+
+    let emoji, title, comment;
+    if (pct === 100)      { emoji='🏆'; title='Perfect!';   comment='모든 문제를 정답으로 맞혔습니다!'; }
+    else if (pct >= 80)   { emoji='🎉'; title='Excellent!'; comment='훌륭합니다! 개념을 잘 이해하고 있습니다.'; }
+    else if (pct >= 60)   { emoji='💪'; title='Good!';      comment='절반 이상 맞혔습니다. 틀린 문제를 복습하세요.'; }
+    else                  { emoji='📖'; title='Keep Going!'; comment='강의자료를 다시 복습하고 도전하세요!'; }
+
+    document.getElementById('modal-emoji').textContent = emoji;
+    document.getElementById('modal-title').textContent = title;
+    document.getElementById('modal-score-text').textContent = correct + ' / ' + TOTAL_GRADABLE + ' (' + pct + '%)';
+    document.getElementById('modal-comment').textContent = comment;
+    document.getElementById('modal-overlay').classList.add('show');
+  }
+
+  // ── Reset ──
+  function resetAll() {
+    if (!confirm('모든 답변을 초기화할까요?')) return;
+    location.reload();
+  }
+</script>
+</body>
+</html>
