@@ -1,0 +1,1399 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>기계학습 연습문제3 — 응용 퀴즈</title>
+<style>
+:root {
+  --bg: #0a0e1a;
+  --surface: #111827;
+  --surface2: #1a2235;
+  --surface3: #1e2d42;
+  --border: #2a3a52;
+  --accent: #38bdf8;
+  --accent2: #818cf8;
+  --accent3: #34d399;
+  --accent4: #fb923c;
+  --warn: #f59e0b;
+  --danger: #f87171;
+  --text: #e2e8f0;
+  --text-muted: #94a3b8;
+  --text-dim: #64748b;
+  --original-badge: #0ea5e9;
+  --applied-badge: #a855f7;
+  --font-body: 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', sans-serif;
+  --font-code: 'Menlo', 'Courier New', monospace;
+  --font-head: 'Impact', 'Arial Narrow', sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+/* ── HEADER ── */
+.site-header {
+  background: linear-gradient(135deg, #0d1b2e 0%, #0a0e1a 60%);
+  border-bottom: 1px solid var(--border);
+  padding: 32px 40px 28px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.header-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.header-title h1 {
+  font-family: var(--font-head);
+  font-size: 26px;
+  letter-spacing: 2px;
+  color: var(--accent);
+  text-transform: uppercase;
+}
+.header-title .subtitle {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 4px;
+  letter-spacing: 0.5px;
+}
+.score-panel {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 20px;
+  text-align: center;
+  min-width: 160px;
+}
+.score-panel .score-num {
+  font-family: var(--font-head);
+  font-size: 28px;
+  color: var(--accent3);
+  letter-spacing: 2px;
+}
+.score-panel .score-label {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+.score-panel .score-btn {
+  margin-top: 8px;
+  background: var(--accent);
+  color: #0a0e1a;
+  border: none;
+  border-radius: 6px;
+  padding: 5px 14px;
+  font-size: 12px;
+  font-family: var(--font-body);
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity .2s;
+}
+.score-panel .score-btn:hover { opacity: .8; }
+
+/* ── NAV TABS ── */
+.nav-tabs {
+  display: flex;
+  gap: 6px;
+  padding: 16px 40px 0;
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  background: var(--bg);
+}
+.nav-tab {
+  padding: 8px 18px;
+  border-radius: 8px 8px 0 0;
+  border: 1px solid transparent;
+  border-bottom: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-body);
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all .2s;
+}
+.nav-tab:hover { color: var(--text); background: var(--surface2); }
+.nav-tab.active {
+  background: var(--surface);
+  color: var(--accent);
+  border-color: var(--border);
+  font-weight: 700;
+}
+
+/* ── LAYOUT ── */
+.main {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 32px 40px 80px;
+}
+
+.section-panel { display: none; }
+.section-panel.active { display: block; }
+
+/* ── PROBLEM SECTION ── */
+.prob-group {
+  margin-bottom: 40px;
+}
+.prob-group-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--border);
+}
+.prob-group-num {
+  font-family: var(--font-head);
+  font-size: 32px;
+  color: var(--accent);
+  letter-spacing: 2px;
+  line-height: 1;
+}
+.prob-group-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+}
+.prob-group-topic {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* ── CARD ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin-bottom: 16px;
+  overflow: hidden;
+  transition: border-color .2s;
+}
+.card:hover { border-color: var(--accent2); }
+
+.card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 18px 20px 14px;
+  cursor: pointer;
+  user-select: none;
+}
+.card-header:hover { background: var(--surface2); }
+
+.badge-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+}
+.badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.badge-original { background: rgba(14,165,233,.15); color: var(--original-badge); border: 1px solid rgba(14,165,233,.3); }
+.badge-applied  { background: rgba(168,85,247,.15); color: var(--applied-badge); border: 1px solid rgba(168,85,247,.3); }
+.badge-diff {
+  font-size: 10px;
+  color: var(--text-dim);
+  font-weight: 400;
+}
+
+.card-q {
+  flex: 1;
+}
+.card-q .q-text {
+  font-size: 14.5px;
+  color: var(--text);
+  line-height: 1.7;
+}
+
+.stars { font-size: 13px; white-space: nowrap; }
+
+.toggle-icon {
+  color: var(--text-dim);
+  font-size: 18px;
+  transition: transform .3s;
+  margin-top: 2px;
+}
+.card.open .toggle-icon { transform: rotate(180deg); }
+
+.card-body {
+  display: none;
+  padding: 0 20px 18px;
+  border-top: 1px solid var(--border);
+}
+.card.open .card-body { display: block; }
+
+.answer-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent3);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin: 14px 0 8px;
+}
+.answer-box {
+  background: var(--surface2);
+  border-left: 3px solid var(--accent3);
+  border-radius: 0 8px 8px 0;
+  padding: 14px 16px;
+  font-size: 14px;
+  line-height: 1.8;
+}
+.answer-box .math {
+  font-family: var(--font-code);
+  background: var(--surface3);
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin: 8px 0;
+  font-size: 13px;
+  overflow-x: auto;
+  white-space: pre;
+  display: block;
+}
+.variation-box {
+  background: rgba(168,85,247,.07);
+  border: 1px solid rgba(168,85,247,.25);
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-top: 12px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.variation-box strong { color: var(--applied-badge); }
+
+.sub-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--warn);
+  margin: 10px 0 4px;
+}
+
+/* checkbox */
+.check-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+}
+.check-wrap input[type=checkbox] {
+  width: 16px; height: 16px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+/* progress bar */
+.progress-bar-wrap {
+  height: 3px;
+  background: var(--border);
+  border-radius: 2px;
+  margin-top: 12px;
+  overflow: hidden;
+}
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  border-radius: 2px;
+  transition: width .4s ease;
+}
+
+/* ── OVERVIEW TAB ── */
+.overview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+}
+.overview-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+}
+.overview-card h3 {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 8px;
+  letter-spacing: 0.5px;
+}
+.overview-card p {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+.stat-big {
+  font-family: var(--font-head);
+  font-size: 40px;
+  color: var(--accent3);
+  letter-spacing: 2px;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+table.prob-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+table.prob-table th {
+  background: var(--surface2);
+  color: var(--text-muted);
+  font-weight: 700;
+  padding: 10px 14px;
+  text-align: left;
+  border-bottom: 2px solid var(--border);
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+table.prob-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  vertical-align: top;
+}
+table.prob-table tr:hover td { background: var(--surface2); }
+
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-top">
+    <div class="header-title">
+      <h1>기계학습 연습문제3 — 응용 퀴즈</h1>
+      <div class="subtitle">인천대학교 컴퓨터공학부 · 2026년 1학기 · 선형대수 · 통계 · 확률 · MLE · 로지스틱 회귀 · 군집화</div>
+    </div>
+    <div class="score-panel">
+      <div class="score-num" id="scoreDisplay">0 / 12</div>
+      <div class="score-label">완료한 문제</div>
+      <button class="score-btn" onclick="resetAll()">초기화</button>
+    </div>
+  </div>
+  <div class="progress-bar-wrap" style="margin-top:16px;">
+    <div class="progress-bar-fill" id="progressBar" style="width:0%"></div>
+  </div>
+</header>
+
+<div class="nav-tabs">
+  <button class="nav-tab active" onclick="showTab('overview')">📋 개요</button>
+  <button class="nav-tab" onclick="showTab('p1')">문제1 — 선형대수</button>
+  <button class="nav-tab" onclick="showTab('p2')">문제2 — 기술통계</button>
+  <button class="nav-tab" onclick="showTab('p3')">문제3 — 이항·MLE</button>
+  <button class="nav-tab" onclick="showTab('p4')">문제4 — 로지스틱</button>
+  <button class="nav-tab" onclick="showTab('p5')">문제5 — K-평균</button>
+  <button class="nav-tab" onclick="showTab('p6')">문제6 — 가우시안MLE</button>
+</div>
+
+<main class="main">
+
+<!-- ══════════════════════════════════════════════
+     OVERVIEW TAB
+══════════════════════════════════════════════ -->
+<div class="section-panel active" id="tab-overview">
+  <div class="overview-grid">
+    <div class="overview-card">
+      <div class="stat-big">12</div>
+      <h3>총 응용 문제</h3>
+      <p>원본 6문제 × 각 2개 응용 = 총 12개의 변형 문제</p>
+    </div>
+    <div class="overview-card">
+      <h3>응용 유형 분류</h3>
+      <p>수치 변형 · 조건 변형 · 역방향 · 개념 결합의 4가지 유형을 혼합 출제</p>
+    </div>
+    <div class="overview-card">
+      <h3>변형 포인트 명시</h3>
+      <p>각 응용 문제 해설에 <strong style="color:var(--applied-badge)">원본 대비 변형 포인트</strong>를 명시하여 학습 효과를 극대화</p>
+    </div>
+    <div class="overview-card">
+      <h3>난이도</h3>
+      <p>⭐ 쉬움 &nbsp; ⭐⭐ 보통 &nbsp; ⭐⭐⭐ 어려움<br>원본 기준 ±1단계 이내 조정</p>
+    </div>
+  </div>
+
+  <table class="prob-table">
+    <thead>
+      <tr>
+        <th>문제</th><th>원본 핵심 개념</th><th>응용 A 유형</th><th>응용 B 유형</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>문제 1</td><td>벡터 노름·내적·직교·평면 span</td><td>수치 변형</td><td>역방향 (포함 여부 판별)</td></tr>
+      <tr><td>문제 2</td><td>분산·공분산·피어슨 상관계수</td><td>수치 변형 (음의 상관)</td><td>조건 변형 (N=5, r≈0)</td></tr>
+      <tr><td>문제 3</td><td>이항분포·정규근사·MLE</td><td>수치 변형 (p=0.6)</td><td>역방향 (X 역산)</td></tr>
+      <tr><td>문제 4</td><td>로지스틱 회귀·경사하강법</td><td>수치 변형 (α=0.5)</td><td>초기값 변형</td></tr>
+      <tr><td>문제 5</td><td>K-평균·유클리드 거리</td><td>좌표 변형</td><td>K=3 확장</td></tr>
+      <tr><td>문제 6</td><td>가우시안 MLE·편향 추정</td><td>데이터셋 변형</td><td>N=6 확장</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     PROBLEM 1 — 선형대수
+══════════════════════════════════════════════ -->
+<div class="section-panel" id="tab-p1">
+  <div class="prob-group">
+    <div class="prob-group-header">
+      <div class="prob-group-num">01</div>
+      <div>
+        <div class="prob-group-title">선형대수 — 벡터 · 평면 · 직교</div>
+        <div class="prob-group-topic">원본 참조: 문제 1 [①②③]</div>
+      </div>
+    </div>
+
+    <!-- 1-A -->
+    <div class="card" id="c1a">
+      <div class="card-header" onclick="toggle('c1a')">
+        <div class="card-q">
+          <div class="badge-row">
+            <span class="badge badge-applied">[응용] 1-A</span>
+            <span class="stars">⭐⭐ 보통</span>
+            <span class="badge-diff">수치 변형</span>
+          </div>
+          <div class="q-text">
+            평면 P를 span하는 두 벡터가 아래와 같이 주어진다.<br>
+            <code style="font-family:var(--font-code);font-size:13px;">u₁ = (1, 0, 1)ᵀ, u₂ = (0, 1, 1)ᵀ</code><br><br>
+            두 벡터 a와 b가 다음과 같다.<br>
+            <code style="font-family:var(--font-code);font-size:13px;">a = (1, 1, −2)ᵀ, b = (1, 1, 2)ᵀ</code><br><br>
+            (1) ‖a‖와 ‖b‖를 구하라.<br>
+            (2) 내적 a·b와 cos θ를 구하라.<br>
+            (3) a·u₁, a·u₂를 계산하고 a와 평면 P의 관계를 설명하라.<br>
+            (4) b·u₁, b·u₂를 계산하고 b가 평면 P에 속하는지 확인하라.<br>
+            (5) a와 b의 기하학적 관계를 한 문장으로 서술하라.
+          </div>
+        </div>
+        <div class="toggle-icon">▼</div>
+      </div>
+      <div class="card-body">
+        <div class="check-wrap"><input type="checkbox" onchange="updateScore()"> <label>풀이 완료</label></div>
+        <div class="answer-label">▶ 정답 및 풀이</div>
+        <div class="answer-box">
+          <div class="sub-label">(1) 노름 계산</div>
+          <span class="math">‖a‖ = √(1² + 1² + (−2)²) = √6
+‖b‖ = √(1² + 1² + 2²) = √6</span>
+
+          <div class="sub-label">(2) 내적 및 cos θ</div>
+          <span class="math">a · b = (1)(1) + (1)(1) + (−2)(2) = 1 + 1 − 4 = −2
+cos θ = −2 / (√6 · √6) = −2/6 = −1/3 ≈ −0.333</span>
+
+          <div class="sub-label">(3) a와 평면 P의 관계</div>
+          <span class="math">a · u₁ = 1·1 + 1·0 + (−2)·1 = 1 + 0 − 2 = −1  ≠ 0
+a · u₂ = 1·0 + 1·1 + (−2)·1 = 0 + 1 − 2 = −1  ≠ 0</span>
+          → 둘 다 0이 아니므로 <strong>a는 평면 P에 직교하지 않음</strong>. 평면 P 밖에 있으며 P의 법선벡터도 아님.
+
+          <div class="sub-label">(4) b와 평면 P의 관계</div>
+          <span class="math">b · u₁ = 1·1 + 1·0 + 2·1 = 1 + 0 + 2 = 3  ≠ 0
+b · u₂ = 1·0 + 1·1 + 2·1 = 0 + 1 + 2 = 3  ≠ 0</span>
+          → b는 평면 P의 원소가 아님. u₁, u₂에 대해 모두 내적이 0이 아니므로 P 위에 없음.
+          단, b = 1·u₁ + 1·u₂ = (1,0,1)+(0,1,1) = (1,1,2) ✓이므로 <strong>b = u₁ + u₂로 b ∈ P</strong>임을 직접 확인 가능.
+          ※ 내적≠0이 "P 밖"을 의미하지 않음 — P 안 벡터가 u₁,u₂와 직교해야 할 이유는 없음.
+
+          <div class="sub-label">(5) 종합</div>
+          a는 평면 P 밖에 있고, b = u₁+u₂로 평면 P 위에 있으며, cos θ = −1/3으로 두 벡터는 둔각을 이룬다.
+
+          <div class="variation-box">
+            <strong>📌 원본 대비 변형 포인트</strong><br>
+            원본의 u₁=(1,1,0), u₂=(1,0,1), a=(1,−1,−1), b=(2,1,1)에서<br>
+            → u₁=(1,0,1), u₂=(0,1,1)으로 평면 방향 변경<br>
+            → a=(1,1,−2)로 변경 (직교 여부 구조 유지하되 내적 결과 ≠ 0이 되도록)<br>
+            → b=u₁+u₂=(1,1,2)로 정확히 P 위에 놓이도록 설계
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 1-B -->
+    <div class="card" id="c1b">
+      <div class="card-header" onclick="toggle('c1b')">
+        <div class="card-q">
+          <div class="badge-row">
+            <span class="badge badge-applied">[응용] 1-B</span>
+            <span class="stars">⭐⭐⭐ 어려움</span>
+            <span class="badge-diff">역방향 문제</span>
+          </div>
+          <div class="q-text">
+            평면 P가 두 벡터 u₁ = (1, 2, 0)ᵀ, u₂ = (0, 1, 1)ᵀ에 의해 span된다.<br>
+            벡터 v = (a, 1, −1)ᵀ가 평면 P에 포함되기 위한 a의 값을 구하라.<br><br>
+            (1) v ∈ P이면 v = αu₁ + βu₂ 형태로 쓸 수 있음을 이용하여 연립방정식을 세워라.<br>
+            (2) 연립방정식을 풀어 α, β, a를 구하라.<br>
+            (3) 구한 a로 v를 완성하고, v가 평면 P에 직교하는지 판별하라.
+          </div>
+        </div>
+        <div class="toggle-icon">▼</div>
+      </div>
+      <div class="card-body">
+        <div class="check-wrap"><input type="checkbox" onchange="updateScore()"> <label>풀이 완료</label></div>
+        <div class="answer-label">▶ 정답 및 풀이</div>
+        <div class="answer-box">
+          <div class="sub-label">(1) 연립방정식 설정</div>
+          <span class="math">v = αu₁ + βu₂:
+  α·1 + β·0 = a   →  α = a        … ①
+  α·2 + β·1 = 1   →  2a + β = 1   … ②
+  α·0 + β·1 = −1  →  β = −1       … ③</span>
+
+          <div class="sub-label">(2) 풀이</div>
+          <span class="math">③에서 β = −1
+②에 대입: 2a + (−1) = 1  →  2a = 2  →  a = 1
+①에서 α = 1
+
+검증: 1·(1,2,0) + (−1)·(0,1,1) = (1, 2−1, 0−1) = (1, 1, −1) = v ✓</span>
+
+          <div class="sub-label">(3) 직교 판별</div>
+          <span class="math">v = (1, 1, −1)ᵀ
+v · u₁ = 1·1 + 1·2 + (−1)·0 = 3 ≠ 0
+v · u₂ = 1·0 + 1·1 + (−1)·1 = 0</span>
+          → v·u₁ ≠ 0이므로 v는 평면 P에 직교하지 않는다. (v는 P 위에 있으므로 직교할 수 없음)
+
+          <div class="variation-box">
+            <strong>📌 원본 대비 변형 포인트</strong><br>
+            원본: 벡터가 주어지고 → 내적/관계를 출력<br>
+            응용: <strong>역방향</strong> — 평면 포함 조건과 벡터 일부 성분이 미지수로 주어지고 → 해당 값을 역산<br>
+            풀이 구조: P ∋ v ⟺ v = αu₁+βu₂의 연립방정식 풀기로 전환
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     PROBLEM 2 — 기술통계
+══════════════════════════════════════════════ -->
+<div class="section-panel" id="tab-p2">
+  <div class="prob-group">
+    <div class="prob-group-header">
+      <div class="prob-group-num">02</div>
+      <div>
+        <div class="prob-group-title">기술통계 — 분산 · 공분산 · 상관계수</div>
+        <div class="prob-group-topic">원본 참조: 문제 2 [①②③]</div>
+      </div>
+    </div>
+
+    <!-- 2-A -->
+    <div class="card" id="c2a">
+      <div class="card-header" onclick="toggle('c2a')">
+        <div class="card-q">
+          <div class="badge-row">
+            <span class="badge badge-applied">[응용] 2-A</span>
+            <span class="stars">⭐⭐ 보통</span>
+            <span class="badge-diff">수치 변형 (음의 상관)</span>
+          </div>
+          <div class="q-text">
+            아래 N = 4개의 데이터 쌍 (xᵢ, yᵢ)가 주어졌다.<br><br>
+            <table style="border-collapse:collapse;font-size:13px;margin:8px 0;">
+              <tr style="background:var(--surface3);">
+                <th style="padding:6px 14px;border:1px solid var(--border);">i</th>
+                <td style="padding:6px 14px;border:1px solid var(--border);">1</td>
+                <td style="padding:6px 14px;border:1px solid var(--border);">2</td>
+                <td style="padding:6px 14px;border:1px solid var(--border);">3</td>
+                <td style="padding:6px 14px;border:1px solid var(--border);">4</td>
+              </tr>
+              <tr><th style="padding:6px 14px;border:1px solid var(--border);">xᵢ</th>
+                <td style="padding:6px 14px;border:1px solid var(--border);">1</td>
+                <td style="padding:6px 14px;border:1px solid var(--border);">2</td>
+                <td style="padding:6px 14px;border:1px solid var(--border);">3</td>
+                <td style="padding:6px 14px;border:1px solid var(--border);">4</td></tr>
+              <tr><th style="padding:6px 14px;border:1px solid var(--border);">yᵢ</th>
+                <td style="padding:6px 14px;border:1px solid var(--border);">4</td>
+                <td style="padding:6px 14px;border:1px solid var(--border);">2</td>
+                <td style="padding:6px 14px;border:1px solid var(--border);">1</td>
+                <td style="padding:6px 14px;border:1px solid var(--border);">1</td></tr>
+            </table>
+            (1) 표본 평균 x̄, ȳ를 구하라.<br>
+            (2) 분산 σ²ₓ, σ²_y를 구하라.<br>
+            (3) 공분산 Cov(X, Y)를 구하라.<br>
+            (4) 피어슨 상관계수 r을 구하고, 두 변수의 선형 관계를 해석하라.
+          </div>
+        </div>
+        <div class="toggle-icon">▼</div>
+      </div>
+      <div class="card-body">
+        <div class="check-wrap"><input type="checkbox" onchange="updateScore()"> <label>풀이 완료</label></div>
+        <div class="answer-label">▶ 정답 및 풀이</div>
+        <div class="answer-box">
+          <div class="sub-label">(1) 표본 평균</div>
+          <span class="math">x̄ = (1+2+3+4)/4 = 10/4 = 2.5
+ȳ = (4+2+1+1)/4 = 8/4 = 2.0</span>
+
+          <div class="sub-label">(2) 분산</div>
+          <span class="math">σ²ₓ = [(1−2.5)²+(2−2.5)²+(3−2.5)²+(4−2.5)²]/4
+     = [2.25 + 0.25 + 0.25 + 2.25]/4 = 5/4 = 1.25
+
+편차y: (4−2)=2, (2−2)=0, (1−2)=−1, (1−2)=−1
+σ²_y = [4 + 0 + 1 + 1]/4 = 6/4 = 1.5</span>
+
+          <div class="sub-label">(3) 공분산</div>
+          <span class="math">편차곱: (−1.5)(2)+(−0.5)(0)+(0.5)(−1)+(1.5)(−1)
+       = −3 + 0 − 0.5 − 1.5 = −5
+Cov(X,Y) = −5/4 = −1.25</span>
+
+          <div class="sub-label">(4) 상관계수</div>
+          <span class="math">σₓ = √1.25 ≈ 1.118,  σ_y = √1.5 ≈ 1.225
+r = −1.25 / (1.118 × 1.225) ≈ −1.25 / 1.370 ≈ −0.912</span>
+          → r ≈ −0.91로 <strong>강한 음의 선형 상관관계</strong>: x가 증가할수록 y는 감소하는 경향이 뚜렷하다.
+
+          <div class="variation-box">
+            <strong>📌 원본 대비 변형 포인트</strong><br>
+            원본: xᵢ = {1,2,3,4}, yᵢ = {0,3,2,3} → 양의 상관 (r ≈ +0.775)<br>
+            응용: yᵢ = {4,2,1,1}으로 변경 → <strong>음의 상관 구조</strong>로 전환<br>
+            핵심 변형: 공분산 부호가 양 → 음으로 바뀌어, 상관계수 해석 방향이 달라짐
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2-B -->
+    <div class="card" id="c2b">
+      <div class="card-header" onclick="toggle('c2b')">
+        <div class="card-q">
+          <div class="badge-row">
+            <span class="badge badge-applied">[응용] 2-B</span>
+            <span class="stars">⭐⭐ 보통</span>
+            <span class="badge-diff">조건 변형 (N=5, r≈0)</span>
+          </div>
+          <div class="q-text">
+            아래 N = 5개의 데이터 쌍이 주어졌다.<br><br>
+            <table style="border-collapse:collapse;font-size:13px;margin:8px 0;">
+              <tr style="background:var(--surface3);">
+                <th style="padding:6px 14px;border:1px solid var(--border);">i</th>
+                <td style="padding:6px 14px;border:1px solid var(--border);">1</td>
+                <td style="padding:6px 14px;border:1px solid var(--border);">2</td>
+                <td style="padding:6px 14px;border:1px solid var(--border);">3</td>
+                <td style="padding:6px 14px;border:1px solid var(--border);">4</td>
+                <td style="padding:6px 14px;border:1px solid var(--border);">5</td>
+              </tr>
+              <tr><th style="padding:6px 14px;border:1px solid var(--border);">xᵢ</th>
+                <td style="padding:6px 14px;border:1px solid var(--border);">1</td>
+                <td style="padding:6px 14px;border:1px solid var(--border);">2</td>
+                <td style="padding:6px 14px;border:1px solid var(--border);">3</td>
+                <td style="padding:6px 14px;border:1px solid var(--border);">4</td>
+                <td style="padding:6px 14px;border:1px solid var(--border);">5</td></tr>
+              <tr><th style="padding:6px 14px;border:1px solid var(--border);">yᵢ</th>
+                <td style="padding:6px 14px;border:1px solid var(--border);">2</td>
+                <td style="padding:6px 14px;border:1px solid var(--border);">4</td>
+                <td style="padding:6px 14px;border:1px solid var(--border);">1</td>
+                <td style="padding:6px 14px;border:1px solid var(--border);">3</td>
+                <td style="padding:6px 14px;border:1px solid var(--border);">5</td></tr>
+            </table>
+            (1) x̄, ȳ를 구하라.<br>
+            (2) σ²ₓ, σ²_y를 구하라.<br>
+            (3) Cov(X, Y)를 구하라.<br>
+            (4) r을 구하고 두 변수의 관계를 해석하라. 결과가 의미하는 바를 직관적으로 설명하라.
+          </div>
+        </div>
+        <div class="toggle-icon">▼</div>
+      </div>
+      <div class="card-body">
+        <div class="check-wrap"><input type="checkbox" onchange="updateScore()"> <label>풀이 완료</label></div>
+        <div class="answer-label">▶ 정답 및 풀이</div>
+        <div class="answer-box">
+          <div class="sub-label">(1) 표본 평균</div>
+          <span class="math">x̄ = (1+2+3+4+5)/5 = 15/5 = 3
+ȳ = (2+4+1+3+5)/5 = 15/5 = 3</span>
+
+          <div class="sub-label">(2) 분산</div>
+          <span class="math">편차x: −2, −1, 0, 1, 2
+σ²ₓ = (4+1+0+1+4)/5 = 10/5 = 2
+
+편차y: −1, 1, −2, 0, 2
+σ²_y = (1+1+4+0+4)/5 = 10/5 = 2</span>
+
+          <div class="sub-label">(3) 공분산</div>
+          <span class="math">편차곱: (−2)(−1)+(−1)(1)+(0)(−2)+(1)(0)+(2)(2)
+       = 2 − 1 + 0 + 0 + 4 = 5
+Cov(X,Y) = 5/5 = 1</span>
+
+          <div class="sub-label">(4) 상관계수</div>
+          <span class="math">σₓ = σ_y = √2 ≈ 1.414
+r = 1 / (√2 × √2) = 1/2 = 0.5</span>
+          → r = 0.5로 <strong>중간 정도의 양의 선형 상관</strong>. x가 1 증가할 때 y가 일관되게 증가하지는 않지만, 전반적으로 양의 방향성을 가진다.
+
+          <div class="variation-box">
+            <strong>📌 원본 대비 변형 포인트</strong><br>
+            원본: N=4, 양의 상관 (r ≈ 0.775)<br>
+            응용: <strong>N=5로 확장</strong>, y값 순서를 섞어 r=0.5로 약화<br>
+            추가 학습 포인트: N이 달라져도 공식(1/N)은 동일하게 적용됨을 확인
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     PROBLEM 3 — 이항분포·정규근사·MLE
+══════════════════════════════════════════════ -->
+<div class="section-panel" id="tab-p3">
+  <div class="prob-group">
+    <div class="prob-group-header">
+      <div class="prob-group-num">03</div>
+      <div>
+        <div class="prob-group-title">이항 분포 · 정규 근사 · MLE</div>
+        <div class="prob-group-topic">원본 참조: 문제 3 [①②③]</div>
+      </div>
+    </div>
+
+    <!-- 3-A -->
+    <div class="card" id="c3a">
+      <div class="card-header" onclick="toggle('c3a')">
+        <div class="card-q">
+          <div class="badge-row">
+            <span class="badge badge-applied">[응용] 3-A</span>
+            <span class="stars">⭐⭐ 보통</span>
+            <span class="badge-diff">수치 변형 (p=0.6)</span>
+          </div>
+          <div class="q-text">
+            앞면이 나올 확률이 p = 0.6인 동전을 n = 100번 던진다.<br>
+            앞면 횟수를 X ~ B(100, 0.6)라 하자.<br>
+            <em style="color:var(--text-muted);font-size:13px;">참고: Φ(−2.04) ≈ 0.0207, Φ(2.04) ≈ 0.9793</em><br><br>
+            (1) E[X]와 Var(X)를 구하라.<br>
+            (2) 정규 근사로 P(X ≤ 48)을 구하라. Z-score 계산 과정을 명시하라.<br>
+            (3) 동전 100번 중 앞면이 55번 나왔을 때 MLE p̂를 구하라.<br>
+            (3-a) 로그 우도 함수 ℓ(p)를 써라.<br>
+            (3-b) dℓ/dp = 0을 풀어 p̂를 구하라.<br>
+            (3-c) MLE 결과의 직관적 의미를 서술하라.
+          </div>
+        </div>
+        <div class="toggle-icon">▼</div>
+      </div>
+      <div class="card-body">
+        <div class="check-wrap"><input type="checkbox" onchange="updateScore()"> <label>풀이 완료</label></div>
+        <div class="answer-label">▶ 정답 및 풀이</div>
+        <div class="answer-box">
+          <div class="sub-label">(1) 기댓값과 분산</div>
+          <span class="math">E[X] = np = 100 × 0.6 = 60
+Var(X) = np(1−p) = 100 × 0.6 × 0.4 = 24
+  → 표준편차 σ = √24 ≈ 4.899</span>
+
+          <div class="sub-label">(2) P(X ≤ 48) 정규 근사</div>
+          <span class="math">Z = (X − np) / √(np(1−p))
+Z = (48 − 60) / √24 = −12 / 4.899 ≈ −2.449 ≈ −2.45
+
+P(X ≤ 48) = P(Z ≤ −2.45) ≈ Φ(−2.45) ≈ 0.0071</span>
+          ※ 문제에 Φ(−2.04)≈0.0207이 주어진 경우, Z≈−2.45는 더 극단적이므로 확률이 약 0.007로 더 작음.
+
+          <div class="sub-label">(3) MLE (관측: 55/100)</div>
+          <span class="math">(3-a) ℓ(p) = 55·log p + 45·log(1−p)
+
+(3-b) dℓ/dp = 55/p − 45/(1−p) = 0
+  55(1−p) = 45p
+  55 − 55p = 45p
+  55 = 100p
+  p̂ = 55/100 = 0.55
+
+(3-c) MLE = 관측 빈도 = 55/100</span>
+          → MLE는 관측된 성공 빈도와 항상 일치한다. 이는 베르누이 시행에서 데이터가 말해주는 가장 자연스러운 확률 추정값이다.
+
+          <div class="variation-box">
+            <strong>📌 원본 대비 변형 포인트</strong><br>
+            원본: p=0.8, 관측 X=70 → p̂=0.7, P(X≤70) 계산<br>
+            응용: <strong>p=0.6으로 변경</strong> (Var 증가: 16→24), 관측 X=55 → p̂=0.55<br>
+            분기점: Var(X)=np(1−p)는 p=0.5에서 최대 → p=0.6이 p=0.8보다 분산이 크다
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3-B -->
+    <div class="card" id="c3b">
+      <div class="card-header" onclick="toggle('c3b')">
+        <div class="card-q">
+          <div class="badge-row">
+            <span class="badge badge-applied">[응용] 3-B</span>
+            <span class="stars">⭐⭐⭐ 어려움</span>
+            <span class="badge-diff">역방향 문제</span>
+          </div>
+          <div class="q-text">
+            X ~ B(100, p)에서 정규 근사 Z = (X − np)/√(np(1−p)) ≈ N(0,1)를 사용한다.<br><br>
+            (1) p = 0.5, n = 100일 때, P(X ≤ k) ≈ 0.0228을 만족하는 k를 구하라.<br>
+            &nbsp;&nbsp;&nbsp;(힌트: Φ(−2) ≈ 0.0228)<br>
+            (2) 같은 설정(p=0.5, n=100)에서 P(X ≥ m) = 0.0228을 만족하는 m을 구하라.<br>
+            (3) 동전 100번 중 앞면이 k번 나왔다면, MLE p̂를 구하고 참값 p=0.5와 비교하라.
+          </div>
+        </div>
+        <div class="toggle-icon">▼</div>
+      </div>
+      <div class="card-body">
+        <div class="check-wrap"><input type="checkbox" onchange="updateScore()"> <label>풀이 완료</label></div>
+        <div class="answer-label">▶ 정답 및 풀이</div>
+        <div class="answer-box">
+          <div class="sub-label">(1) k 역산</div>
+          <span class="math">E[X] = 100×0.5 = 50, Var(X) = 100×0.5×0.5 = 25, σ = 5
+
+P(X ≤ k) = 0.0228 = Φ(−2)
+Z = (k − 50)/5 = −2
+k − 50 = −10
+k = 40</span>
+
+          <div class="sub-label">(2) m 역산</div>
+          <span class="math">P(X ≥ m) = 0.0228
+= 1 − P(X ≤ m−1) = 0.0228
+→ P(X ≤ m−1) = 0.9772 = Φ(2)
+
+Z = (m−1 − 50)/5 = 2
+m−1 = 60  →  m = 61
+
+따라서 P(X ≥ 61) ≈ 0.0228</span>
+
+          <div class="sub-label">(3) MLE와 비교</div>
+          <span class="math">k=40번 관측 시: p̂ = 40/100 = 0.40
+참값 p = 0.5 대비 0.10 차이
+
+이처럼 정규 분포에서 2σ 이상 벗어난 관측값은 약 2.3% 확률로 발생하며,
+MLE는 이런 극단적 샘플에서도 단순히 관측 빈도를 반환함.</span>
+
+          <div class="variation-box">
+            <strong>📌 원본 대비 변형 포인트</strong><br>
+            원본: p, n, X가 주어지고 → Z-score와 확률을 출력<br>
+            응용: <strong>역방향</strong> — 확률값 Φ(−2)≈0.0228이 주어지고 → X값(k, m)을 역산<br>
+            추가 난이도: P(X ≥ m) = 0.0228에서 대칭성을 이용해야 하는 2단계 역산
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     PROBLEM 4 — 로지스틱 회귀
+══════════════════════════════════════════════ -->
+<div class="section-panel" id="tab-p4">
+  <div class="prob-group">
+    <div class="prob-group-header">
+      <div class="prob-group-num">04</div>
+      <div>
+        <div class="prob-group-title">로지스틱 회귀 — Chain Rule · 경사하강법</div>
+        <div class="prob-group-topic">원본 참조: 문제 4 [①②③]</div>
+      </div>
+    </div>
+
+    <!-- 4-A -->
+    <div class="card" id="c4a">
+      <div class="card-header" onclick="toggle('c4a')">
+        <div class="card-q">
+          <div class="badge-row">
+            <span class="badge badge-applied">[응용] 4-A</span>
+            <span class="stars">⭐⭐ 보통</span>
+            <span class="badge-diff">데이터 변형 + α=0.5</span>
+          </div>
+          <div class="q-text">
+            아래 N = 4개의 데이터가 주어졌다.<br><br>
+            <table style="border-collapse:collapse;font-size:13px;margin:8px 0;">
+              <tr style="background:var(--surface3);">
+                <th style="padding:6px 14px;border:1px solid var(--border);">i</th>
+                <td style="padding:6px 14px;border:1px solid var(--border);">1</td>
+                <td style="padding:6px 14px;border:1px solid var(--border);">2</td>
+                <td style="padding:6px 14px;border:1px solid var(--border);">3</td>
+                <td style="padding:6px 14px;border:1px solid var(--border);">4</td>
+              </tr>
+              <tr><th style="padding:6px 14px;border:1px solid var(--border);">xᵢ</th>
+                <td style="padding:6px 14px;border:1px solid var(--border);">1</td>
+                <td style="padding:6px 14px;border:1px solid var(--border);">2</td>
+                <td style="padding:6px 14px;border:1px solid var(--border);">3</td>
+                <td style="padding:6px 14px;border:1px solid var(--border);">4</td></tr>
+              <tr><th style="padding:6px 14px;border:1px solid var(--border);">yᵢ</th>
+                <td style="padding:6px 14px;border:1px solid var(--border);">1</td>
+                <td style="padding:6px 14px;border:1px solid var(--border);">1</td>
+                <td style="padding:6px 14px;border:1px solid var(--border);">0</td>
+                <td style="padding:6px 14px;border:1px solid var(--border);">1</td></tr>
+            </table>
+            모델: ŷᵢ = σ(zᵢ), zᵢ = θ₀ + θ₁xᵢ. 초기값: θ₀=0, θ₁=0. <strong>학습률 α=0.5</strong>.<br><br>
+            (1) 초기값에서 모든 ŷᵢ와 오차 ŷᵢ−yᵢ를 구하라.<br>
+            (2) 전체 손실 J를 계산하라.<br>
+            (3) ∂J/∂θ₀, ∂J/∂θ₁을 수치적으로 계산하라.<br>
+            (4) α=0.5로 한 번 경사하강 후 θ₀⁽¹⁾, θ₁⁽¹⁾를 구하라.<br>
+            (5) 업데이트된 파라미터로 x=2에서 예측 확률을 계산하라.
+          </div>
+        </div>
+        <div class="toggle-icon">▼</div>
+      </div>
+      <div class="card-body">
+        <div class="check-wrap"><input type="checkbox" onchange="updateScore()"> <label>풀이 완료</label></div>
+        <div class="answer-label">▶ 정답 및 풀이</div>
+        <div class="answer-box">
+          <div class="sub-label">(1) 초기 예측값과 오차</div>
+          <span class="math">θ₀=0, θ₁=0 → zᵢ = 0 for all i → σ(0) = 0.5
+
+  i    xᵢ   yᵢ   ŷᵢ    ŷᵢ−yᵢ
+  1    1     1    0.5   −0.5
+  2    2     1    0.5   −0.5
+  3    3     0    0.5   +0.5
+  4    4     1    0.5   −0.5</span>
+
+          <div class="sub-label">(2) 손실 J</div>
+          <span class="math">L₃ = −log(1−0.5) = log2, 나머지 Lᵢ = −log(0.5) = log2
+J = (1/4)(log2 + log2 + log2 + log2) = log2 ≈ 0.693</span>
+
+          <div class="sub-label">(3) 그래디언트</div>
+          <span class="math">∂J/∂θ₀ = (1/4)[(−0.5)+(−0.5)+(+0.5)+(−0.5)]
+        = (1/4)(−1) = −0.25
+
+∂J/∂θ₁ = (1/4)[1·(−0.5)+2·(−0.5)+3·(+0.5)+4·(−0.5)]
+        = (1/4)[−0.5−1+1.5−2]
+        = (1/4)(−2) = −0.5</span>
+
+          <div class="sub-label">(4) α=0.5 경사하강</div>
+          <span class="math">θ₀⁽¹⁾ = 0 − 0.5×(−0.25) = 0 + 0.125 = 0.125
+θ₁⁽¹⁾ = 0 − 0.5×(−0.5)  = 0 + 0.25  = 0.25</span>
+
+          <div class="sub-label">(5) x=2 예측</div>
+          <span class="math">z = 0.125 + 0.25×2 = 0.125 + 0.5 = 0.625
+σ(0.625) ≈ 1/(1+e^{−0.625}) ≈ 1/(1+0.535) ≈ 0.651</span>
+          → P(y=1|x=2) ≈ 0.651 (원본 α=1일 때보다 업데이트 폭이 작아 0.5에 가까운 예측값)
+
+          <div class="variation-box">
+            <strong>📌 원본 대비 변형 포인트</strong><br>
+            원본: yᵢ={0,1,1,1}, α=1 → θ₀⁽¹⁾=0.25, θ₁⁽¹⁾=0.875<br>
+            응용: <strong>yᵢ={1,1,0,1}로 y₁↔y₃ 교환</strong> + <strong>α=0.5로 절반</strong><br>
+            분기점: y₃=0이 되어 3번 샘플이 "오분류"로 바뀌어 그래디언트 부호 구조가 달라짐
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4-B -->
+    <div class="card" id="c4b">
+      <div class="card-header" onclick="toggle('c4b')">
+        <div class="card-q">
+          <div class="badge-row">
+            <span class="badge badge-applied">[응용] 4-B</span>
+            <span class="stars">⭐⭐⭐ 어려움</span>
+            <span class="badge-diff">초기값 변형 (θ₀=1, θ₁=0.5)</span>
+          </div>
+          <div class="q-text">
+            원본 데이터 (i=1~4, xᵢ={1,2,3,4}, yᵢ={0,1,1,1})를 그대로 사용하되,<br>
+            <strong>초기값 θ₀=1, θ₁=0.5, 학습률 α=1</strong>로 변경한다.<br>
+            <em style="color:var(--text-muted);font-size:13px;">참고: σ(1.5)≈0.818, σ(2.0)≈0.880, σ(2.5)≈0.924, σ(3.0)≈0.953</em><br><br>
+            (1) 각 샘플의 zᵢ = θ₀ + θ₁xᵢ를 계산하라.<br>
+            (2) σ(zᵢ) = ŷᵢ를 구하고 오차 ŷᵢ−yᵢ를 계산하라.<br>
+            (3) ∂J/∂θ₀, ∂J/∂θ₁을 계산하라.<br>
+            (4) α=1로 경사하강 1회 적용 후 θ₀⁽¹⁾, θ₁⁽¹⁾를 구하라.<br>
+            (5) 원본(θ₀=0, θ₁=0 초기화)과 비교했을 때 어느 초기값이 더 빠르게 수렴할 것인지 이유와 함께 설명하라.
+          </div>
+        </div>
+        <div class="toggle-icon">▼</div>
+      </div>
+      <div class="card-body">
+        <div class="check-wrap"><input type="checkbox" onchange="updateScore()"> <label>풀이 완료</label></div>
+        <div class="answer-label">▶ 정답 및 풀이</div>
+        <div class="answer-box">
+          <div class="sub-label">(1) zᵢ 계산</div>
+          <span class="math">z₁ = 1 + 0.5×1 = 1.5
+z₂ = 1 + 0.5×2 = 2.0
+z₃ = 1 + 0.5×3 = 2.5
+z₄ = 1 + 0.5×4 = 3.0</span>
+
+          <div class="sub-label">(2) ŷᵢ와 오차</div>
+          <span class="math">  i   zᵢ    ŷᵢ      yᵢ   ŷᵢ−yᵢ
+  1   1.5   0.818    0   +0.818
+  2   2.0   0.880    1   −0.120
+  3   2.5   0.924    1   −0.076
+  4   3.0   0.953    1   −0.047</span>
+
+          <div class="sub-label">(3) 그래디언트</div>
+          <span class="math">∂J/∂θ₀ = (1/4)[0.818 + (−0.120) + (−0.076) + (−0.047)]
+        = (1/4)(0.575) = 0.14375
+
+∂J/∂θ₁ = (1/4)[1×0.818 + 2×(−0.120) + 3×(−0.076) + 4×(−0.047)]
+        = (1/4)[0.818 − 0.240 − 0.228 − 0.188]
+        = (1/4)(0.162) = 0.0405</span>
+
+          <div class="sub-label">(4) 업데이트</div>
+          <span class="math">θ₀⁽¹⁾ = 1 − 1×0.14375 = 0.856
+θ₁⁽¹⁾ = 0.5 − 1×0.0405 = 0.460</span>
+
+          <div class="sub-label">(5) 초기값 비교</div>
+          θ₀=1, θ₁=0.5 초기화는 y₁=0 샘플을 제외한 대부분을 이미 0.8~0.95로 예측하고 있어 <strong>더 좋은 초기값</strong>이다. 그래디언트 크기도 작아져 학습이 안정적으로 진행된다. 반면 θ=0 초기화는 모든 ŷᵢ=0.5로 시작해 1회 업데이트 폭이 크다.
+
+          <div class="variation-box">
+            <strong>📌 원본 대비 변형 포인트</strong><br>
+            원본: 초기값 θ₀=0, θ₁=0 (모든 예측=0.5)<br>
+            응용: <strong>θ₀=1, θ₁=0.5로 이미 "좋은" 초기값</strong> 설정<br>
+            핵심 학습: 초기값이 달라지면 그래디언트 크기와 부호 구조 자체가 달라짐; y₁=0이 유일한 "틀린 예측"이 됨
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     PROBLEM 5 — K-평균
+══════════════════════════════════════════════ -->
+<div class="section-panel" id="tab-p5">
+  <div class="prob-group">
+    <div class="prob-group-header">
+      <div class="prob-group-num">05</div>
+      <div>
+        <div class="prob-group-title">K-평균 군집화 — 유클리드 거리</div>
+        <div class="prob-group-topic">원본 참조: 문제 5 [①②③]</div>
+      </div>
+    </div>
+
+    <!-- 5-A -->
+    <div class="card" id="c5a">
+      <div class="card-header" onclick="toggle('c5a')">
+        <div class="card-q">
+          <div class="badge-row">
+            <span class="badge badge-applied">[응용] 5-A</span>
+            <span class="stars">⭐⭐ 보통</span>
+            <span class="badge-diff">좌표 변형 + 초기 중심 변경</span>
+          </div>
+          <div class="q-text">
+            다음 6개의 2차원 데이터가 주어졌다.<br><br>
+            <table style="border-collapse:collapse;font-size:13px;margin:8px 0;">
+              <tr style="background:var(--surface3);">
+                <th style="padding:6px 12px;border:1px solid var(--border);">포인트</th>
+                <td style="padding:6px 12px;border:1px solid var(--border);">A</td>
+                <td style="padding:6px 12px;border:1px solid var(--border);">B</td>
+                <td style="padding:6px 12px;border:1px solid var(--border);">C</td>
+                <td style="padding:6px 12px;border:1px solid var(--border);">D</td>
+                <td style="padding:6px 12px;border:1px solid var(--border);">E</td>
+                <td style="padding:6px 12px;border:1px solid var(--border);">F</td>
+              </tr>
+              <tr><th style="padding:6px 12px;border:1px solid var(--border);">좌표</th>
+                <td style="padding:6px 12px;border:1px solid var(--border);">(2,1)</td>
+                <td style="padding:6px 12px;border:1px solid var(--border);">(3,4)</td>
+                <td style="padding:6px 12px;border:1px solid var(--border);">(4,2)</td>
+                <td style="padding:6px 12px;border:1px solid var(--border);">(7,1)</td>
+                <td style="padding:6px 12px;border:1px solid var(--border);">(8,4)</td>
+                <td style="padding:6px 12px;border:1px solid var(--border);">(9,2)</td></tr>
+            </table>
+            K=2, 초기 중심: c₁⁽⁰⁾=(2,1), c₂⁽⁰⁾=(9,2)<br><br>
+            (1) 각 포인트를 두 중심에 할당하라 (거리² 계산).<br>
+            (2) 새 중심 c₁⁽¹⁾, c₂⁽¹⁾를 계산하라.<br>
+            (3) 갱신된 중심으로 재할당이 변하지 않음을 확인하라.<br>
+            (4) 새 포인트 Q=(5,3)을 최종 중심으로 분류하라.
+          </div>
+        </div>
+        <div class="toggle-icon">▼</div>
+      </div>
+      <div class="card-body">
+        <div class="check-wrap"><input type="checkbox" onchange="updateScore()"> <label>풀이 완료</label></div>
+        <div class="answer-label">▶ 정답 및 풀이</div>
+        <div class="answer-box">
+          <div class="sub-label">(1) 할당 — 거리² 계산</div>
+          <span class="math">c₁=(2,1), c₂=(9,2)
+
+A(2,1): d²(c₁)=0,  d²(c₂)=(7²+1²)=50  → C₁
+B(3,4): d²(c₁)=1+9=10, d²(c₂)=36+4=40 → C₁
+C(4,2): d²(c₁)=4+1=5,  d²(c₂)=25+0=25 → C₁
+D(7,1): d²(c₁)=25+0=25,d²(c₂)=4+1=5   → C₂
+E(8,4): d²(c₁)=36+9=45,d²(c₂)=1+4=5   → C₂
+F(9,2): d²(c₁)=49+1=50,d²(c₂)=0+0=0   → C₂
+
+C₁ = {A, B, C},  C₂ = {D, E, F}</span>
+
+          <div class="sub-label">(2) 중심 갱신</div>
+          <span class="math">c₁⁽¹⁾ = ((2+3+4)/3, (1+4+2)/3) = (3, 7/3) ≈ (3.0, 2.33)
+c₂⁽¹⁾ = ((7+8+9)/3, (1+4+2)/3) = (8, 7/3) ≈ (8.0, 2.33)</span>
+
+          <div class="sub-label">(3) 수렴 확인</div>
+          <span class="math">새 중심 c₁=(3, 2.33), c₂=(8, 2.33)으로 재할당:
+
+A(2,1): d²(c₁)=1+1.77=2.77, d²(c₂)=36+1.77=37.77 → C₁ ✓
+B(3,4): d²(c₁)=0+2.79=2.79, d²(c₂)=25+2.79=27.79 → C₁ ✓
+C(4,2): d²(c₁)=1+0.11=1.11, d²(c₂)=16+0.11=16.11 → C₁ ✓
+D(7,1): d²(c₁)=16+1.77=17.77,d²(c₂)=1+1.77=2.77  → C₂ ✓
+E(8,4): d²(c₁)=25+2.79=27.79,d²(c₂)=0+2.79=2.79  → C₂ ✓
+F(9,2): d²(c₁)=36+0.11=36.11,d²(c₂)=1+0.11=1.11  → C₂ ✓ 수렴</span>
+
+          <div class="sub-label">(4) Q=(5,3) 분류</div>
+          <span class="math">d²(Q, c₁) = (5−3)²+(3−2.33)² = 4+0.45 = 4.45
+d²(Q, c₂) = (5−8)²+(3−2.33)² = 9+0.45 = 9.45
+→ Q는 C₁에 배정</span>
+
+          <div class="variation-box">
+            <strong>📌 원본 대비 변형 포인트</strong><br>
+            원본: A~F 좌표 {(1,1),(2,3),(3,2),(6,1),(7,3),(8,2)}, c₁=(1,1), c₂=(8,2)<br>
+            응용: 좌표를 오른쪽으로 1 이동시키고 B,E의 y=4로 높임 → <strong>군집 내 분산이 증가</strong><br>
+            초기 중심도 A와 F 위치로 변경하여 첫 번째 할당 결과 확인 구조 유지
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5-B -->
+    <div class="card" id="c5b">
+      <div class="card-header" onclick="toggle('c5b')">
+        <div class="card-q">
+          <div class="badge-row">
+            <span class="badge badge-applied">[응용] 5-B</span>
+            <span class="stars">⭐⭐⭐ 어려움</span>
+            <span class="badge-diff">K=3 확장 (9포인트)</span>
+          </div>
+          <div class="q-text">
+            다음 9개의 2차원 데이터와 K=3으로 K-평균을 수행하라.<br><br>
+            <table style="border-collapse:collapse;font-size:13px;margin:8px 0;">
+              <tr style="background:var(--surface3);">
+                <th style="padding:5px 10px;border:1px solid var(--border);">포인트</th>
+                <td style="padding:5px 10px;border:1px solid var(--border);">A</td>
+                <td style="padding:5px 10px;border:1px solid var(--border);">B</td>
+                <td style="padding:5px 10px;border:1px solid var(--border);">C</td>
+                <td style="padding:5px 10px;border:1px solid var(--border);">D</td>
+                <td style="padding:5px 10px;border:1px solid var(--border);">E</td>
+                <td style="padding:5px 10px;border:1px solid var(--border);">F</td>
+                <td style="padding:5px 10px;border:1px solid var(--border);">G</td>
+                <td style="padding:5px 10px;border:1px solid var(--border);">H</td>
+                <td style="padding:5px 10px;border:1px solid var(--border);">I</td>
+              </tr>
+              <tr><th style="padding:5px 10px;border:1px solid var(--border);">좌표</th>
+                <td style="padding:5px 10px;border:1px solid var(--border);">(1,1)</td>
+                <td style="padding:5px 10px;border:1px solid var(--border);">(2,2)</td>
+                <td style="padding:5px 10px;border:1px solid var(--border);">(1,3)</td>
+                <td style="padding:5px 10px;border:1px solid var(--border);">(5,1)</td>
+                <td style="padding:5px 10px;border:1px solid var(--border);">(6,2)</td>
+                <td style="padding:5px 10px;border:1px solid var(--border);">(5,3)</td>
+                <td style="padding:5px 10px;border:1px solid var(--border);">(9,1)</td>
+                <td style="padding:5px 10px;border:1px solid var(--border);">(10,2)</td>
+                <td style="padding:5px 10px;border:1px solid var(--border);">(9,3)</td></tr>
+            </table>
+            초기 중심: c₁⁽⁰⁾=(1,1), c₂⁽⁰⁾=(5,1), c₃⁽⁰⁾=(9,1)<br><br>
+            (1) 9개 포인트를 3개 중심에 할당하라.<br>
+            (2) 새 중심 c₁⁽¹⁾, c₂⁽¹⁾, c₃⁽¹⁾를 계산하라.<br>
+            (3) 수렴 여부를 확인하라.
+          </div>
+        </div>
+        <div class="toggle-icon">▼</div>
+      </div>
+      <div class="card-body">
+        <div class="check-wrap"><input type="checkbox" onchange="updateScore()"> <label>풀이 완료</label></div>
+        <div class="answer-label">▶ 정답 및 풀이</div>
+        <div class="answer-box">
+          <div class="sub-label">(1) 초기 할당 (c₁=(1,1), c₂=(5,1), c₃=(9,1))</div>
+          <span class="math">A(1,1): d²(c₁)=0,  d²(c₂)=16, d²(c₃)=64 → C₁
+B(2,2): d²(c₁)=1+1=2, d²(c₂)=9+1=10, d²(c₃)=49+1=50 → C₁
+C(1,3): d²(c₁)=0+4=4, d²(c₂)=16+4=20,d²(c₃)=64+4=68 → C₁
+D(5,1): d²(c₁)=16, d²(c₂)=0, d²(c₃)=16  → C₂
+E(6,2): d²(c₁)=25+1=26,d²(c₂)=1+1=2, d²(c₃)=9+1=10  → C₂
+F(5,3): d²(c₁)=16+4=20,d²(c₂)=0+4=4, d²(c₃)=16+4=20 → C₂
+G(9,1): d²(c₁)=64,d²(c₂)=16,d²(c₃)=0  → C₃
+H(10,2):d²(c₁)=81+1=82,d²(c₂)=25+1=26,d²(c₃)=1+1=2 → C₃
+I(9,3): d²(c₁)=64+4=68,d²(c₂)=16+4=20,d²(c₃)=0+4=4 → C₃
+
+C₁={A,B,C}, C₂={D,E,F}, C₃={G,H,I}</span>
+
+          <div class="sub-label">(2) 중심 갱신</div>
+          <span class="math">c₁⁽¹⁾ = ((1+2+1)/3, (1+2+3)/3) = (4/3, 2) ≈ (1.33, 2.0)
+c₂⁽¹⁾ = ((5+6+5)/3, (1+2+3)/3) = (16/3, 2) ≈ (5.33, 2.0)
+c₃⁽¹⁾ = ((9+10+9)/3,(1+2+3)/3) = (28/3, 2) ≈ (9.33, 2.0)</span>
+
+          <div class="sub-label">(3) 수렴 확인</div>
+          <span class="math">새 중심들은 모두 y=2 수평선 위에 있으며,
+각 그룹의 x 중심이 명확히 분리(1.33, 5.33, 9.33)되어
+재할당 시 기존 군집 그대로 유지됨 → 수렴 ✓
+
+직관: 데이터가 x축 방향으로 3개 클러스터로 명확히 분리되어 있어
+초기 중심 선택이 적절하면 1회 만에 수렴</span>
+
+          <div class="variation-box">
+            <strong>📌 원본 대비 변형 포인트</strong><br>
+            원본: K=2, 6포인트 → C₁≈왼쪽 3개, C₂≈오른쪽 3개<br>
+            응용: <strong>K=3으로 확장, 9포인트</strong>로 3그룹 구조 설계<br>
+            핵심 학습: K개 중심 갱신 공식은 K=2와 동일하며, K>2에서도 동일하게 적용됨을 체험
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     PROBLEM 6 — 가우시안 MLE
+══════════════════════════════════════════════ -->
+<div class="section-panel" id="tab-p6">
+  <div class="prob-group">
+    <div class="prob-group-header">
+      <div class="prob-group-num">06</div>
+      <div>
+        <div class="prob-group-title">가우시안 MLE — 두 파라미터 동시 추정</div>
+        <div class="prob-group-topic">원본 참조: 문제 6 [④ 고난도]</div>
+      </div>
+    </div>
+
+    <!-- 6-A -->
+    <div class="card" id="c6a">
+      <div class="card-header" onclick="toggle('c6a')">
+        <div class="card-q">
+          <div class="badge-row">
+            <span class="badge badge-applied">[응용] 6-A</span>
+            <span class="stars">⭐⭐⭐ 어려움</span>
+            <span class="badge-diff">데이터셋 변형</span>
+          </div>
+          <div class="q-text">
+            N=5개의 데이터 <strong>{2, 4, 6, 8, 5}</strong>가 N(μ, σ²)에서 생성되었다.<br><br>
+            (1) 우도 함수 L(μ, σ²)를 곱 형태로 써라.<br>
+            (2) ℓ(μ, σ²) = log L을 세 항으로 정리하라.<br>
+            (3) ∂ℓ/∂μ = 0으로 μ̂ = x̄임을 보이고 값을 구하라.<br>
+            (4) v = σ²로 치환하여 ∂ℓ/∂v = 0을 풀고 σ̂²을 구하라.<br>
+            (5) μ̂, σ̂², σ̂를 수치로 구하라.<br>
+            (6) 불편 추정량 s²을 구하고 σ̂²과 비교하라.
+          </div>
+        </div>
+        <div class="toggle-icon">▼</div>
+      </div>
+      <div class="card-body">
+        <div class="check-wrap"><input type="checkbox" onchange="updateScore()"> <label>풀이 완료</label></div>
+        <div class="answer-label">▶ 정답 및 풀이</div>
+        <div class="answer-box">
+          <div class="sub-label">(1) 우도 함수</div>
+          <span class="math">L(μ,σ²) = ∏ᵢ₌₁⁵ (1/√(2πσ²)) exp(−(xᵢ−μ)²/(2σ²))</span>
+
+          <div class="sub-label">(2) 로그 우도 전개</div>
+          <span class="math">ℓ(μ,σ²) = −(N/2)log(2π) − (N/2)log(σ²) − (1/(2σ²))Σ(xᵢ−μ)²
+         = −(5/2)log(2π) − (5/2)log(σ²) − (1/(2σ²))Σ(xᵢ−μ)²</span>
+
+          <div class="sub-label">(3) μ̂ = x̄ 유도</div>
+          <span class="math">∂ℓ/∂μ = (1/σ²)Σ(xᵢ−μ) = 0
+→ Σxᵢ = Nμ  →  μ̂ = (1/N)Σxᵢ = x̄
+수치: x̄ = (2+4+6+8+5)/5 = 25/5 = 5</span>
+
+          <div class="sub-label">(4) σ̂² 유도</div>
+          <span class="math">v = σ², ∂ℓ/∂v = −N/(2v) + Σ(xᵢ−μ̂)²/(2v²) = 0
+→ N·v = Σ(xᵢ−μ̂)²
+→ σ̂² = (1/N)Σ(xᵢ−μ̂)²</span>
+
+          <div class="sub-label">(5) 수치 계산</div>
+          <span class="math">편차: (2−5)=−3, (4−5)=−1, (6−5)=1, (8−5)=3, (5−5)=0
+편차²: 9, 1, 1, 9, 0  →  합 = 20
+
+σ̂² = 20/5 = 4.0
+σ̂  = √4 = 2.0
+μ̂  = 5</span>
+
+          <div class="sub-label">(6) 불편 추정량 비교</div>
+          <span class="math">s² = 20/(5−1) = 20/4 = 5.0
+σ̂² = 4.0 < s² = 5.0
+
+차이: s² − σ̂² = 1.0 (비율: 25% 과소추정)
+
+N−1로 나누는 이유: μ를 모르고 x̄로 추정할 때 자유도가 1 감소하여,
+N으로 나누면 σ²을 체계적으로 과소추정(편향)하기 때문이다.</span>
+
+          <div class="variation-box">
+            <strong>📌 원본 대비 변형 포인트</strong><br>
+            원본: {1,3,5,7,4} → μ̂=4, σ̂²=4, σ̂=2, s²=5<br>
+            응용: <strong>{2,4,6,8,5}</strong>로 모든 값을 +1 이동 → μ̂=5, 편차 구조는 동일<br>
+            σ̂²=4, s²=5로 동일한 수치가 나와 원본과 비교하여 "이동 불변성" 확인 가능
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6-B -->
+    <div class="card" id="c6b">
+      <div class="card-header" onclick="toggle('c6b')">
+        <div class="card-q">
+          <div class="badge-row">
+            <span class="badge badge-applied">[응용] 6-B</span>
+            <span class="stars">⭐⭐⭐ 어려움</span>
+            <span class="badge-diff">N=6 확장 + 편향 심화</span>
+          </div>
+          <div class="q-text">
+            N=6개의 데이터 <strong>{1, 3, 5, 7, 4, 4}</strong>가 N(μ, σ²)에서 생성되었다.<br><br>
+            (1) μ̂ = x̄을 구하라.<br>
+            (2) σ̂²(MLE)를 구하라.<br>
+            (3) 불편 추정량 s²을 구하라.<br>
+            (4) σ̂²과 s²의 비율을 구하고, 이 비율이 N에만 의존함을 식으로 보여라.<br>
+            (5) N이 커질수록 σ̂²와 s²의 차이가 어떻게 변하는지 설명하라.
+          </div>
+        </div>
+        <div class="toggle-icon">▼</div>
+      </div>
+      <div class="card-body">
+        <div class="check-wrap"><input type="checkbox" onchange="updateScore()"> <label>풀이 완료</label></div>
+        <div class="answer-label">▶ 정답 및 풀이</div>
+        <div class="answer-box">
+          <div class="sub-label">(1) μ̂</div>
+          <span class="math">x̄ = (1+3+5+7+4+4)/6 = 24/6 = 4</span>
+
+          <div class="sub-label">(2) σ̂² (MLE)</div>
+          <span class="math">편차: −3, −1, 1, 3, 0, 0
+편차²: 9, 1, 1, 9, 0, 0  →  합 = 20
+
+σ̂² = 20/6 ≈ 3.333</span>
+
+          <div class="sub-label">(3) 불편 추정량 s²</div>
+          <span class="math">s² = 20/(6−1) = 20/5 = 4.0</span>
+
+          <div class="sub-label">(4) 비율의 N 의존성</div>
+          <span class="math">σ̂² = (1/N)Σ(xᵢ−x̄)²
+s²  = (1/(N−1))Σ(xᵢ−x̄)²
+
+σ̂² / s² = (N−1)/N
+
+N=5: σ̂²/s² = 4/5 = 0.80  (즉, MLE는 s²의 80%)
+N=6: σ̂²/s² = 5/6 ≈ 0.833 (즉, MLE는 s²의 83.3%)
+
+→ 비율 (N−1)/N은 N에만 의존하며 데이터와 무관</span>
+
+          <div class="sub-label">(5) N → ∞ 극한</div>
+          <span class="math">lim_{N→∞} (N−1)/N = 1
+
+N이 커질수록 σ̂²/s² → 1, 즉 MLE 편향이 0에 수렴.
+N=5: 편향 20%, N=10: 편향 10%, N=100: 편향 1%
+→ 대규모 데이터에서 MLE 편향은 무시 가능해진다.</span>
+
+          <div class="variation-box">
+            <strong>📌 원본 대비 변형 포인트</strong><br>
+            원본: N=5 → s²−σ̂²= 5.0−4.0=1.0, 비율 (N−1)/N = 0.8<br>
+            응용: <strong>N=6으로 확장</strong> (데이터에 4를 2개 추가하여 μ̂=4 유지)<br>
+            추가 심화: (N−1)/N 비율 공식의 N 의존성과 점근 거동(N→∞)까지 분석
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<script>
+// ── TAB 전환
+function showTab(id) {
+  document.querySelectorAll('.section-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// ── 카드 토글
+function toggle(id) {
+  const card = document.getElementById(id);
+  card.classList.toggle('open');
+}
+
+// ── 점수 업데이트
+function updateScore() {
+  const total = document.querySelectorAll('input[type=checkbox]').length;
+  const done  = document.querySelectorAll('input[type=checkbox]:checked').length;
+  document.getElementById('scoreDisplay').textContent = done + ' / ' + total;
+  document.getElementById('progressBar').style.width = (done / total * 100) + '%';
+}
+
+// ── 초기화
+function resetAll() {
+  document.querySelectorAll('input[type=checkbox]').forEach(c => c.checked = false);
+  document.querySelectorAll('.card').forEach(c => c.classList.remove('open'));
+  updateScore();
+}
+</script>
+</body>
+</html>
