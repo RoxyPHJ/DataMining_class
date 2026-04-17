@@ -1,0 +1,1273 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>기계학습 7 — 퀴즈</title>
+<style>
+:root {
+  --bg: #0a0e1a;
+  --surface: #111827;
+  --surface2: #1a2235;
+  --surface3: #1e2d42;
+  --border: #2a3a52;
+  --text: #e2e8f0;
+  --text-dim: #94a3b8;
+  --text-mute: #64748b;
+  --accent-blue: #3b82f6;
+  --accent-cyan: #06b6d4;
+  --accent-green: #10b981;
+  --accent-orange: #f59e0b;
+  --accent-red: #ef4444;
+  --accent-purple: #8b5cf6;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',sans-serif;
+  line-height: 1.7;
+}
+
+/* ── 헤더 ── */
+.page-header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 32px 48px 28px;
+}
+.page-badge {
+  font-family: 'Menlo','Courier New',monospace;
+  font-size: 11px; color: var(--accent-blue);
+  letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px;
+}
+.page-title {
+  font-family: 'Impact','Arial Narrow',sans-serif;
+  font-size: 36px; letter-spacing: -1px; color: var(--text);
+  line-height: 1.1; margin-bottom: 8px;
+}
+.page-sub { color: var(--text-dim); font-size: 14px; margin-bottom: 16px; }
+.meta-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+.meta-tag {
+  font-size: 11px; padding: 4px 10px; border-radius: 4px;
+  background: var(--surface2); color: var(--text-mute);
+  border: 1px solid var(--border);
+}
+
+/* ── 스코어보드 ── */
+.scoreboard {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px 28px;
+  margin: 32px 48px 0;
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+.score-main {
+  font-family: 'Impact','Arial Narrow',sans-serif;
+  font-size: 40px; color: var(--accent-cyan);
+  min-width: 100px;
+}
+.score-label { font-size: 12px; color: var(--text-mute); margin-bottom: 4px; }
+.score-bar-wrap { flex:1; min-width: 180px; }
+.score-bar-bg {
+  width: 100%; height: 8px;
+  background: var(--border); border-radius: 4px; overflow: hidden;
+}
+.score-bar-fill {
+  height: 100%; width: 0%;
+  background: linear-gradient(90deg, var(--accent-blue), var(--accent-cyan));
+  border-radius: 4px;
+  transition: width .6s ease;
+}
+.btn-check {
+  background: var(--accent-blue); color: white;
+  border: none; border-radius: 8px;
+  padding: 12px 28px; font-size: 14px; font-weight: 700;
+  cursor: pointer; transition: all .2s;
+  font-family: inherit;
+}
+.btn-check:hover { background: #2563eb; transform: translateY(-1px); }
+.btn-reset {
+  background: transparent; color: var(--text-mute);
+  border: 1px solid var(--border); border-radius: 8px;
+  padding: 12px 20px; font-size: 13px;
+  cursor: pointer; transition: all .2s;
+  font-family: inherit;
+}
+.btn-reset:hover { color: var(--text); border-color: var(--text-dim); }
+
+/* ── 필터 탭 ── */
+.filter-bar {
+  padding: 20px 48px 0;
+  display: flex; gap: 8px; flex-wrap: wrap;
+}
+.filter-btn {
+  padding: 7px 16px; border-radius: 6px; font-size: 12px;
+  border: 1px solid var(--border); background: var(--surface2);
+  color: var(--text-dim); cursor: pointer; transition: all .2s;
+  font-family: inherit;
+}
+.filter-btn:hover { border-color: var(--accent-blue); color: var(--text); }
+.filter-btn.active {
+  background: rgba(59,130,246,.15);
+  border-color: var(--accent-blue); color: var(--accent-blue);
+}
+
+/* ── 메인 ── */
+.main { padding: 28px 48px 80px; max-width: 960px; }
+
+/* ── 섹션 헤더 ── */
+.section-divider {
+  display: flex; align-items: center; gap: 14px;
+  margin: 36px 0 18px;
+}
+.section-divider-line { flex:1; height:1px; background: var(--border); }
+.section-divider-label {
+  font-family: 'Menlo','Courier New',monospace;
+  font-size: 11px; color: var(--text-mute);
+  letter-spacing: 2px; text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* ── 문제 카드 ── */
+.q-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px 28px;
+  margin-bottom: 16px;
+  transition: border-color .2s;
+}
+.q-card.correct { border-color: var(--accent-green) !important; }
+.q-card.wrong { border-color: var(--accent-red) !important; }
+
+.q-top {
+  display: flex; align-items: flex-start;
+  gap: 14px; margin-bottom: 14px;
+}
+.q-num {
+  font-family: 'Impact','Arial Narrow',sans-serif;
+  font-size: 22px; color: var(--text-mute);
+  min-width: 36px; line-height: 1;
+  padding-top: 2px;
+}
+.q-meta { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+/* 태그 */
+.tag {
+  display: inline-block; padding: 3px 9px; border-radius: 4px;
+  font-size: 11px; font-weight: 700; letter-spacing: .4px;
+}
+.tag-type-short { background: rgba(6,182,212,.15); color: #67e8f9; border:1px solid rgba(6,182,212,.25); }
+.tag-type-code  { background: rgba(139,92,246,.15); color: #c4b5fd; border:1px solid rgba(139,92,246,.25); }
+.tag-type-essay { background: rgba(16,185,129,.15); color: #6ee7b7; border:1px solid rgba(16,185,129,.25); }
+.tag-adv { background: rgba(245,158,11,.15); color: #fcd34d; border:1px solid rgba(245,158,11,.25); }
+.tag-slide { background: var(--surface2); color: var(--text-mute); border:1px solid var(--border); font-size:10px; }
+
+.diff { font-size: 13px; }
+
+.q-body { }
+.q-text {
+  font-size: 14px; color: var(--text); line-height: 1.8;
+  margin-bottom: 14px;
+}
+.q-text strong { color: var(--accent-cyan); }
+
+/* 코드 블록 */
+.code-block {
+  font-family: 'Menlo','Courier New',monospace;
+  font-size: 13px;
+  background: #0d1525;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px 18px;
+  color: #e2e8f0;
+  line-height: 1.8;
+  margin: 10px 0;
+  white-space: pre-wrap;
+  overflow-x: auto;
+}
+.code-blank {
+  display: inline-block;
+  background: rgba(59,130,246,.15);
+  border-bottom: 2px solid var(--accent-blue);
+  min-width: 80px; padding: 0 6px;
+  color: var(--accent-blue);
+  border-radius: 3px 3px 0 0;
+  font-weight: 700;
+}
+
+/* 입력 필드 */
+.q-input {
+  width: 100%; padding: 10px 14px;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 8px; color: var(--text);
+  font-family: inherit; font-size: 14px;
+  outline: none; transition: border-color .2s;
+  resize: vertical; min-height: 44px;
+}
+.q-input:focus { border-color: var(--accent-blue); }
+.q-input.correct-input { border-color: var(--accent-green); background: rgba(16,185,129,.07); }
+.q-input.wrong-input { border-color: var(--accent-red); background: rgba(239,68,68,.07); }
+
+/* 정답 토글 */
+.answer-toggle {
+  margin-top: 14px;
+  background: transparent; border: 1px solid var(--border);
+  border-radius: 8px; padding: 10px 16px;
+  color: var(--text-dim); font-size: 13px;
+  cursor: pointer; width: 100%; text-align: left;
+  transition: all .2s; font-family: inherit;
+  display: flex; align-items: center; gap: 8px;
+}
+.answer-toggle:hover { border-color: var(--accent-cyan); color: var(--text); }
+.answer-toggle .arrow { transition: transform .25s; font-size: 11px; }
+.answer-toggle.open .arrow { transform: rotate(90deg); }
+
+.answer-box {
+  display: none;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 0 0 8px 8px;
+  border-top: none;
+  padding: 18px 20px;
+  font-size: 13px;
+}
+.answer-box.show { display: block; }
+.ans-label {
+  font-size: 11px; font-weight: 700; letter-spacing: 1px;
+  color: var(--accent-green); text-transform: uppercase; margin-bottom: 8px;
+}
+.ans-text { color: var(--text-dim); line-height: 1.8; margin-bottom: 10px; }
+.ans-text strong { color: var(--text); }
+.variation-label {
+  font-size: 11px; font-weight: 700; letter-spacing: 1px;
+  color: var(--accent-orange); text-transform: uppercase;
+  margin-top: 12px; margin-bottom: 6px;
+}
+.variation-text { color: #fcd34d; font-size: 12px; line-height: 1.7; }
+
+.formula {
+  font-family: 'Menlo','Courier New',monospace;
+  font-size: 13px;
+  background: #0d1525;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 14px;
+  color: var(--accent-cyan);
+  margin: 8px 0;
+  display: block;
+}
+
+/* ── 결과 팝업 ── */
+.result-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,.75); z-index: 100;
+  align-items: center; justify-content: center;
+}
+.result-overlay.show { display: flex; }
+.result-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px; padding: 40px 48px;
+  text-align: center; max-width: 420px;
+  animation: pop .3s ease;
+}
+@keyframes pop {
+  from { transform: scale(.85); opacity: 0; }
+  to   { transform: scale(1);   opacity: 1; }
+}
+.result-score {
+  font-family: 'Impact','Arial Narrow',sans-serif;
+  font-size: 72px; color: var(--accent-cyan);
+  line-height: 1;
+}
+.result-label { color: var(--text-dim); font-size: 15px; margin: 10px 0 24px; }
+.result-msg { font-size: 24px; margin-bottom: 20px; }
+.btn-close-result {
+  background: var(--accent-blue); color: white;
+  border: none; border-radius: 8px;
+  padding: 12px 32px; font-size: 14px; font-weight: 700;
+  cursor: pointer; font-family: inherit;
+}
+
+/* ── 반응형 ── */
+@media(max-width:680px){
+  .page-header, .filter-bar, .main { padding-left: 20px; padding-right: 20px; }
+  .scoreboard { margin-left: 20px; margin-right: 20px; }
+  .page-title { font-size: 28px; }
+}
+</style>
+</head>
+<body>
+
+<!-- 결과 팝업 -->
+<div class="result-overlay" id="resultOverlay">
+  <div class="result-box">
+    <div class="result-msg" id="resultEmoji"></div>
+    <div class="result-score" id="resultScore"></div>
+    <div class="result-label" id="resultLabel"></div>
+    <button class="btn-close-result" onclick="closeResult()">확인</button>
+  </div>
+</div>
+
+<!-- 헤더 -->
+<header class="page-header">
+  <div class="page-badge">기계학습 · Lecture 07 · Quiz</div>
+  <div class="page-title">지도학습과 비지도학습<br>퀴즈</div>
+  <div class="page-sub">단답형 · 코드완성형 · 서술형 / 기본 10 + 응용 10 = 총 20문제</div>
+  <div class="meta-row">
+    <span class="meta-tag">단답형 7문제</span>
+    <span class="meta-tag">코드완성형 7문제</span>
+    <span class="meta-tag">서술형 6문제</span>
+    <span class="meta-tag">⭐ ×4 &nbsp;⭐⭐ ×10 &nbsp;⭐⭐⭐ ×6</span>
+  </div>
+</header>
+
+<!-- 스코어보드 -->
+<div class="scoreboard">
+  <div>
+    <div class="score-label">현재 점수</div>
+    <div class="score-main" id="scoreDisplay">0 / 20</div>
+  </div>
+  <div class="score-bar-wrap">
+    <div class="score-label">진행도</div>
+    <div class="score-bar-bg"><div class="score-bar-fill" id="scoreBar"></div></div>
+  </div>
+  <button class="btn-check" onclick="gradeAll()">채점하기</button>
+  <button class="btn-reset" onclick="resetAll()">초기화</button>
+</div>
+
+<!-- 필터 -->
+<div class="filter-bar">
+  <button class="filter-btn active" onclick="filterCards('all',this)">전체 (20)</button>
+  <button class="filter-btn" onclick="filterCards('short',this)">단답형 (7)</button>
+  <button class="filter-btn" onclick="filterCards('code',this)">코드완성형 (7)</button>
+  <button class="filter-btn" onclick="filterCards('essay',this)">서술형 (6)</button>
+  <button class="filter-btn" onclick="filterCards('adv',this)">[응용] 문제 (10)</button>
+</div>
+
+<!-- 메인 -->
+<div class="main">
+
+<!-- ════════════════════════════
+     단답형 (7문제: Q01~Q07)
+════════════════════════════ -->
+<div class="section-divider">
+  <div class="section-divider-line"></div>
+  <div class="section-divider-label">단답형 · Short Answer</div>
+  <div class="section-divider-line"></div>
+</div>
+
+<!-- Q01 -->
+<div class="q-card" id="card-1" data-type="short" data-adv="false">
+  <div class="q-top">
+    <div class="q-num">01</div>
+    <div class="q-meta">
+      <span class="tag tag-type-short">단답형</span>
+      <span class="diff">⭐</span>
+      <span class="tag tag-slide">Slide 6</span>
+    </div>
+  </div>
+  <div class="q-body">
+    <div class="q-text">
+      KNN 알고리즘에서 훈련(Train) 단계의 시간복잡도와 예측(Predict) 단계의 시간복잡도를 각각 Big-O 표기법으로 쓰시오. (n: 훈련 데이터 수, d: 특성 차원 수)
+    </div>
+    <input class="q-input" id="inp-1" placeholder="예) 훈련: O(…), 예측: O(…)" />
+    <button class="answer-toggle" onclick="toggleAnswer(this)">
+      <span class="arrow">▶</span> 정답 및 해설 보기
+    </button>
+    <div class="answer-box">
+      <div class="ans-label">정답</div>
+      <div class="ans-text">
+        <strong>훈련: O(1)</strong> — 파라미터를 학습하지 않고 데이터를 메모리에 저장만 하므로 훈련 비용이 없다.<br>
+        <strong>예측: O(n·d)</strong> — 새 데이터와 n개의 훈련 데이터 각각에 대해 d차원 거리를 계산해야 하므로.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Q02 -->
+<div class="q-card" id="card-2" data-type="short" data-adv="false">
+  <div class="q-top">
+    <div class="q-num">02</div>
+    <div class="q-meta">
+      <span class="tag tag-type-short">단답형</span>
+      <span class="diff">⭐</span>
+      <span class="tag tag-slide">Slide 5</span>
+    </div>
+  </div>
+  <div class="q-body">
+    <div class="q-text">
+      KNN에서 사용하는 세 가지 거리 측도의 이름과 각각의 특징을 한 문장씩 서술하시오.
+    </div>
+    <textarea class="q-input" id="inp-2" rows="4" placeholder="① 유클리드 거리(L2): …&#10;② 맨해튼 거리(L1): …&#10;③ 민코우스키 거리(Lp): …"></textarea>
+    <button class="answer-toggle" onclick="toggleAnswer(this)">
+      <span class="arrow">▶</span> 정답 및 해설 보기
+    </button>
+    <div class="answer-box">
+      <div class="ans-label">정답</div>
+      <div class="ans-text">
+        <strong>① 유클리드 거리(L2):</strong> 두 점 사이의 직선 거리로, 연속형 데이터에 가장 많이 사용되며 스케일 정규화가 필요하다.<br>
+        <strong>② 맨해튼 거리(L1):</strong> 격자 이동(택시) 거리로, 이상치에 강건하고 고차원에서 유클리드보다 안정적이다.<br>
+        <strong>③ 민코우스키 거리(Lp):</strong> 유클리드(p=2)와 맨해튼(p=1)의 일반화 형태이며, p→∞이면 체비쇼프 거리(최대 성분 차이)가 된다.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Q03 -->
+<div class="q-card" id="card-3" data-type="short" data-adv="false">
+  <div class="q-top">
+    <div class="q-num">03</div>
+    <div class="q-meta">
+      <span class="tag tag-type-short">단답형</span>
+      <span class="diff">⭐⭐</span>
+      <span class="tag tag-slide">Slide 12</span>
+    </div>
+  </div>
+  <div class="q-body">
+    <div class="q-text">
+      K-means 알고리즘의 목적함수(WCSS / Inertia) J를 수식으로 쓰고, 각 기호의 의미를 설명하시오.
+    </div>
+    <textarea class="q-input" id="inp-3" rows="3" placeholder="J = …&#10;μₖ: …&#10;Cₖ: …"></textarea>
+    <button class="answer-toggle" onclick="toggleAnswer(this)">
+      <span class="arrow">▶</span> 정답 및 해설 보기
+    </button>
+    <div class="answer-box">
+      <div class="ans-label">정답</div>
+      <span class="formula">J = Σₖ Σ(xᵢ∈Cₖ) ||xᵢ − μₖ||²</span>
+      <div class="ans-text">
+        <strong>μₖ</strong>: 클러스터 k의 중심 (centroid) — 해당 클러스터에 속한 데이터들의 평균 벡터<br>
+        <strong>Cₖ</strong>: 클러스터 k에 속한 데이터 집합<br>
+        <strong>||xᵢ − μₖ||²</strong>: 각 데이터 포인트와 클러스터 중심 사이의 유클리드 거리의 제곱 (클러스터 내 분산)
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Q04 [응용] 수치변형 -->
+<div class="q-card" id="card-4" data-type="short" data-adv="true">
+  <div class="q-top">
+    <div class="q-num">04</div>
+    <div class="q-meta">
+      <span class="tag tag-type-short">단답형</span>
+      <span class="tag tag-adv">[응용]</span>
+      <span class="diff">⭐⭐</span>
+      <span class="tag tag-slide">Slide 7</span>
+    </div>
+  </div>
+  <div class="q-body">
+    <div class="q-text">
+      아래 훈련 데이터와 쿼리 포인트가 주어졌을 때, <strong>K=3, 맨해튼 거리(L1)</strong>를 사용하여 xₜₑₛₜ의 클래스를 예측하시오.<br><br>
+      훈련 데이터: x₁=(2,3,A), x₂=(5,1,B), x₃=(3,5,A), x₄=(7,2,B), x₅=(1,1,A)<br>
+      쿼리: xₜₑₛₜ = (4, 3)
+    </div>
+    <textarea class="q-input" id="inp-4" rows="5" placeholder="각 점까지의 L1 거리를 계산하고, K=3 이웃을 선택 후 다수결 결과를 쓰시오."></textarea>
+    <button class="answer-toggle" onclick="toggleAnswer(this)">
+      <span class="arrow">▶</span> 정답 및 해설 보기
+    </button>
+    <div class="answer-box">
+      <div class="ans-label">정답: 클래스 A</div>
+      <div class="ans-text">
+        <strong>맨해튼 거리 계산 (L1):</strong><br>
+        d(xₜₑₛₜ, x₁) = |4−2|+|3−3| = 2+0 = <strong>2</strong> → 1위 ✓<br>
+        d(xₜₑₛₜ, x₂) = |4−5|+|3−1| = 1+2 = <strong>3</strong> → 3위 ✓<br>
+        d(xₜₑₛₜ, x₃) = |4−3|+|3−5| = 1+2 = <strong>3</strong> → 3위 ✓ (동거리, 둘 다 포함)<br>
+        d(xₜₑₛₜ, x₄) = |4−7|+|3−2| = 3+1 = <strong>4</strong> → ✗<br>
+        d(xₜₑₛₜ, x₅) = |4−1|+|3−1| = 3+2 = <strong>5</strong> → ✗<br><br>
+        K=3 이웃: x₁(A), x₂(B), x₃(A) → <strong>A: 2표, B: 1표 → 클래스 A</strong>
+      </div>
+      <div class="variation-label">변형 포인트</div>
+      <div class="variation-text">원본(Slide 7)과 동일한 KNN 풀이 구조이나, 거리 측도를 유클리드(L2)→맨해튼(L1)으로 변경하고 수치를 새로 설정. L1에서는 제곱근 없이 절댓값 합을 사용하는 점이 핵심 변형이다.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Q05 [응용] 역방향 -->
+<div class="q-card" id="card-5" data-type="short" data-adv="true">
+  <div class="q-top">
+    <div class="q-num">05</div>
+    <div class="q-meta">
+      <span class="tag tag-type-short">단답형</span>
+      <span class="tag tag-adv">[응용]</span>
+      <span class="diff">⭐⭐⭐</span>
+      <span class="tag tag-slide">Slide 13</span>
+    </div>
+  </div>
+  <div class="q-body">
+    <div class="q-text">
+      K-means(K=2)를 1차원 데이터 <strong>{3, 4, 10, 11, 12}</strong>에 적용했더니 <strong>1회 반복 후 수렴</strong>했다.<br>
+      이 결과가 나오려면 초기 중심 μ₁, μ₂를 각각 어떤 범위에서 선택했어야 하는가? (단, μ₁ &lt; μ₂)
+    </div>
+    <textarea class="q-input" id="inp-5" rows="4" placeholder="최종 클러스터: C₁={3,4}, C₂={10,11,12}가 되려면…"></textarea>
+    <button class="answer-toggle" onclick="toggleAnswer(this)">
+      <span class="arrow">▶</span> 정답 및 해설 보기
+    </button>
+    <div class="answer-box">
+      <div class="ans-label">정답</div>
+      <div class="ans-text">
+        최종 수렴 결과: C₁={3,4} (중심 3.5), C₂={10,11,12} (중심 11)<br><br>
+        1회 반복에서 수렴하려면 초기 할당이 최종 결과와 동일해야 한다.<br>
+        경계값은 두 클러스터 중간인 <strong>(4+10)/2 = 7</strong>이다.<br><br>
+        따라서 초기 중심 조건:<br>
+        <strong>μ₁ ∈ (−∞, 7) 범위의 임의 값</strong> — 3, 4에 더 가까워야 함<br>
+        <strong>μ₂ ∈ (7, +∞) 범위의 임의 값</strong> — 10, 11, 12에 더 가까워야 함<br><br>
+        더 정확히는: 5 이하에서 선택하면 x=4가 μ₁에 배정되고, 6 이상에서 선택하면 x=10이 μ₂에 배정됨이 보장된다.
+      </div>
+      <div class="variation-label">변형 포인트</div>
+      <div class="variation-text">원본 Slide 13(데이터 {1,2,8,9,10}, μ₁=1, μ₂=9)의 역방향 문제. 결과를 주고 초기 조건을 역으로 유추하는 형태. 경계값 계산이 핵심.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Q06 [응용] 수치변형 -->
+<div class="q-card" id="card-6" data-type="short" data-adv="true">
+  <div class="q-top">
+    <div class="q-num">06</div>
+    <div class="q-meta">
+      <span class="tag tag-type-short">단답형</span>
+      <span class="tag tag-adv">[응용]</span>
+      <span class="diff">⭐⭐</span>
+      <span class="tag tag-slide">Slide 13</span>
+    </div>
+  </div>
+  <div class="q-body">
+    <div class="q-text">
+      K-means(K=2)를 데이터 <strong>{2, 3, 9, 10, 11}</strong>에 적용한다. 초기 중심은 <strong>μ₁=2, μ₂=10</strong>이다.<br>
+      반복 1회 후의 새 중심 μ₁', μ₂'와 최종 목적함수 J를 구하시오.
+    </div>
+    <textarea class="q-input" id="inp-6" rows="5" placeholder="할당 → 갱신 순서로 계산하시오."></textarea>
+    <button class="answer-toggle" onclick="toggleAnswer(this)">
+      <span class="arrow">▶</span> 정답 및 해설 보기
+    </button>
+    <div class="answer-box">
+      <div class="ans-label">정답</div>
+      <div class="ans-text">
+        <strong>[할당 단계]</strong><br>
+        x=2: d(2,2)=0, d(2,10)=8 → C₁<br>
+        x=3: d(3,2)=1, d(3,10)=7 → C₁<br>
+        x=9: d(9,2)=7, d(9,10)=1 → C₂<br>
+        x=10: d(10,2)=8, d(10,10)=0 → C₂<br>
+        x=11: d(11,2)=9, d(11,10)=1 → C₂<br><br>
+        <strong>[갱신 단계]</strong><br>
+        μ₁' = (2+3)/2 = <strong>2.5</strong><br>
+        μ₂' = (9+10+11)/3 = <strong>10.0</strong><br><br>
+        <strong>[반복 2 → 수렴 확인]</strong><br>
+        할당 경계 = (2.5+10)/2 = 6.25 → C₁={2,3}, C₂={9,10,11} 동일 → 수렴!<br><br>
+        <strong>J</strong> = (2−2.5)²+(3−2.5)² + (9−10)²+(10−10)²+(11−10)²<br>
+        &nbsp;&nbsp;&nbsp;= 0.25+0.25 + 1+0+1 = <strong>2.5</strong>
+      </div>
+      <div class="variation-label">변형 포인트</div>
+      <div class="variation-text">원본 Slide 13({1,2,8,9,10}, μ₁=1, μ₂=9)에서 각 수치를 +1씩 이동. 풀이 구조는 동일하나 최종 J값이 3.0→2.5로 달라짐.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Q07 기본 단답형 -->
+<div class="q-card" id="card-7" data-type="short" data-adv="false">
+  <div class="q-top">
+    <div class="q-num">07</div>
+    <div class="q-meta">
+      <span class="tag tag-type-short">단답형</span>
+      <span class="diff">⭐⭐</span>
+      <span class="tag tag-slide">Slide 15</span>
+    </div>
+  </div>
+  <div class="q-body">
+    <div class="q-text">
+      K-means++ 초기화에서, 두 번째 이후의 중심을 선택하는 확률 공식을 쓰고 그 의미를 설명하시오.
+    </div>
+    <textarea class="q-input" id="inp-7" rows="3" placeholder="P(xᵢ 선택) ∝ … / 의미: …"></textarea>
+    <button class="answer-toggle" onclick="toggleAnswer(this)">
+      <span class="arrow">▶</span> 정답 및 해설 보기
+    </button>
+    <div class="answer-box">
+      <div class="ans-label">정답</div>
+      <span class="formula">P(xᵢ 선택) ∝ D(xᵢ)²</span>
+      <div class="ans-text">
+        여기서 D(xᵢ)² = min_k ||xᵢ − μₖ||² (이미 선택된 중심들까지의 최소 거리의 제곱)<br><br>
+        <strong>의미:</strong> 이미 선택된 중심들로부터 멀리 떨어진 점일수록 다음 중심으로 선택될 확률이 높아진다. 이를 통해 초기 중심들이 서로 멀리 분산되도록 유도하여, 나쁜 지역 최솟값(local minimum)을 회피한다.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════
+     코드 완성형 (7문제: Q08~Q14)
+════════════════════════════ -->
+<div class="section-divider">
+  <div class="section-divider-line"></div>
+  <div class="section-divider-label">코드 완성형 · Code Completion</div>
+  <div class="section-divider-line"></div>
+</div>
+
+<!-- Q08 기본 -->
+<div class="q-card" id="card-8" data-type="code" data-adv="false">
+  <div class="q-top">
+    <div class="q-num">08</div>
+    <div class="q-meta">
+      <span class="tag tag-type-code">코드완성형</span>
+      <span class="diff">⭐</span>
+      <span class="tag tag-slide">Slide 5</span>
+    </div>
+  </div>
+  <div class="q-body">
+    <div class="q-text">
+      아래는 두 점 x = [x₁, x₂]와 z = [z₁, z₂] 사이의 <strong>유클리드 거리</strong>를 계산하는 Python 코드이다. 빈칸을 채우시오.
+    </div>
+    <div class="code-block">import math
+
+def euclidean_distance(x, z):
+    total = 0
+    for i in range(len(x)):
+        total += <span class="code-blank">  ①  </span>
+    return <span class="code-blank">  ②  </span>
+
+# 예시: x=(5,4), z=(3,4) → 결과: 2.0
+print(euclidean_distance([5,4], [3,4]))</div>
+    <input class="q-input" id="inp-8" placeholder="① = …  /  ② = …" />
+    <button class="answer-toggle" onclick="toggleAnswer(this)">
+      <span class="arrow">▶</span> 정답 및 해설 보기
+    </button>
+    <div class="answer-box">
+      <div class="ans-label">정답</div>
+      <div class="ans-text">
+        <strong>① (x[i] - z[i]) ** 2</strong><br>
+        <strong>② math.sqrt(total)</strong><br><br>
+        유클리드 거리 공식 d(x,z) = √(Σᵢ(xᵢ−zᵢ)²)을 그대로 구현한다. ①은 각 차원의 제곱 차이를 누적하고, ②는 최종 합의 제곱근을 반환한다.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Q09 기본 -->
+<div class="q-card" id="card-9" data-type="code" data-adv="false">
+  <div class="q-top">
+    <div class="q-num">09</div>
+    <div class="q-meta">
+      <span class="tag tag-type-code">코드완성형</span>
+      <span class="diff">⭐⭐</span>
+      <span class="tag tag-slide">Slide 6</span>
+    </div>
+  </div>
+  <div class="q-body">
+    <div class="q-text">
+      아래는 KNN 분류기의 핵심 예측 함수이다. 빈칸 ①~③을 채우시오.
+    </div>
+    <div class="code-block">def knn_predict(X_train, y_train, x_test, k):
+    distances = []
+    for i, x in enumerate(X_train):
+        d = euclidean_distance(x, x_test)
+        distances.append((d, y_train[i]))
+    
+    # ① 거리 기준 정렬
+    distances.<span class="code-blank">  ①  </span>
+    
+    # ② 가장 가까운 k개 선택
+    k_neighbors = distances[<span class="code-blank">  ②  </span>]
+    
+    # ③ 다수결 투표
+    from collections import Counter
+    votes = Counter(<span class="code-blank">  ③  </span>)
+    return votes.most_common(1)[0][0]</div>
+    <textarea class="q-input" id="inp-9" rows="3" placeholder="① = …&#10;② = …&#10;③ = …"></textarea>
+    <button class="answer-toggle" onclick="toggleAnswer(this)">
+      <span class="arrow">▶</span> 정답 및 해설 보기
+    </button>
+    <div class="answer-box">
+      <div class="ans-label">정답</div>
+      <div class="ans-text">
+        <strong>① sort(key=lambda x: x[0])</strong> — 거리(튜플 첫 번째 원소) 기준 오름차순 정렬<br>
+        <strong>② :k</strong> — 슬라이싱으로 상위 k개 선택<br>
+        <strong>③ label for _, label in k_neighbors</strong> — 이웃들의 클래스 레이블 추출하여 Counter에 넣어 다수결 투표
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Q10 기본 -->
+<div class="q-card" id="card-10" data-type="code" data-adv="false">
+  <div class="q-top">
+    <div class="q-num">10</div>
+    <div class="q-meta">
+      <span class="tag tag-type-code">코드완성형</span>
+      <span class="diff">⭐⭐</span>
+      <span class="tag tag-slide">Slide 12</span>
+    </div>
+  </div>
+  <div class="q-body">
+    <div class="q-text">
+      아래는 K-means의 <strong>할당 단계(Assignment Step)</strong>를 구현한 코드이다. 빈칸 ①~②를 채우시오.
+    </div>
+    <div class="code-block">def assignment_step(X, centroids):
+    """각 데이터를 가장 가까운 centroid에 배정"""
+    labels = []
+    for x in X:
+        distances = [
+            euclidean_distance(x, mu) for mu in centroids
+        ]
+        # ① 가장 가까운 centroid의 인덱스 선택
+        nearest = <span class="code-blank">  ①  </span>
+        labels.append(nearest)
+    return labels
+
+def update_step(X, labels, k):
+    """갱신 단계: 각 클러스터의 평균으로 중심 갱신"""
+    new_centroids = []
+    for cluster_id in range(k):
+        members = [X[i] for i in range(len(X))
+                   if labels[i] == cluster_id]
+        # ② 클러스터 평균 계산
+        new_mu = <span class="code-blank">  ②  </span>
+        new_centroids.append(new_mu)
+    return new_centroids</div>
+    <textarea class="q-input" id="inp-10" rows="3" placeholder="① = …&#10;② = …"></textarea>
+    <button class="answer-toggle" onclick="toggleAnswer(this)">
+      <span class="arrow">▶</span> 정답 및 해설 보기
+    </button>
+    <div class="answer-box">
+      <div class="ans-label">정답</div>
+      <div class="ans-text">
+        <strong>① distances.index(min(distances))</strong><br>
+        — 거리 리스트에서 최솟값의 인덱스를 반환 → argmin_k ||xᵢ − μₖ||² 구현<br><br>
+        <strong>② [sum(col)/len(col) for col in zip(*members)]</strong><br>
+        — zip(*members)로 차원별로 묶고, 각 차원의 평균을 계산 → μₖ = (1/|Cₖ|) Σxᵢ 구현
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Q11 [응용] 수치변형 -->
+<div class="q-card" id="card-11" data-type="code" data-adv="true">
+  <div class="q-top">
+    <div class="q-num">11</div>
+    <div class="q-meta">
+      <span class="tag tag-type-code">코드완성형</span>
+      <span class="tag tag-adv">[응용]</span>
+      <span class="diff">⭐⭐</span>
+      <span class="tag tag-slide">Slide 5</span>
+    </div>
+  </div>
+  <div class="q-body">
+    <div class="q-text">
+      아래는 <strong>맨해튼 거리(L1)</strong>를 계산하는 코드이다. 빈칸 ①②를 채우고, 유클리드 거리 코드와 비교하여 달라진 부분이 무엇인지 설명하시오.
+    </div>
+    <div class="code-block">def manhattan_distance(x, z):
+    total = 0
+    for i in range(len(x)):
+        total += <span class="code-blank">  ①  </span>
+    return <span class="code-blank">  ②  </span>
+
+# 검증: x=(4,3), z=(2,3) → 결과: 2
+print(manhattan_distance([4,3], [2,3]))</div>
+    <textarea class="q-input" id="inp-11" rows="3" placeholder="① = …&#10;② = …&#10;유클리드와의 차이: …"></textarea>
+    <button class="answer-toggle" onclick="toggleAnswer(this)">
+      <span class="arrow">▶</span> 정답 및 해설 보기
+    </button>
+    <div class="answer-box">
+      <div class="ans-label">정답</div>
+      <div class="ans-text">
+        <strong>① abs(x[i] - z[i])</strong> — 절댓값 차이 (제곱이 아님)<br>
+        <strong>② total</strong> — 제곱근 없이 합계 그대로 반환<br><br>
+        <strong>유클리드와의 차이:</strong><br>
+        • 유클리드: ① (x[i]-z[i])**2 → ② math.sqrt(total)<br>
+        • 맨해튼: ① abs(x[i]-z[i]) → ② total<br>
+        핵심 차이는 제곱/제곱근 연산의 유무이다. 맨해튼은 절댓값 합이므로 이상치 하나가 거리를 폭발적으로 늘리지 않아 더 강건하다.
+      </div>
+      <div class="variation-label">변형 포인트</div>
+      <div class="variation-text">유클리드 거리 코드(Q08)에서 거리 측도를 L1으로 변경. 수식 구조는 같으나 연산자가 달라지며, 차이점 설명을 추가로 요구하는 심화 문제.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Q12 [응용] 조건변형 -->
+<div class="q-card" id="card-12" data-type="code" data-adv="true">
+  <div class="q-top">
+    <div class="q-num">12</div>
+    <div class="q-meta">
+      <span class="tag tag-type-code">코드완성형</span>
+      <span class="tag tag-adv">[응용]</span>
+      <span class="diff">⭐⭐⭐</span>
+      <span class="tag tag-slide">Slide 6</span>
+    </div>
+  </div>
+  <div class="q-body">
+    <div class="q-text">
+      아래는 KNN의 <strong>회귀(Regression) 버전</strong> 예측 함수이다. 분류와 달리 이웃의 출력값 <strong>평균</strong>을 반환한다. 빈칸 ①②를 채우시오.
+    </div>
+    <div class="code-block">def knn_regression(X_train, y_train, x_test, k):
+    distances = [(euclidean_distance(x, x_test), y_train[i])
+                 for i, x in enumerate(X_train)]
+    distances.sort(key=lambda x: x[0])
+    k_neighbors = distances[:k]
+    
+    # 분류와 다른 부분: 다수결 대신 평균
+    neighbor_values = [<span class="code-blank">  ①  </span>]
+    return <span class="code-blank">  ②  </span>
+
+# 검증: 이웃 3개의 y값이 [2.0, 4.0, 3.0]이면 → 3.0 반환</div>
+    <textarea class="q-input" id="inp-12" rows="3" placeholder="① = …&#10;② = …"></textarea>
+    <button class="answer-toggle" onclick="toggleAnswer(this)">
+      <span class="arrow">▶</span> 정답 및 해설 보기
+    </button>
+    <div class="answer-box">
+      <div class="ans-label">정답</div>
+      <div class="ans-text">
+        <strong>① val for _, val in k_neighbors</strong><br>
+        — 거리/레이블 튜플에서 레이블(연속값) 추출<br><br>
+        <strong>② sum(neighbor_values) / len(neighbor_values)</strong><br>
+        — 이웃 k개 출력값의 산술 평균 → ŷ = (1/K) Σⱼ yᵢⱼ 구현<br><br>
+        <strong>분류 vs 회귀 비교:</strong><br>
+        분류: Counter로 다수결 → 가장 많은 클래스 반환<br>
+        회귀: 이웃 y값들의 평균 → 연속값 반환
+      </div>
+      <div class="variation-label">변형 포인트</div>
+      <div class="variation-text">Q09(KNN 분류)와 동일한 코드 구조이나, 예측 방식을 다수결→평균으로 변경. Slide 6의 분류/회귀 분기 개념을 코드로 이해하는 문제.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Q13 [응용] 개념결합 -->
+<div class="q-card" id="card-13" data-type="code" data-adv="true">
+  <div class="q-top">
+    <div class="q-num">13</div>
+    <div class="q-meta">
+      <span class="tag tag-type-code">코드완성형</span>
+      <span class="tag tag-adv">[응용]</span>
+      <span class="diff">⭐⭐⭐</span>
+      <span class="tag tag-slide">Slide 8, 10</span>
+    </div>
+  </div>
+  <div class="q-body">
+    <div class="q-text">
+      아래는 k-fold 교차검증으로 <strong>최적 K</strong>를 탐색하는 코드이다. 빈칸 ①~③을 채우시오.<br>
+      (KNN의 K 선택 + 교차검증 개념을 결합한 문제)
+    </div>
+    <div class="code-block">def find_best_k(X, y, k_range, n_folds=5):
+    best_k, best_acc = 1, 0.0
+    fold_size = len(X) // n_folds
+
+    for k in k_range:
+        fold_accs = []
+        for f in range(n_folds):
+            # 검증 폴드 분리
+            val_X = X[f*fold_size : <span class="code-blank">  ①  </span>]
+            val_y = y[f*fold_size : (f+1)*fold_size]
+            train_X = X[:f*fold_size] + X[<span class="code-blank">  ①  </span>:]
+            train_y = y[:f*fold_size] + y[(f+1)*fold_size:]
+
+            # 각 검증 샘플 예측 & 정확도 계산
+            correct = sum(
+                knn_predict(train_X, train_y, x, k) == true_y
+                for x, true_y in zip(val_X, val_y)
+            )
+            fold_accs.append(<span class="code-blank">  ②  </span>)
+
+        avg_acc = sum(fold_accs) / n_folds
+        if avg_acc > best_acc:
+            best_acc = avg_acc
+            best_k = k
+
+    # ③ 홀수 K 보정
+    if best_k % 2 == <span class="code-blank">  ③  </span>:
+        best_k += 1
+    return best_k</div>
+    <textarea class="q-input" id="inp-13" rows="3" placeholder="① = …&#10;② = …&#10;③ = …"></textarea>
+    <button class="answer-toggle" onclick="toggleAnswer(this)">
+      <span class="arrow">▶</span> 정답 및 해설 보기
+    </button>
+    <div class="answer-box">
+      <div class="ans-label">정답</div>
+      <div class="ans-text">
+        <strong>① (f+1)*fold_size</strong> — 현재 폴드의 끝 인덱스<br>
+        <strong>② correct / len(val_X)</strong> — 해당 폴드의 정확도 = 맞은 수 / 전체 검증 수<br>
+        <strong>③ 0</strong> — 짝수인 경우(% 2 == 0) +1로 홀수 보정 (동점 방지)<br><br>
+        교차검증 흐름: 전체 데이터를 n_folds개로 분할 → 각 폴드를 검증 데이터로 순서대로 사용 → 평균 정확도가 최고인 K 선택 → 홀수 보정.
+      </div>
+      <div class="variation-label">변형 포인트</div>
+      <div class="variation-text">Slide 8(K 선택: 교차검증)과 Slide 10(실용적 체크리스트: 홀수 K 권장)을 결합한 개념 결합 문제. 단순 거리 계산을 넘어 전체 선택 파이프라인을 코드로 이해해야 함.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Q14 [응용] 역방향 -->
+<div class="q-card" id="card-14" data-type="code" data-adv="true">
+  <div class="q-top">
+    <div class="q-num">14</div>
+    <div class="q-meta">
+      <span class="tag tag-type-code">코드완성형</span>
+      <span class="tag tag-adv">[응용]</span>
+      <span class="diff">⭐⭐⭐</span>
+      <span class="tag tag-slide">Slide 15</span>
+    </div>
+  </div>
+  <div class="q-body">
+    <div class="q-text">
+      아래는 <strong>K-means++ 초기화</strong> 코드이다. 빈칸 ①~③을 채우시오.
+    </div>
+    <div class="code-block">import random
+
+def kmeans_plus_plus_init(X, k):
+    centroids = [random.choice(X)]  # 첫 번째 중심: 균일 랜덤
+
+    for _ in range(k - 1):
+        # 각 점에서 가장 가까운 중심까지의 거리² 계산
+        D2 = [
+            <span class="code-blank">  ①  </span>
+            for x in X
+        ]
+        # D²에 비례한 확률로 다음 중심 선택
+        total = sum(D2)
+        probs = [<span class="code-blank">  ②  </span> for d in D2]
+        
+        # 확률적 선택 (누적 확률)
+        r = random.random()
+        cumulative = 0
+        for i, p in enumerate(probs):
+            cumulative += p
+            if cumulative >= r:
+                centroids.append(<span class="code-blank">  ③  </span>)
+                break
+    return centroids</div>
+    <textarea class="q-input" id="inp-14" rows="3" placeholder="① = …&#10;② = …&#10;③ = …"></textarea>
+    <button class="answer-toggle" onclick="toggleAnswer(this)">
+      <span class="arrow">▶</span> 정답 및 해설 보기
+    </button>
+    <div class="answer-box">
+      <div class="ans-label">정답</div>
+      <div class="ans-text">
+        <strong>① min(euclidean_distance(x, c)**2 for c in centroids)</strong><br>
+        — 각 점 x에서 이미 선택된 중심들 중 최소 거리²인 D(x)² 계산<br><br>
+        <strong>② d / total</strong><br>
+        — D²를 전체 합으로 나눠 확률로 정규화 → P(xᵢ 선택) ∝ D(xᵢ)²<br><br>
+        <strong>③ X[i]</strong><br>
+        — 누적 확률 기준을 넘는 인덱스 i의 데이터를 새 중심으로 추가
+      </div>
+      <div class="variation-label">변형 포인트</div>
+      <div class="variation-text">Slide 15(K-means++ 절차)의 수식을 역방향으로 코드화하는 문제. 알고리즘 절차를 이해하고 이를 코드 구현으로 매핑하는 능력을 측정.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════
+     서술형 (6문제: Q15~Q20)
+════════════════════════════ -->
+<div class="section-divider">
+  <div class="section-divider-line"></div>
+  <div class="section-divider-label">서술형 · Essay</div>
+  <div class="section-divider-line"></div>
+</div>
+
+<!-- Q15 기본 -->
+<div class="q-card" id="card-15" data-type="essay" data-adv="false">
+  <div class="q-top">
+    <div class="q-num">15</div>
+    <div class="q-meta">
+      <span class="tag tag-type-essay">서술형</span>
+      <span class="diff">⭐⭐</span>
+      <span class="tag tag-slide">Slide 9</span>
+    </div>
+  </div>
+  <div class="q-body">
+    <div class="q-text">
+      '차원의 저주(Curse of Dimensionality)'가 KNN 성능에 미치는 영향을 세 가지 문제 유형으로 나누어 설명하고, 그 해결 방향을 서술하시오.
+    </div>
+    <textarea class="q-input" id="inp-15" rows="6" placeholder="①, ②, ③ 문제 유형과 해결 방향을 서술하시오."></textarea>
+    <button class="answer-toggle" onclick="toggleAnswer(this)">
+      <span class="arrow">▶</span> 정답 및 해설 보기
+    </button>
+    <div class="answer-box">
+      <div class="ans-label">핵심 답안</div>
+      <div class="ans-text">
+        <strong>① 거리 집중 현상:</strong> 차원이 높아질수록 모든 점들이 거의 같은 거리에 위치하게 된다. '가장 가까운 이웃'과 '가장 먼 이웃'의 거리 차이가 무의미해져 이웃 선택이 불가능해진다.<br><br>
+        <strong>② 노이즈 특성 증가:</strong> 변수가 늘어날수록 예측과 관련 없는 특성(노이즈)이 포함될 확률이 높아진다. 예를 들어 혈액형, 병원 방문 요일 같은 무관한 특성이 거리 계산을 왜곡하여 관련 없는 이웃을 선택하게 한다.<br><br>
+        <strong>③ 계산 비용 증가:</strong> 거리 계산 비용이 O(n·d)이므로 차원 d가 커질수록 예측 속도가 크게 저하된다.<br><br>
+        <strong>해결 방향:</strong> 특성 선택(Feature Selection)으로 무관한 특성을 제거하거나, PCA(주성분 분석)로 차원을 축소한 뒤 KNN을 적용하면 성능이 크게 향상된다.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Q16 기본 -->
+<div class="q-card" id="card-16" data-type="essay" data-adv="false">
+  <div class="q-top">
+    <div class="q-num">16</div>
+    <div class="q-meta">
+      <span class="tag tag-type-essay">서술형</span>
+      <span class="diff">⭐⭐</span>
+      <span class="tag tag-slide">Slide 14</span>
+    </div>
+  </div>
+  <div class="q-body">
+    <div class="q-text">
+      K-means 알고리즘이 <strong>반드시 수렴함</strong>을 직관적으로 증명하시오. 또한 수렴이 보장됨에도 불구하고 실전에서 여러 번 실행하는 이유를 설명하시오.
+    </div>
+    <textarea class="q-input" id="inp-16" rows="6" placeholder="수렴 증명(3단계) + 여러 번 실행하는 이유를 서술하시오."></textarea>
+    <button class="answer-toggle" onclick="toggleAnswer(this)">
+      <span class="arrow">▶</span> 정답 및 해설 보기
+    </button>
+    <div class="answer-box">
+      <div class="ans-label">핵심 답안</div>
+      <div class="ans-text">
+        <strong>[수렴 증명]</strong><br>
+        1. <strong>할당 단계:</strong> 각 xᵢ를 가장 가까운 중심에 배정하므로 J는 감소하거나 같아진다 (J_new ≤ J_old).<br>
+        2. <strong>갱신 단계:</strong> 클러스터 중심을 평균으로 갱신하면 평균은 제곱 오차를 최소화하는 점이므로 J가 감소하거나 같아진다.<br>
+        3. <strong>유한성:</strong> 클러스터 할당의 경우의 수는 Kⁿ 개로 유한하다. J가 단조 감소하고 경우의 수가 유한하므로 반드시 수렴한다.<br><br>
+        <strong>[여러 번 실행하는 이유]</strong><br>
+        수렴은 보장되지만 <strong>전역 최솟값(global minimum)은 보장되지 않는다</strong>. 초기 중심 선택에 따라 서로 다른 지역 최솟값(local minimum)에 빠질 수 있다. 따라서 다수의 랜덤 초기화를 시도하고 그 중 J가 가장 작은 결과를 최종 답으로 채택한다(n_init 파라미터).
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Q17 기본 -->
+<div class="q-card" id="card-17" data-type="essay" data-adv="false">
+  <div class="q-top">
+    <div class="q-num">17</div>
+    <div class="q-meta">
+      <span class="tag tag-type-essay">서술형</span>
+      <span class="diff">⭐⭐</span>
+      <span class="tag tag-slide">Slide 3, 18</span>
+    </div>
+  </div>
+  <div class="q-body">
+    <div class="q-text">
+      KNN과 K-means를 <strong>학습 유형, K의 의미, 훈련 단계, 예측 방식</strong> 네 가지 관점에서 비교 서술하시오.
+    </div>
+    <textarea class="q-input" id="inp-17" rows="7" placeholder="네 가지 관점에서 비교하시오."></textarea>
+    <button class="answer-toggle" onclick="toggleAnswer(this)">
+      <span class="arrow">▶</span> 정답 및 해설 보기
+    </button>
+    <div class="answer-box">
+      <div class="ans-label">핵심 답안</div>
+      <div class="ans-text">
+        <strong>① 학습 유형:</strong> KNN은 레이블이 있는 데이터로 P(y|x)를 추정하는 지도학습이고, K-means는 레이블 없이 P(x)의 구조를 발견하는 비지도학습이다.<br><br>
+        <strong>② K의 의미:</strong> KNN에서 K는 탐색할 이웃의 개수(탐색 범위)를 의미하고, K-means에서 K는 데이터를 나눌 클러스터의 개수(그룹 수)를 의미한다.<br><br>
+        <strong>③ 훈련 단계:</strong> KNN은 별도의 파라미터 학습이 없는 Lazy Learning으로 훈련 비용이 O(1)이다. K-means는 할당-갱신을 반복하는 최적화 과정이 훈련 단계에 해당한다.<br><br>
+        <strong>④ 예측 방식:</strong> KNN은 K개 이웃의 다수결(분류) 또는 평균(회귀)으로 예측한다. K-means는 새 데이터를 가장 가까운 centroid에 배정하여 클러스터 레이블을 부여한다.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Q18 [응용] 조건변형 -->
+<div class="q-card" id="card-18" data-type="essay" data-adv="true">
+  <div class="q-top">
+    <div class="q-num">18</div>
+    <div class="q-meta">
+      <span class="tag tag-type-essay">서술형</span>
+      <span class="tag tag-adv">[응용]</span>
+      <span class="diff">⭐⭐⭐</span>
+      <span class="tag tag-slide">Slide 17</span>
+    </div>
+  </div>
+  <div class="q-body">
+    <div class="q-text">
+      K-means의 한계 중 <strong>"구형(원형) 클러스터 가정"</strong>과 <strong>"이상치 민감성"</strong>이 실제 문제에서 어떻게 나타나는지 구체적 예시를 들어 설명하고, 각각의 대안 알고리즘과 그 이유를 서술하시오.
+    </div>
+    <textarea class="q-input" id="inp-18" rows="7" placeholder="두 한계를 각각 예시와 대안 알고리즘을 포함하여 서술하시오."></textarea>
+    <button class="answer-toggle" onclick="toggleAnswer(this)">
+      <span class="arrow">▶</span> 정답 및 해설 보기
+    </button>
+    <div class="answer-box">
+      <div class="ans-label">핵심 답안</div>
+      <div class="ans-text">
+        <strong>[구형 클러스터 가정]</strong><br>
+        K-means는 유클리드 거리를 최소화하므로 클러스터가 원형(구형)으로 형성된다고 가정한다. 예를 들어 초승달 모양이나 고리 모양으로 분포된 데이터(두 개의 동심원)의 경우, K-means는 올바른 클러스터를 찾지 못하고 단순히 좌/우로 나누는 잘못된 결과를 낸다.<br>
+        → <strong>대안: DBSCAN</strong> — 밀도 기반 클러스터링으로 임의 모양의 클러스터를 포착 가능. 또는 <strong>GMM(가우시안 혼합 모델)</strong>로 타원형 클러스터 처리 가능.<br><br>
+        <strong>[이상치 민감성]</strong><br>
+        K-means의 centroid는 클러스터 데이터의 '평균'이므로, 이상치 하나가 중심을 크게 왜곡한다. 예를 들어 {1,2,3,100}이라는 데이터가 있으면 100 하나 때문에 centroid가 26.5로 실제 군집(1~3) 중심에서 크게 벗어난다.<br>
+        → <strong>대안: K-medoids</strong> — centroid 대신 실제 데이터 포인트 중 중앙값(medoid)을 중심으로 사용하므로 이상치 영향을 최소화한다.
+      </div>
+      <div class="variation-label">변형 포인트</div>
+      <div class="variation-text">Slide 17의 한계 목록을 단순 열거하는 것을 넘어, 각 한계가 실제 데이터 상황에서 어떻게 발현되는지 예시를 들고 대안의 이유까지 설명해야 하는 심화 문제.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Q19 [응용] 개념결합 -->
+<div class="q-card" id="card-19" data-type="essay" data-adv="true">
+  <div class="q-top">
+    <div class="q-num">19</div>
+    <div class="q-meta">
+      <span class="tag tag-type-essay">서술형</span>
+      <span class="tag tag-adv">[응용]</span>
+      <span class="diff">⭐⭐⭐</span>
+      <span class="tag tag-slide">Slide 9, 16, 19</span>
+    </div>
+  </div>
+  <div class="q-body">
+    <div class="q-text">
+      실제 ML 프로젝트에서 고차원 고객 데이터(100개 특성, 10만 건)로 고객 세분화를 수행하려 한다.<br>
+      <strong>KNN과 K-means 중 어느 알고리즘을 어느 단계에서 사용해야 하는가?</strong><br>
+      차원의 저주, 레이블 유무, 목적(세분화 vs 분류)을 모두 고려하여 파이프라인을 제시하고 각 선택의 이유를 서술하시오.
+    </div>
+    <textarea class="q-input" id="inp-19" rows="8" placeholder="파이프라인 단계와 각 알고리즘 선택 이유를 서술하시오."></textarea>
+    <button class="answer-toggle" onclick="toggleAnswer(this)">
+      <span class="arrow">▶</span> 정답 및 해설 보기
+    </button>
+    <div class="answer-box">
+      <div class="ans-label">핵심 답안</div>
+      <div class="ans-text">
+        <strong>[권장 파이프라인]</strong><br>
+        1단계 전처리: Z-score 표준화 (거리 기반 알고리즘 모두 스케일 민감)<br>
+        2단계 차원 축소: PCA로 100차원 → 10~20차원 축소 (차원의 저주 해소)<br>
+        3단계 군집화: <strong>K-means</strong> 적용 → Elbow Method로 최적 K 결정<br>
+        4단계 (선택): 군집 레이블이 생성된 이후, 신규 고객 분류에 <strong>KNN</strong> 적용<br><br>
+        <strong>[선택 이유]</strong><br>
+        • 고객 세분화 목적이므로 레이블이 없는 상태에서 구조를 찾아야 한다 → K-means (비지도)<br>
+        • 100차원 원시 데이터에 KNN을 바로 적용하면 차원의 저주로 거리 의미가 없어지고 예측 비용 O(n·d)도 폭발 → PCA 선행 필수<br>
+        • K-means로 세분화한 결과(클러스터 레이블)가 생기면, 이후 신규 고객 분류에는 KNN을 지도학습으로 활용 가능<br>
+        • 10만 건 × 100차원에 KNN 단독 사용 시 예측 1건당 O(100,000 × 100) = 10M 연산 → 비실용적
+      </div>
+      <div class="variation-label">변형 포인트</div>
+      <div class="variation-text">Slide 9(차원의 저주), Slide 16(Elbow Method), Slide 19(ML 파이프라인)을 종합적으로 연결하는 개념 결합 문제. 세 개념을 실제 시나리오에 통합 적용해야 한다.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Q20 [응용] 역방향 -->
+<div class="q-card" id="card-20" data-type="essay" data-adv="true">
+  <div class="q-top">
+    <div class="q-num">20</div>
+    <div class="q-meta">
+      <span class="tag tag-type-essay">서술형</span>
+      <span class="tag tag-adv">[응용]</span>
+      <span class="diff">⭐⭐⭐</span>
+      <span class="tag tag-slide">Slide 8, 14</span>
+    </div>
+  </div>
+  <div class="q-body">
+    <div class="q-text">
+      아래는 어떤 모델 A의 훈련/테스트 성능 결과이다. 이 패턴이 나타난 원인을 KNN의 어떤 설정에서 비롯된 것인지 진단하고, 해결 방안을 구체적으로 서술하시오.<br><br>
+      <div style="background:var(--surface2); border-radius:8px; padding:14px 18px; font-size:13px; border:1px solid var(--border); margin-top:8px;">
+        - 훈련 정확도: <strong style="color:var(--accent-green);">100%</strong><br>
+        - 테스트 정확도: <strong style="color:var(--accent-red);">52%</strong> (거의 랜덤 수준)<br>
+        - 사용 알고리즘: KNN<br>
+        - 훈련 데이터 크기: n=500
+      </div>
+    </div>
+    <textarea class="q-input" id="inp-20" rows="7" placeholder="원인 진단 → 해결 방안 순서로 서술하시오."></textarea>
+    <button class="answer-toggle" onclick="toggleAnswer(this)">
+      <span class="arrow">▶</span> 정답 및 해설 보기
+    </button>
+    <div class="answer-box">
+      <div class="ans-label">핵심 답안</div>
+      <div class="ans-text">
+        <strong>[원인 진단 — K=1 과적합]</strong><br>
+        훈련 정확도 100%는 KNN에서 K=1일 때 발생하는 전형적인 증상이다. K=1이면 각 훈련 데이터가 자기 자신의 유일한 이웃이 되므로 훈련 오류가 정확히 0이 된다. 그러나 테스트 데이터에 대해서는 새로운 패턴에 과적합된 매우 복잡한 결정 경계가 적용되어 52%라는 랜덤에 가까운 정확도를 보인다.<br><br>
+        이는 Slide 8의 K=1: 낮은 편향/높은 분산 상황에 해당하며, <strong>과적합(Overfitting)</strong>의 교과서적 사례다.<br><br>
+        <strong>[해결 방안]</strong><br>
+        1. K 값 증가: √500 ≈ 22를 시작점으로 하여 홀수 K를 탐색<br>
+        2. k-fold 교차검증: 5-fold 또는 10-fold 교차검증으로 훈련 데이터 내에서 검증하며 최적 K 선택<br>
+        3. 정규화 확인: 스케일 미정규화 시 거리 계산 왜곡 → Min-Max 또는 Z-score 적용<br>
+        4. 차원 점검: 특성 수가 많으면 PCA 선처리 후 KNN 적용
+      </div>
+      <div class="variation-label">변형 포인트</div>
+      <div class="variation-text">Slide 8(K=1 과적합)의 개념을 역방향으로 적용. 수치(훈련 100%, 테스트 52%)를 보고 K=1임을 역으로 진단하고 해결책을 제시하는 문제. 훈련=100%라는 단서가 핵심.</div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /main -->
+
+<script>
+// ── 정답 토글 ──
+function toggleAnswer(btn) {
+  const box = btn.nextElementSibling;
+  btn.classList.toggle('open');
+  box.classList.toggle('show');
+  btn.querySelector('.arrow').textContent = box.classList.contains('show') ? '▼' : '▶';
+}
+
+// ── 필터 ──
+function filterCards(type, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.q-card').forEach(card => {
+    if (type === 'all') { card.style.display = ''; return; }
+    if (type === 'adv') {
+      card.style.display = card.dataset.adv === 'true' ? '' : 'none';
+    } else {
+      card.style.display = card.dataset.type === type ? '' : 'none';
+    }
+  });
+}
+
+// ── 채점 ──
+function gradeAll() {
+  let answered = 0;
+  for (let i = 1; i <= 20; i++) {
+    const inp = document.getElementById('inp-' + i);
+    const card = document.getElementById('card-' + i);
+    if (!inp) continue;
+    const val = inp.value.trim();
+    if (val.length > 0) {
+      answered++;
+      card.classList.remove('wrong');
+      card.classList.add('correct');
+      inp.classList.remove('wrong-input');
+      inp.classList.add('correct-input');
+      // 정답 박스 자동 열기
+      const toggle = card.querySelector('.answer-toggle');
+      const box = card.querySelector('.answer-box');
+      if (toggle && box && !box.classList.contains('show')) {
+        box.classList.add('show');
+        toggle.classList.add('open');
+        toggle.querySelector('.arrow').textContent = '▼';
+      }
+    } else {
+      card.classList.remove('correct');
+      card.classList.add('wrong');
+      inp.classList.remove('correct-input');
+      inp.classList.add('wrong-input');
+    }
+  }
+  updateScore(answered);
+  showResult(answered);
+}
+
+function updateScore(n) {
+  document.getElementById('scoreDisplay').textContent = n + ' / 20';
+  document.getElementById('scoreBar').style.width = (n / 20 * 100) + '%';
+}
+
+function showResult(n) {
+  const pct = Math.round(n / 20 * 100);
+  let emoji = n >= 18 ? '🏆' : n >= 14 ? '🎯' : n >= 10 ? '📚' : '💪';
+  let msg = n >= 18 ? '완벽합니다!' : n >= 14 ? '잘 했습니다!' : n >= 10 ? '절반 이상 완료!' : '계속 도전하세요!';
+  document.getElementById('resultEmoji').textContent = emoji;
+  document.getElementById('resultScore').textContent = n + ' / 20';
+  document.getElementById('resultLabel').textContent = '응답 완료율 ' + pct + '% · ' + msg;
+  document.getElementById('resultOverlay').classList.add('show');
+}
+
+function closeResult() {
+  document.getElementById('resultOverlay').classList.remove('show');
+}
+
+function resetAll() {
+  for (let i = 1; i <= 20; i++) {
+    const inp = document.getElementById('inp-' + i);
+    const card = document.getElementById('card-' + i);
+    if (!inp) continue;
+    inp.value = '';
+    inp.classList.remove('correct-input','wrong-input');
+    card.classList.remove('correct','wrong');
+    const box = card.querySelector('.answer-box');
+    const toggle = card.querySelector('.answer-toggle');
+    if (box) box.classList.remove('show');
+    if (toggle) {
+      toggle.classList.remove('open');
+      toggle.querySelector('.arrow').textContent = '▶';
+    }
+  }
+  updateScore(0);
+}
+</script>
+</body>
+</html>
