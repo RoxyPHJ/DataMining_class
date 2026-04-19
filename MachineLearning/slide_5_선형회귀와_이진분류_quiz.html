@@ -1,0 +1,1385 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>기계학습 5 — 선형 회귀와 이진 분류 서술형 퀴즈</title>
+<style>
+:root {
+  --bg: #0a0e1a;
+  --surface: #111827;
+  --surface2: #1a2235;
+  --surface3: #1e2d42;
+  --border: #2a3a55;
+  --accent: #3b82f6;
+  --accent2: #60a5fa;
+  --accent3: #93c5fd;
+  --green: #22c55e;
+  --green2: #4ade80;
+  --yellow: #f59e0b;
+  --yellow2: #fbbf24;
+  --red: #ef4444;
+  --red2: #f87171;
+  --purple: #a855f7;
+  --purple2: #c084fc;
+  --cyan: #06b6d4;
+  --orange: #f97316;
+  --orange2: #fb923c;
+  --text: #e2e8f0;
+  --text-sub: #94a3b8;
+  --text-dim: #64748b;
+  --code-bg: #0d1117;
+  --radius: 12px;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',sans-serif;
+  line-height: 1.7;
+}
+
+/* ── Header ── */
+.page-header {
+  background: linear-gradient(135deg,#0c1a30 0%,#0a1220 50%,#0e1a2e 100%);
+  border-bottom: 1px solid var(--border);
+  padding: 48px 52px 40px;
+  position: relative; overflow: hidden;
+}
+.page-header::before {
+  content:''; position:absolute; top:-100px; right:-100px;
+  width:420px; height:420px;
+  background: radial-gradient(circle,rgba(59,130,246,.06) 0%,transparent 70%);
+  pointer-events:none;
+}
+.page-header::after {
+  content:''; position:absolute; bottom:-60px; left:200px;
+  width:280px; height:280px;
+  background: radial-gradient(circle,rgba(168,85,247,.04) 0%,transparent 70%);
+  pointer-events:none;
+}
+.header-label {
+  font-family:'Menlo','Courier New',monospace;
+  font-size:11px; letter-spacing:3px; text-transform:uppercase;
+  color:var(--accent); margin-bottom:12px;
+}
+.page-header h1 {
+  font-family:'Impact','Arial Narrow','Arial Black',sans-serif;
+  font-size:38px; color:#fff; margin-bottom:12px; letter-spacing:.5px; line-height:1.15;
+}
+.page-header h1 span { color:var(--accent2); }
+.page-header .sub { color:var(--text-sub); font-size:14px; margin-bottom:20px; }
+.header-tags { display:flex; flex-wrap:wrap; gap:8px; }
+.header-tag {
+  font-size:11px; padding:3px 10px; border-radius:100px;
+  background:rgba(59,130,246,.1); border:1px solid rgba(59,130,246,.2);
+  color:var(--accent3); font-family:'Menlo','Courier New',monospace;
+}
+
+/* ── Scoreboard ── */
+.scoreboard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin: 28px 52px;
+  padding: 20px 28px;
+  display:flex; align-items:center; gap:28px; flex-wrap:wrap;
+}
+.score-block { display:flex; flex-direction:column; gap:2px; }
+.score-label { font-size:11px; color:var(--text-dim); text-transform:uppercase; letter-spacing:1px; }
+.score-val { font-size:30px; font-weight:700; color:var(--accent2); font-family:'Menlo','Courier New',monospace; }
+.score-divider { width:1px; height:40px; background:var(--border); }
+.score-hint { font-size:13px; color:var(--text-dim); }
+.reset-btn {
+  margin-left:auto; background:var(--surface2); color:var(--text-sub);
+  border:1px solid var(--border); border-radius:8px;
+  padding:10px 22px; font-size:13px; font-weight:600; cursor:pointer;
+  font-family:'Apple SD Gothic Neo','Malgun Gothic',sans-serif; transition:.2s;
+}
+.reset-btn:hover { border-color:var(--accent); color:var(--accent2); }
+
+/* ── Section header ── */
+.sec-header {
+  display:flex; align-items:center; gap:14px;
+  margin: 36px 52px 20px;
+}
+.sec-num {
+  font-family:'Impact','Arial Narrow','Arial Black',sans-serif;
+  font-size:11px; letter-spacing:2px;
+  padding:4px 12px; border-radius:6px;
+}
+.sec-num.blue  { background:rgba(59,130,246,.12);  border:1px solid rgba(59,130,246,.25);  color:var(--accent2); }
+.sec-num.green { background:rgba(34,197,94,.12);   border:1px solid rgba(34,197,94,.25);   color:var(--green2); }
+.sec-num.yellow{ background:rgba(245,158,11,.12);  border:1px solid rgba(245,158,11,.25);  color:var(--yellow2); }
+.sec-num.purple{ background:rgba(168,85,247,.12);  border:1px solid rgba(168,85,247,.25);  color:var(--purple2); }
+.sec-num.cyan  { background:rgba(6,182,212,.12);   border:1px solid rgba(6,182,212,.25);   color:var(--cyan); }
+.sec-num.orange{ background:rgba(249,115,22,.12);  border:1px solid rgba(249,115,22,.25);  color:var(--orange2); }
+.sec-num.red   { background:rgba(239,68,68,.12);   border:1px solid rgba(239,68,68,.25);   color:var(--red2); }
+
+.sec-title {
+  font-family:'Impact','Arial Narrow','Arial Black',sans-serif;
+  font-size:20px; color:#fff; letter-spacing:.3px;
+}
+.sec-line { flex:1; height:1px; background:var(--border); }
+.sec-slide {
+  font-size:11px; font-family:'Menlo','Courier New',monospace;
+  color:var(--text-dim); white-space:nowrap;
+}
+
+/* ── Quiz Card ── */
+.quiz-wrap { padding:0 52px; }
+
+.quiz-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 16px;
+  overflow: hidden;
+  transition: border-color .2s, box-shadow .2s;
+}
+.quiz-card:hover { border-color:rgba(59,130,246,.4); }
+.quiz-card.open  { border-color:rgba(59,130,246,.5); box-shadow:0 0 0 1px rgba(59,130,246,.1); }
+
+.quiz-head {
+  padding: 20px 24px;
+  display:flex; align-items:flex-start; gap:14px;
+  cursor:pointer; user-select:none;
+}
+.quiz-num-badge {
+  font-family:'Menlo','Courier New',monospace; font-size:11px; font-weight:700;
+  background:var(--surface2); border:1px solid var(--border);
+  padding:3px 10px; border-radius:6px; color:var(--text-dim);
+  white-space:nowrap; margin-top:3px; flex-shrink:0;
+}
+
+.quiz-inner { flex:1; }
+.quiz-meta  { display:flex; gap:7px; align-items:center; flex-wrap:wrap; margin-bottom:9px; }
+
+.tag-base {
+  font-size:10px; padding:2px 8px; border-radius:4px; font-weight:700;
+  background:rgba(34,197,94,.12); border:1px solid rgba(34,197,94,.25); color:var(--green2);
+}
+.tag-applied {
+  font-size:10px; padding:2px 8px; border-radius:4px; font-weight:700;
+  background:rgba(168,85,247,.15); border:1px solid rgba(168,85,247,.3); color:var(--purple2);
+}
+.tag-type {
+  font-size:10px; padding:2px 8px; border-radius:4px;
+  background:rgba(6,182,212,.1); border:1px solid rgba(6,182,212,.2); color:var(--cyan);
+}
+.tag-diff {
+  font-size:10px; padding:2px 8px; border-radius:4px;
+  background:var(--surface2); border:1px solid var(--border); color:var(--text-dim);
+}
+.stars { font-size:12px; }
+
+.quiz-q {
+  font-size:15px; color:var(--text); line-height:1.75; font-weight:600;
+}
+.quiz-q .hint {
+  display:block; margin-top:7px;
+  font-size:13px; color:var(--text-sub); font-weight:400; line-height:1.65;
+}
+.quiz-q .sub-items {
+  display:block; margin-top:8px;
+  font-size:13px; color:var(--text-sub); font-weight:400; line-height:1.9;
+}
+
+.toggle-icon {
+  margin-left:auto; font-size:16px; color:var(--text-dim);
+  transition:transform .25s; flex-shrink:0; margin-top:4px;
+}
+.quiz-card.open .toggle-icon { transform:rotate(180deg); color:var(--accent2); }
+
+/* ── Answer ── */
+.quiz-ans {
+  display:none;
+  border-top:1px solid var(--border);
+  padding:22px 24px;
+  animation: fadeIn .2s ease;
+}
+.quiz-card.open .quiz-ans { display:block; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(-5px)} to{opacity:1;transform:translateY(0)} }
+
+.ans-header {
+  display:flex; align-items:center; gap:8px; margin-bottom:16px;
+}
+.ans-header-label {
+  font-size:10px; font-family:'Menlo','Courier New',monospace;
+  letter-spacing:2px; text-transform:uppercase; color:var(--green2);
+  display:flex; align-items:center; gap:6px;
+}
+.ans-header-label::before { content:''; width:3px; height:14px; background:var(--green); border-radius:2px; display:inline-block; }
+
+.ans-body { font-size:13.5px; color:var(--text-sub); line-height:1.85; }
+.ans-body strong { color:var(--text); }
+.ans-body em { color:var(--accent3); font-style:normal; font-weight:600; }
+
+.formula {
+  background:var(--code-bg);
+  border:1px solid var(--border);
+  border-left:3px solid var(--accent);
+  border-radius:8px;
+  padding:13px 17px;
+  font-family:'Menlo','Courier New',monospace;
+  font-size:12.5px; color:var(--yellow2);
+  line-height:2.1; margin:11px 0; overflow-x:auto;
+}
+.formula .cm { color:var(--text-dim); font-size:11px; }
+.formula .hl { color:var(--green2); }
+.formula .dim { color:var(--text-dim); }
+
+.key-point {
+  background:rgba(59,130,246,.07);
+  border:1px solid rgba(59,130,246,.2);
+  border-radius:8px; padding:13px 17px; margin:12px 0;
+  font-size:13px; color:var(--accent3); line-height:1.7;
+}
+.key-point strong { color:var(--accent2); }
+
+.warn-point {
+  background:rgba(245,158,11,.07);
+  border:1px solid rgba(245,158,11,.2);
+  border-radius:8px; padding:13px 17px; margin:12px 0;
+  font-size:13px; color:var(--yellow2); line-height:1.7;
+}
+
+.variation-box {
+  background:rgba(168,85,247,.07);
+  border:1px solid rgba(168,85,247,.22);
+  border-radius:8px; padding:14px 18px; margin-top:16px;
+}
+.variation-title {
+  font-size:10px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase;
+  color:var(--purple2); margin-bottom:8px;
+  display:flex; align-items:center; gap:6px;
+}
+.variation-box p { font-size:13px; color:var(--text-sub); line-height:1.7; }
+.variation-box strong { color:var(--purple2); }
+
+.check-row { display:flex; gap:10px; margin-top:18px; }
+.chk-btn {
+  padding:8px 20px; border-radius:8px; border:none;
+  font-size:12px; font-weight:700; cursor:pointer;
+  font-family:'Apple SD Gothic Neo','Malgun Gothic',sans-serif; transition:.15s;
+}
+.chk-ok  { background:rgba(34,197,94,.12); color:var(--green2); border:1px solid rgba(34,197,94,.25); }
+.chk-ok:hover, .chk-ok.on  { background:var(--green); color:#fff; border-color:var(--green); }
+.chk-no  { background:rgba(239,68,68,.1);  color:var(--red2);   border:1px solid rgba(239,68,68,.2); }
+.chk-no:hover, .chk-no.on  { background:var(--red);   color:#fff; border-color:var(--red); }
+
+/* ── Footer ── */
+.footer { height:72px; }
+
+/* ── Responsive ── */
+@media(max-width:680px){
+  .page-header,.scoreboard,.sec-header,.quiz-wrap{ padding-left:16px; padding-right:16px; }
+  .scoreboard{ margin-left:16px; margin-right:16px; }
+  .sec-header{ margin-left:16px; margin-right:16px; }
+  .page-header h1{ font-size:26px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ══ Header ══ -->
+<div class="page-header">
+  <div class="header-label">기계학습 Lecture 5 · 서술형 퀴즈</div>
+  <h1>선형 회귀와 <span>이진 분류</span></h1>
+  <p class="sub">인천대학교 컴퓨터공학부 · 김인수 교수 · 2026년 1학기 · 총 20문제</p>
+  <div class="header-tags">
+    <span class="header-tag">Linear Regression</span>
+    <span class="header-tag">MSE / Normal Eq.</span>
+    <span class="header-tag">Gradient Descent</span>
+    <span class="header-tag">Binary Classification</span>
+    <span class="header-tag">Sigmoid</span>
+    <span class="header-tag">Cross-Entropy</span>
+    <span class="header-tag">Decision Boundary</span>
+    <span class="header-tag">Softmax</span>
+    <span class="header-tag">Regularization</span>
+  </div>
+</div>
+
+<!-- ══ Scoreboard ══ -->
+<div class="scoreboard">
+  <div class="score-block">
+    <div class="score-label">맞힌 문제</div>
+    <div class="score-val"><span id="cnt">0</span> / 20</div>
+  </div>
+  <div class="score-divider"></div>
+  <div class="score-hint">문제를 펼쳐 답을 확인한 뒤 ✅ / ❌ 로 자가 채점하세요</div>
+  <button class="reset-btn" onclick="resetAll()">↺ 초기화</button>
+</div>
+
+
+<!-- ════════════════════════════════
+     섹션 01 — 선형 회귀 & 회귀 문제
+════════════════════════════════ -->
+<div class="sec-header">
+  <span class="sec-num blue">01</span>
+  <span class="sec-title">선형 회귀 — 회귀 문제 정의</span>
+  <div class="sec-line"></div>
+  <span class="sec-slide">슬라이드 3</span>
+</div>
+<div class="quiz-wrap">
+
+<!-- Q01 기본 -->
+<div class="quiz-card" id="qc1">
+  <div class="quiz-head" onclick="tog(1)">
+    <span class="quiz-num-badge">Q01</span>
+    <div class="quiz-inner">
+      <div class="quiz-meta">
+        <span class="tag-base">[기본]</span>
+        <span class="tag-diff">슬라이드 3</span>
+        <span class="stars">⭐</span>
+      </div>
+      <div class="quiz-q">
+        회귀(Regression) 문제와 분류(Classification) 문제의 차이를 출력값의 특성 측면에서 서술하라.
+        <span class="hint">선형 회귀 모델 ŷ = θᵀx의 수식과 학습 목표(θ를 찾는 기준)를 포함하여 설명하라.</span>
+      </div>
+    </div>
+    <span class="toggle-icon">▼</span>
+  </div>
+  <div class="quiz-ans">
+    <div class="ans-header"><span class="ans-header-label">모범 답안</span></div>
+    <div class="ans-body">
+      <strong>회귀 vs 분류 — 출력값 특성:</strong><br>
+      회귀 문제는 출력 y가 <em>연속적인 실수(y ∈ ℝ)</em>인 지도 학습 문제다. 예를 들어 주택 가격, 기온, 주가처럼 예측값이 특정 범위에 구애받지 않는 실수로 표현된다. 반면 분류 문제는 출력 y가 <em>유한한 이산 클래스(y ∈ {0,1,…,K−1})</em>에 속한다.<br><br>
+      <strong>선형 회귀 모델:</strong>
+      <div class="formula">
+        ŷ = θ₀ + θ₁x  <span class="cm">← 단순 선형 (입력 1개)</span><br>
+        ŷ = θᵀx       <span class="cm">← 벡터 표현 (bias 항 x₀=1 포함, 다입력 일반화)</span>
+      </div>
+      <strong>학습 목표:</strong><br>
+      데이터 (x₁,y₁),…,(xₙ,yₙ)가 주어졌을 때, 예측값 ŷ와 실제값 y의 차이를 가장 작게 만드는 θ를 찾는 것이다.
+      <div class="formula">
+        θ* = argmin<sub>θ</sub> J(θ)
+      </div>
+      즉 학습이란 비용 함수(손실 함수) J(θ)를 최소화하는 최적 파라미터 θ*를 구하는 과정이다.
+    </div>
+    <div class="check-row">
+      <button class="chk-btn chk-ok" onclick="mark(1,true,this)">✅ 맞음</button>
+      <button class="chk-btn chk-no" onclick="mark(1,false,this)">❌ 틀림</button>
+    </div>
+  </div>
+</div>
+
+<!-- Q02 응용 -->
+<div class="quiz-card" id="qc2">
+  <div class="quiz-head" onclick="tog(2)">
+    <span class="quiz-num-badge">Q02</span>
+    <div class="quiz-inner">
+      <div class="quiz-meta">
+        <span class="tag-applied">[응용]</span>
+        <span class="tag-type">역방향 문제</span>
+        <span class="tag-diff">슬라이드 3·9</span>
+        <span class="stars">⭐⭐</span>
+      </div>
+      <div class="quiz-q">
+        아래 세 가지 예측 시스템이 주어졌다. 각각이 회귀인지 분류인지 판별하고, 그 근거를 출력값의 특성으로 서술하라.
+        <span class="sub-items">
+          ① 환자의 혈압·나이·체중을 입력받아 "당뇨병 발병 가능성(%)"을 출력하는 시스템<br>
+          ② 이메일 본문을 분석해 "스팸(1) 또는 정상(0)"을 출력하는 시스템<br>
+          ③ 과거 30일간의 기온·습도를 입력받아 "내일 최고 기온(°C)"을 출력하는 시스템
+        </span>
+      </div>
+    </div>
+    <span class="toggle-icon">▼</span>
+  </div>
+  <div class="quiz-ans">
+    <div class="ans-header"><span class="ans-header-label">모범 답안</span></div>
+    <div class="ans-body">
+      <strong>① 당뇨병 발병 가능성(%):</strong><br>
+      출력이 0~100% 사이의 <em>연속 실수</em>처럼 보이지만, 이 값이 "확률"로서 분류의 예측 신뢰도를 나타낸다면 <em>이진 분류</em>에 해당한다(로지스틱 회귀 형태). 반면 "발병 위험 점수" 자체를 예측 목표로 삼는다면 회귀로 볼 수 있다. 핵심은 <strong>최종 출력이 클래스 레이블인가, 연속 수치인가</strong>에 달려 있다.<br><br>
+      <strong>② 스팸(1) / 정상(0):</strong><br>
+      출력이 {0, 1}의 이산 클래스이므로 명확하게 <em>이진 분류(Binary Classification)</em>다. 연속값이 아니라 두 클래스 중 하나를 예측한다.<br><br>
+      <strong>③ 내일 최고 기온(°C):</strong><br>
+      출력이 임의의 <em>실수(℃)</em>이므로 전형적인 <em>회귀 문제</em>다. 예측값이 특정 이산 집합에 국한되지 않는 연속값이라는 점이 회귀의 기준이다.
+      <div class="formula">
+        <span class="hl">회귀</span>: y ∈ ℝ (연속)  → ①(점수 형태), ③<br>
+        <span class="cm">이진 분류</span>: y ∈ {0,1}  → ①(확률 해석), ②
+      </div>
+    </div>
+    <div class="variation-box">
+      <div class="variation-title">🔀 응용 포인트</div>
+      <p>원래 강의는 "회귀/분류의 정의"를 순방향으로 제시했다. 이 문제는 <strong>구체적인 시스템이 주어지면 회귀/분류를 역으로 판별</strong>하도록 뒤집었다. ①번처럼 %가 붙어 있어도 문맥에 따라 분류일 수 있다는 점이 핵심 함정이다.</p>
+    </div>
+    <div class="check-row">
+      <button class="chk-btn chk-ok" onclick="mark(2,true,this)">✅ 맞음</button>
+      <button class="chk-btn chk-no" onclick="mark(2,false,this)">❌ 틀림</button>
+    </div>
+  </div>
+</div>
+
+</div><!-- /quiz-wrap -->
+
+
+<!-- ════════════════════════════════
+     섹션 01a — MSE 비용 함수
+════════════════════════════════ -->
+<div class="sec-header">
+  <span class="sec-num green">01a</span>
+  <span class="sec-title">MSE 비용 함수</span>
+  <div class="sec-line"></div>
+  <span class="sec-slide">슬라이드 4</span>
+</div>
+<div class="quiz-wrap">
+
+<!-- Q03 기본 -->
+<div class="quiz-card" id="qc3">
+  <div class="quiz-head" onclick="tog(3)">
+    <span class="quiz-num-badge">Q03</span>
+    <div class="quiz-inner">
+      <div class="quiz-meta">
+        <span class="tag-base">[기본]</span>
+        <span class="tag-diff">슬라이드 4</span>
+        <span class="stars">⭐</span>
+      </div>
+      <div class="quiz-q">
+        평균 제곱 오차(MSE)를 손실 함수로 사용하는 이유를 세 가지 측면에서 서술하라.
+        <span class="hint">① 왜 제곱인가, ② 왜 평균인가, ③ 기하학적 의미(최소제곱법)를 각각 설명하라.</span>
+      </div>
+    </div>
+    <span class="toggle-icon">▼</span>
+  </div>
+  <div class="quiz-ans">
+    <div class="ans-header"><span class="ans-header-label">모범 답안</span></div>
+    <div class="ans-body">
+      <div class="formula">
+        J(θ) = (1/N) Σᵢ (ŷᵢ − yᵢ)²  =  (1/N) Σᵢ (θᵀxᵢ − yᵢ)²
+      </div>
+      <strong>① 왜 제곱인가:</strong><br>
+      잔차(오차) eᵢ = ŷᵢ − yᵢ는 양수와 음수 모두 가질 수 있다. 단순 합산하면 서로 상쇄되어 전체 오차를 제대로 표현할 수 없다. 절댓값으로 양수화할 수도 있지만, <em>제곱을 사용하면 모든 점에서 미분이 가능</em>하여 경사하강법 적용이 용이하다. 또한 큰 오차에 더 강한 패널티를 부여하는 효과도 있다.<br><br>
+      <strong>② 왜 평균인가:</strong><br>
+      데이터 수 N에 무관하게 비용 함수의 스케일을 일정하게 유지한다. 데이터가 늘어나도 J(θ) 값이 폭발하지 않으며, 배치 크기가 달라져도 서로 비교 가능한 값이 유지된다.<br><br>
+      <strong>③ 기하학적 의미 (최소제곱법):</strong><br>
+      MSE 최소화는 각 데이터 포인트에서 회귀 직선까지의 <em>수직 거리의 제곱합을 최소화</em>하는 것과 동치다. 이를 최소제곱법(Least Squares Method)이라 하며, 통계학에서 선형 회귀의 고전적인 해법과 일치한다.
+      <div class="formula">
+        학습 목표: θ* = argmin<sub>θ</sub> (1/N) Σᵢ (θᵀxᵢ − yᵢ)²
+      </div>
+    </div>
+    <div class="check-row">
+      <button class="chk-btn chk-ok" onclick="mark(3,true,this)">✅ 맞음</button>
+      <button class="chk-btn chk-no" onclick="mark(3,false,this)">❌ 틀림</button>
+    </div>
+  </div>
+</div>
+
+<!-- Q04 응용 -->
+<div class="quiz-card" id="qc4">
+  <div class="quiz-head" onclick="tog(4)">
+    <span class="quiz-num-badge">Q04</span>
+    <div class="quiz-inner">
+      <div class="quiz-meta">
+        <span class="tag-applied">[응용]</span>
+        <span class="tag-type">조건 변형</span>
+        <span class="tag-diff">슬라이드 4</span>
+        <span class="stars">⭐⭐</span>
+      </div>
+      <div class="quiz-q">
+        MSE 대신 MAE(평균 절댓값 오차)를 손실 함수로 사용할 경우 경사하강법 적용에 어떤 근본적인 문제가 발생하는가?
+        <span class="hint">MAE = (1/N)Σ|ŷᵢ−yᵢ|의 수학적 특성을 MSE와 비교하고, 딥러닝에서 MSE가 기본 손실 함수로 채택되는 이유와 연결하여 서술하라.</span>
+      </div>
+    </div>
+    <span class="toggle-icon">▼</span>
+  </div>
+  <div class="quiz-ans">
+    <div class="ans-header"><span class="ans-header-label">모범 답안</span></div>
+    <div class="ans-body">
+      <strong>MAE의 핵심 문제 — z=0에서의 미분 불연속:</strong><br>
+      MAE = (1/N)Σ|eᵢ|에서 절댓값 함수 |e|는 e=0 지점에서 미분이 존재하지 않는다. 좌미분은 −1, 우미분은 +1로 불일치하여 그래디언트가 정의되지 않는다. 경사하강법은 <em>∇J(θ)가 모든 점에서 정의</em>되어야 파라미터 업데이트 방향을 결정할 수 있는데, 잔차가 0인 데이터 포인트마다 이 조건이 깨진다.
+      <div class="formula">
+        MAE 그래디언트: ∂|e|/∂e = sign(e)  <span class="cm">← e=0에서 미정의 (불연속)</span><br>
+        MSE 그래디언트: ∂e²/∂e = 2e        <span class="cm">← 모든 점에서 연속·정의</span>
+      </div>
+      <strong>MSE가 딥러닝 기본인 이유:</strong><br>
+      MSE는 이차 함수이므로 <em>모든 점에서 연속적으로 미분 가능</em>하고, 볼록(convex)성이 보장되어 역전파(backpropagation) 계산 그래프에서 기울기를 끊김 없이 전파할 수 있다. 또한 선형 회귀에서는 MSE가 Gaussian MLE와 수학적으로 동치여서 확률적 해석도 가능하다.<br><br>
+      <strong>MAE의 장점(이상치 강인성)과 한계:</strong><br>
+      MAE는 이상치에 선형 패널티를 부여하여 이상치에 더 강인하지만, 미분 불연속 문제로 일반적인 경사하강법 적용이 어렵다. 실무에서는 Huber Loss처럼 두 방식의 장점을 결합한 대안이 사용되기도 한다.
+    </div>
+    <div class="variation-box">
+      <div class="variation-title">🔀 응용 포인트</div>
+      <p>강의는 "MSE를 왜 쓰는가"를 순방향으로 제시했다. 이 문제는 <strong>MSE 대신 MAE를 쓴다는 조건 변형</strong>으로 역으로 MAE의 한계를 통해 MSE의 필요성을 이해하도록 유도한다.</p>
+    </div>
+    <div class="check-row">
+      <button class="chk-btn chk-ok" onclick="mark(4,true,this)">✅ 맞음</button>
+      <button class="chk-btn chk-no" onclick="mark(4,false,this)">❌ 틀림</button>
+    </div>
+  </div>
+</div>
+
+</div>
+
+
+<!-- ════════════════════════════════
+     섹션 01b — 정규방정식
+════════════════════════════════ -->
+<div class="sec-header">
+  <span class="sec-num yellow">01b</span>
+  <span class="sec-title">정규방정식 (Normal Equation)</span>
+  <div class="sec-line"></div>
+  <span class="sec-slide">슬라이드 5</span>
+</div>
+<div class="quiz-wrap">
+
+<!-- Q05 기본 -->
+<div class="quiz-card" id="qc5">
+  <div class="quiz-head" onclick="tog(5)">
+    <span class="quiz-num-badge">Q05</span>
+    <div class="quiz-inner">
+      <div class="quiz-meta">
+        <span class="tag-base">[기본]</span>
+        <span class="tag-diff">슬라이드 5</span>
+        <span class="stars">⭐⭐</span>
+      </div>
+      <div class="quiz-q">
+        정규방정식 θ = (XᵀX)⁻¹Xᵀy의 도출 과정을 3단계로 서술하고, 장점과 단점을 각각 설명하라.
+        <span class="hint">Step 1: 행렬 표현 → Step 2: 미분 → Step 3: 해 도출의 흐름으로 서술하라.</span>
+      </div>
+    </div>
+    <span class="toggle-icon">▼</span>
+  </div>
+  <div class="quiz-ans">
+    <div class="ans-header"><span class="ans-header-label">모범 답안</span></div>
+    <div class="ans-body">
+      <strong>도출 과정 3단계:</strong>
+      <div class="formula">
+        Step 1 (행렬 표현)<br>
+        J(θ) = (1/N)||Xθ − y||²<br>
+        <span class="cm">X: N×d 설계 행렬 (각 행 = 샘플), y: N×1 레이블 벡터</span><br><br>
+        Step 2 (미분 = 0으로 놓기)<br>
+        ∇θJ(θ) = (2/N) XᵀXθ − (2/N) Xᵀy = 0<br>
+        → XᵀXθ = Xᵀy<br><br>
+        Step 3 (역행렬로 해 도출)<br>
+        <span class="hl">θ = (XᵀX)⁻¹ Xᵀy</span>  ← 정규방정식 (Normal Equation)
+      </div>
+      <strong>장점:</strong><br>
+      반복 학습 없이 한 번에 해를 구하며, 학습률 같은 하이퍼파라미터가 필요 없다. 소규모 데이터에서 매우 효율적이고 정확하다.<br><br>
+      <strong>단점:</strong><br>
+      (XᵀX)의 역행렬 계산이 <em>O(d³)</em> 시간복잡도를 가지므로, 특징 수 d가 클 때 매우 느리다. XᵀX가 특이행렬(rank 부족)이면 역행렬이 존재하지 않으며, 딥러닝의 비선형 모델에는 적용할 수 없다.
+    </div>
+    <div class="check-row">
+      <button class="chk-btn chk-ok" onclick="mark(5,true,this)">✅ 맞음</button>
+      <button class="chk-btn chk-no" onclick="mark(5,false,this)">❌ 틀림</button>
+    </div>
+  </div>
+</div>
+
+<!-- Q06 응용 -->
+<div class="quiz-card" id="qc6">
+  <div class="quiz-head" onclick="tog(6)">
+    <span class="quiz-num-badge">Q06</span>
+    <div class="quiz-inner">
+      <div class="quiz-meta">
+        <span class="tag-applied">[응용]</span>
+        <span class="tag-type">개념 결합</span>
+        <span class="tag-diff">슬라이드 5</span>
+        <span class="stars">⭐⭐⭐</span>
+      </div>
+      <div class="quiz-q">
+        특징 수 d가 데이터 수 N보다 클 때(d &gt; N), XᵀX가 특이행렬이 되는 이유를 설명하고, Ridge 정규화를 추가하면 왜 이 문제가 해결되는지 서술하라.
+        <span class="hint">행렬의 rank 개념과 연결하여 설명하고, Ridge 정규화 후 역행렬이 항상 존재하게 되는 수학적 이유를 포함하라.</span>
+      </div>
+    </div>
+    <span class="toggle-icon">▼</span>
+  </div>
+  <div class="quiz-ans">
+    <div class="ans-header"><span class="ans-header-label">모범 답안</span></div>
+    <div class="ans-body">
+      <strong>d &gt; N일 때 XᵀX가 특이행렬인 이유:</strong><br>
+      X는 N×d 행렬이므로 rank(X) ≤ min(N, d)다. d &gt; N이면 rank(X) ≤ N &lt; d가 되어 X의 열들이 선형 독립이 아님을 의미한다. XᵀX는 d×d 행렬인데, rank(XᵀX) = rank(X) ≤ N &lt; d이므로 <em>XᵀX의 rank가 d보다 작아 역행렬이 존재하지 않는다</em>. 물리적으로는 데이터보다 파라미터가 많아 해가 무한히 많은 상태다.
+      <div class="formula">
+        d > N  →  rank(X) ≤ N  →  rank(XᵀX) < d  →  det(XᵀX) = 0  →  역행렬 불가
+      </div>
+      <strong>Ridge 정규화로 해결하는 원리:</strong><br>
+      Ridge는 손실 함수에 L2 패널티를 추가한다: J_ridge(θ) = (1/N)||Xθ−y||² + λ||θ||². 이를 최소화하면 정규방정식이 다음과 같이 바뀐다.
+      <div class="formula">
+        θ_ridge = (XᵀX + λI)⁻¹ Xᵀy  (λ > 0)
+      </div>
+      <em>λI</em>는 단위행렬의 λ배이므로 XᵀX의 모든 고유값에 λ를 더하는 효과가 있다. XᵀX의 고유값 중 0이 있더라도 λ를 더하면 최소 고유값이 λ &gt; 0이 되어 <em>(XᵀX + λI)는 항상 양정치(positive definite)</em>가 되고, 역행렬이 반드시 존재한다.
+      <div class="key-point">
+        <strong>핵심:</strong> Ridge 정규화는 단순히 과적합을 막는 것뿐 아니라, d &gt; N인 경우처럼 XᵀX가 특이행렬일 때 역행렬을 강제로 존재하게 만드는 수치적 안정화 역할도 한다.
+      </div>
+    </div>
+    <div class="variation-box">
+      <div class="variation-title">🔀 응용 포인트</div>
+      <p>강의에서 "XᵀX가 특이행렬이면 Ridge로 해결"을 단순 열거했다면, 이 문제는 <strong>rank 개념과 고유값 이동(eigenvalue shift) 원리를 결합</strong>하여 왜 해결되는지 수학적으로 이해하도록 심화했다.</p>
+    </div>
+    <div class="check-row">
+      <button class="chk-btn chk-ok" onclick="mark(6,true,this)">✅ 맞음</button>
+      <button class="chk-btn chk-no" onclick="mark(6,false,this)">❌ 틀림</button>
+    </div>
+  </div>
+</div>
+
+</div>
+
+
+<!-- ════════════════════════════════
+     섹션 01c — 경사하강법
+════════════════════════════════ -->
+<div class="sec-header">
+  <span class="sec-num purple">01c</span>
+  <span class="sec-title">경사하강법 (Gradient Descent)</span>
+  <div class="sec-line"></div>
+  <span class="sec-slide">슬라이드 6</span>
+</div>
+<div class="quiz-wrap">
+
+<!-- Q07 기본 -->
+<div class="quiz-card" id="qc7">
+  <div class="quiz-head" onclick="tog(7)">
+    <span class="quiz-num-badge">Q07</span>
+    <div class="quiz-inner">
+      <div class="quiz-meta">
+        <span class="tag-base">[기본]</span>
+        <span class="tag-diff">슬라이드 6</span>
+        <span class="stars">⭐</span>
+      </div>
+      <div class="quiz-q">
+        배치 경사하강법(Batch GD), 확률적 경사하강법(SGD), 미니배치 경사하강법(Mini-batch GD)의 차이를 서술하고, 딥러닝에서 미니배치가 표준으로 채택되는 이유를 설명하라.
+      </div>
+    </div>
+    <span class="toggle-icon">▼</span>
+  </div>
+  <div class="quiz-ans">
+    <div class="ans-header"><span class="ans-header-label">모범 답안</span></div>
+    <div class="ans-body">
+      <strong>파라미터 업데이트 규칙:</strong>
+      <div class="formula">
+        θ ← θ − α · ∇θJ(θ)   <span class="cm">α: 학습률</span><br>
+        선형 회귀 MSE 그래디언트: ∇θJ = (2/N) Xᵀ(Xθ − y)
+      </div>
+      <strong>세 방식 비교:</strong><br><br>
+      <em>배치 경사하강법(Batch GD)</em>: 매 스텝에 전체 N개 데이터를 사용해 그래디언트를 계산한다. 정확한 그래디언트를 사용하므로 안정적으로 수렴하지만, 대규모 데이터에서 스텝당 연산이 매우 비싸 느리다.<br><br>
+      <em>확률적 경사하강법(SGD)</em>: 매 스텝에 1개 샘플만 사용한다. 업데이트가 빠르지만 그래디언트 추정의 분산이 커서 수렴 경로가 불안정하다. 반면 이 노이즈가 얕은 지역 최솟값에서 탈출하는 데 도움이 되기도 한다.<br><br>
+      <em>미니배치 경사하강법(Mini-batch GD)</em>: 매 스텝에 B개(B=32~256)의 샘플을 사용한다. 배치와 SGD의 절충안으로, GPU의 병렬 행렬 연산을 효율적으로 활용하면서 그래디언트 분산도 충분히 낮다.
+      <div class="formula">
+        B=1 (SGD) : 빠름, 불안정, 지역최솟값 탈출 유리<br>
+        B=32~256  : GPU 효율 + 안정적 수렴  ← <span class="hl">딥러닝 표준 ★</span><br>
+        B=N (Batch): 안정적, 대규모 데이터에 비효율
+      </div>
+    </div>
+    <div class="check-row">
+      <button class="chk-btn chk-ok" onclick="mark(7,true,this)">✅ 맞음</button>
+      <button class="chk-btn chk-no" onclick="mark(7,false,this)">❌ 틀림</button>
+    </div>
+  </div>
+</div>
+
+<!-- Q08 응용 -->
+<div class="quiz-card" id="qc8">
+  <div class="quiz-head" onclick="tog(8)">
+    <span class="quiz-num-badge">Q08</span>
+    <div class="quiz-inner">
+      <div class="quiz-meta">
+        <span class="tag-applied">[응용]</span>
+        <span class="tag-type">수치 변형</span>
+        <span class="tag-diff">슬라이드 6</span>
+        <span class="stars">⭐⭐</span>
+      </div>
+      <div class="quiz-q">
+        학습률 α가 너무 크거나 너무 작을 때 각각 어떤 문제가 발생하는지 손실 곡선의 변화와 연결하여 서술하라.
+        <span class="hint">α가 매우 클 때(예: α=10)와 매우 작을 때(예: α=0.00001)의 θ 업데이트 양상을 비교하고, 적응적 최적화 기법(Adam, RMSProp)이 이 문제를 어떻게 완화하는지도 포함하라.</span>
+      </div>
+    </div>
+    <span class="toggle-icon">▼</span>
+  </div>
+  <div class="quiz-ans">
+    <div class="ans-header"><span class="ans-header-label">모범 답안</span></div>
+    <div class="ans-body">
+      <strong>α가 너무 클 때 — 발산(Divergence):</strong><br>
+      파라미터 업데이트 θ ← θ − α·∇J에서 α가 크면 한 스텝에 θ가 최솟값을 훌쩍 넘어간다. 손실 곡선에서 J(θ)가 감소하지 않고 오히려 진동하거나 지속적으로 증가하는 발산 현상이 나타난다. 극단적인 경우 J(θ) → ∞로 학습이 완전히 실패한다.
+      <div class="formula">
+        α 너무 큼: θ가 최솟값 주변에서 진동 → J(θ) 발산<br>
+        α 너무 작음: 스텝이 미세 → J(θ) 매우 천천히 감소 → 수렴까지 엄청난 반복
+      </div>
+      <strong>α가 너무 작을 때 — 수렴 지연:</strong><br>
+      스텝이 너무 작아 최솟값에 도달하는 데 매우 많은 반복이 필요하다. 손실 곡선이 거의 평평하게 보일 만큼 느리게 감소한다. 실용적으로 학습이 완료되기 전에 연산 자원이 소진된다.<br><br>
+      <strong>적응적 최적화 기법의 역할:</strong><br>
+      Adam, RMSProp 같은 기법은 각 파라미터마다 <em>과거 그래디언트의 크기에 따라 학습률을 자동 조정</em>한다. 그래디언트가 큰 방향에서는 학습률을 줄이고, 작은 방향에서는 늘린다. 이로 인해 고정 α보다 훨씬 넓은 범위의 초기 학습률에서도 안정적으로 수렴한다.
+      <div class="key-point">
+        <strong>실무 팁:</strong> 학습률 스케줄링(warm-up, cosine annealing 등)으로 초기에는 크게, 후반에는 작게 α를 조정하는 것이 일반적이다.
+      </div>
+    </div>
+    <div class="variation-box">
+      <div class="variation-title">🔀 응용 포인트</div>
+      <p>강의의 "너무 크면 발산, 너무 작으면 느림"을 단순 언급한 수준에서, <strong>구체적인 손실 곡선 변화 양상과 적응적 최적화 기법까지 연결</strong>하여 심화한 문제다.</p>
+    </div>
+    <div class="check-row">
+      <button class="chk-btn chk-ok" onclick="mark(8,true,this)">✅ 맞음</button>
+      <button class="chk-btn chk-no" onclick="mark(8,false,this)">❌ 틀림</button>
+    </div>
+  </div>
+</div>
+
+</div>
+
+
+<!-- ════════════════════════════════
+     섹션 01d — 다항 회귀 & 과적합
+════════════════════════════════ -->
+<div class="sec-header">
+  <span class="sec-num cyan">01d</span>
+  <span class="sec-title">다항 회귀 &amp; 과적합</span>
+  <div class="sec-line"></div>
+  <span class="sec-slide">슬라이드 7</span>
+</div>
+<div class="quiz-wrap">
+
+<!-- Q09 기본 -->
+<div class="quiz-card" id="qc9">
+  <div class="quiz-head" onclick="tog(9)">
+    <span class="quiz-num-badge">Q09</span>
+    <div class="quiz-inner">
+      <div class="quiz-meta">
+        <span class="tag-base">[기본]</span>
+        <span class="tag-diff">슬라이드 7</span>
+        <span class="stars">⭐</span>
+      </div>
+      <div class="quiz-q">
+        다항 회귀에서 모델 차수가 너무 낮을 때(Underfitting)와 너무 높을 때(Overfitting)의 특징을 Bias-Variance Tradeoff 관점에서 서술하라.
+      </div>
+    </div>
+    <span class="toggle-icon">▼</span>
+  </div>
+  <div class="quiz-ans">
+    <div class="ans-header"><span class="ans-header-label">모범 답안</span></div>
+    <div class="ans-body">
+      <strong>다항 특징 변환:</strong>
+      <div class="formula">
+        원래 특징 x → [1, x, x², x³, …, xᵐ]  으로 확장 후 선형 회귀 적용
+      </div>
+      <strong>Underfitting (1차, High Bias):</strong><br>
+      모델이 너무 단순하여 데이터의 실제 패턴을 표현하지 못한다. 훈련 오차와 테스트 오차 모두 높다. Bias가 높다는 것은 <em>모델의 가정 자체가 틀려 있어(잘못된 함수 형태)</em> 어떤 데이터에 학습시켜도 체계적인 오차가 발생함을 의미한다.<br><br>
+      <strong>Overfitting (고차, High Variance):</strong><br>
+      모델이 너무 복잡하여 훈련 데이터의 노이즈까지 학습한다. 훈련 오차는 매우 낮지만 테스트 오차는 높다. Variance가 높다는 것은 <em>훈련 데이터가 조금만 바뀌어도 모델이 크게 달라질 만큼</em> 데이터에 과도하게 의존함을 의미한다.<br><br>
+      <strong>Good Fit (적절한 차수):</strong><br>
+      훈련 오차와 테스트 오차가 모두 낮으면서 균형 잡힌 상태. Bias와 Variance 모두 적절히 낮다.
+      <div class="formula">
+        Underfitting = High Bias   <span class="cm">(모델 너무 단순)</span><br>
+        Overfitting  = High Variance <span class="cm">(모델 너무 복잡, 노이즈 학습)</span><br>
+        Good Fit     = Bias-Variance 균형
+      </div>
+    </div>
+    <div class="check-row">
+      <button class="chk-btn chk-ok" onclick="mark(9,true,this)">✅ 맞음</button>
+      <button class="chk-btn chk-no" onclick="mark(9,false,this)">❌ 틀림</button>
+    </div>
+  </div>
+</div>
+
+<!-- Q10 응용 -->
+<div class="quiz-card" id="qc10">
+  <div class="quiz-head" onclick="tog(10)">
+    <span class="quiz-num-badge">Q10</span>
+    <div class="quiz-inner">
+      <div class="quiz-meta">
+        <span class="tag-applied">[응용]</span>
+        <span class="tag-type">조건 변형</span>
+        <span class="tag-diff">슬라이드 7·15</span>
+        <span class="stars">⭐⭐</span>
+      </div>
+      <div class="quiz-q">
+        다항 회귀에서 최적 차수를 선택하기 위해 교차 검증(Cross-Validation)을 사용하는 이유와, 정규화(Regularization)로 계수를 제한하는 원리를 연결하여 서술하라.
+        <span class="hint">교차 검증이 훈련 데이터만으로 모델 복잡도를 평가하는 문제를 어떻게 해결하는지, 정규화가 Overfitting과 어떻게 연결되는지 함께 설명하라.</span>
+      </div>
+    </div>
+    <span class="toggle-icon">▼</span>
+  </div>
+  <div class="quiz-ans">
+    <div class="ans-header"><span class="ans-header-label">모범 답안</span></div>
+    <div class="ans-body">
+      <strong>교차 검증의 필요성:</strong><br>
+      훈련 데이터로만 차수를 평가하면 항상 고차 모델이 선택된다(훈련 오차는 차수가 높을수록 낮아지기 때문). 교차 검증은 데이터를 여러 폴드(fold)로 나누어 일부를 <em>검증 세트(validation set)</em>로 활용함으로써, 훈련 데이터에 보이지 않았던 데이터에 대한 성능을 추정한다. 차수가 너무 낮으면 검증 오차도 높고, 너무 높으면 훈련에는 강하지만 검증에서 오차가 올라가므로 <em>검증 오차가 가장 낮은 차수를 최적으로 선택</em>한다.<br><br>
+      <strong>정규화로 계수 제한:</strong><br>
+      고차 다항 회귀에서 Overfitting이 발생하는 이유 중 하나는 계수 θ가 매우 큰 값을 가지며 데이터의 노이즈에 맞게 급격하게 변동하기 때문이다. 정규화는 손실 함수에 패널티 항을 추가하여 θ가 커지는 것을 억제한다.
+      <div class="formula">
+        L2 (Ridge): J_reg = J + λ||θ||²  <span class="cm">→ θ를 0 방향으로 축소</span><br>
+        L1 (Lasso): J_reg = J + λ||θ||₁ <span class="cm">→ 일부 θ를 정확히 0으로 만듦</span>
+      </div>
+      교차 검증이 <em>모델 복잡도(차수)를 외부에서 제어</em>하는 방법이라면, 정규화는 <em>손실 함수 내부에서 파라미터 크기를 직접 제한</em>하는 방법이다. 두 방법을 함께 사용하면 Overfitting을 효과적으로 방지할 수 있다.
+    </div>
+    <div class="variation-box">
+      <div class="variation-title">🔀 응용 포인트</div>
+      <p>강의에서 교차 검증과 정규화를 별도 해결책으로 제시했다면, 이 문제는 <strong>두 방법의 역할 차이(외부 제어 vs 내부 제한)를 대조하며 연결</strong>하도록 심화했다.</p>
+    </div>
+    <div class="check-row">
+      <button class="chk-btn chk-ok" onclick="mark(10,true,this)">✅ 맞음</button>
+      <button class="chk-btn chk-no" onclick="mark(10,false,this)">❌ 틀림</button>
+    </div>
+  </div>
+</div>
+
+</div>
+
+
+<!-- ════════════════════════════════
+     섹션 02 — 이진 분류 & MSE 부적합
+════════════════════════════════ -->
+<div class="sec-header">
+  <span class="sec-num orange">02</span>
+  <span class="sec-title">이진 분류 &amp; MSE 부적합 이유</span>
+  <div class="sec-line"></div>
+  <span class="sec-slide">슬라이드 9</span>
+</div>
+<div class="quiz-wrap">
+
+<!-- Q11 기본 -->
+<div class="quiz-card" id="qc11">
+  <div class="quiz-head" onclick="tog(11)">
+    <span class="quiz-num-badge">Q11</span>
+    <div class="quiz-inner">
+      <div class="quiz-meta">
+        <span class="tag-base">[기본]</span>
+        <span class="tag-diff">슬라이드 9</span>
+        <span class="stars">⭐</span>
+      </div>
+      <div class="quiz-q">
+        이진 분류 문제에서 MSE 손실 함수를 사용하면 안 되는 이유를 세 가지로 서술하라.
+      </div>
+    </div>
+    <span class="toggle-icon">▼</span>
+  </div>
+  <div class="quiz-ans">
+    <div class="ans-header"><span class="ans-header-label">모범 답안</span></div>
+    <div class="ans-body">
+      <strong>이유 ① — 출력 범위 문제:</strong><br>
+      선형 회귀는 ŷ ∈ ℝ로 임의의 실수를 출력한다. 이진 분류에서는 출력을 <em>P(y=1|x) ∈ [0,1]</em>의 확률로 해석해야 하는데, 선형 모델의 ŷ는 0보다 작거나 1보다 커질 수 있어 확률로 해석이 불가능하다.<br><br>
+      <strong>이유 ② — 이상치에 의한 결정 경계 왜곡:</strong><br>
+      MSE는 큰 오차를 제곱으로 과중 처벌한다. 이상치(outlier) 하나가 추가되면 그 오차의 제곱이 손실을 지배하게 되어 <em>결정 경계가 이상치 방향으로 크게 이동</em>한다. 분류에서는 이상치가 결정 경계에 미치는 영향이 회귀보다 훨씬 민감하다.<br><br>
+      <strong>이유 ③ — 오차 분포 가정 불일치:</strong><br>
+      MSE의 최소화는 오차 분포가 <em>Gaussian(정규분포)</em>임을 가정한 MLE와 동치다. 그러나 이진 레이블 {0,1}은 Bernoulli 분포를 따르므로 Gaussian 가정 자체가 부적합하다. 올바른 확률 모델은 Bernoulli 분포이고, 이에 맞는 손실이 Cross-Entropy다.
+      <div class="formula">
+        MSE → Gaussian MLE 가정  <span class="cm">← 이진 레이블에 부적합</span><br>
+        Cross-Entropy → Bernoulli MLE  <span class="cm">← 이진 분류에 올바른 선택</span>
+      </div>
+    </div>
+    <div class="check-row">
+      <button class="chk-btn chk-ok" onclick="mark(11,true,this)">✅ 맞음</button>
+      <button class="chk-btn chk-no" onclick="mark(11,false,this)">❌ 틀림</button>
+    </div>
+  </div>
+</div>
+
+<!-- Q12 응용 -->
+<div class="quiz-card" id="qc12">
+  <div class="quiz-head" onclick="tog(12)">
+    <span class="quiz-num-badge">Q12</span>
+    <div class="quiz-inner">
+      <div class="quiz-meta">
+        <span class="tag-applied">[응용]</span>
+        <span class="tag-type">역방향 문제</span>
+        <span class="tag-diff">슬라이드 9</span>
+        <span class="stars">⭐⭐⭐</span>
+      </div>
+      <div class="quiz-q">
+        아래 상황에서 MSE를 이진 분류에 사용했을 때 결정 경계가 어떻게 왜곡되는지, MSE의 제곱 패널티 특성과 연결하여 서술하라.
+        <span class="sub-items">
+          데이터: y=0인 클래스가 x=1~3 구간에, y=1인 클래스가 x=5~7 구간에 분포.<br>
+          이 상태에서 결정 경계는 약 x=4에 형성된다.<br>
+          이제 x=20, y=1인 극단적 이상치 하나가 추가되었다.
+        </span>
+      </div>
+    </div>
+    <span class="toggle-icon">▼</span>
+  </div>
+  <div class="quiz-ans">
+    <div class="ans-header"><span class="ans-header-label">모범 답안</span></div>
+    <div class="ans-body">
+      <strong>이상치 추가 전 상황:</strong><br>
+      y=0 클래스(x=1~3)와 y=1 클래스(x=5~7)가 깔끔하게 분리되어 있어 선형 회귀 직선이 약 x=4 부근에서 ŷ=0.5를 지나며 결정 경계를 형성한다.<br><br>
+      <strong>이상치 추가 후 왜곡 메커니즘:</strong><br>
+      x=20, y=1인 이상치를 추가하면, MSE는 이 점의 오차를 <em>제곱으로 처벌</em>한다. 회귀 직선이 이 극단적인 점에 맞춰 기울기가 커지고, 직선 전체가 오른쪽으로 끌려가게 된다. 그 결과 ŷ=0.5를 지나는 지점(결정 경계)이 x=4보다 훨씬 왼쪽으로 이동하여, 원래 y=1이어야 할 x=5~7 구간의 일부 포인트가 y=0으로 잘못 분류될 수 있다.
+      <div class="formula">
+        이상치(x=20, y=1)의 MSE 기여 ∝ (ŷ − 1)²  <span class="cm">← 제곱으로 손실 지배</span><br>
+        → 회귀 직선이 이상치 방향으로 회전<br>
+        → 결정 경계(ŷ=0.5 지점)가 왼쪽으로 이동<br>
+        → 정상 데이터 오분류 발생
+      </div>
+      <strong>Cross-Entropy + Sigmoid를 쓰면?</strong><br>
+      Sigmoid는 출력을 [0,1]로 압축하므로 이상치가 있어도 ŷ가 [0,1]을 벗어나지 않는다. 또한 Cross-Entropy는 확률적 해석에 맞게 설계되어 이상치 하나가 결정 경계를 이 정도로 왜곡하지 않는다.
+    </div>
+    <div class="variation-box">
+      <div class="variation-title">🔀 응용 포인트</div>
+      <p>강의가 "이상치가 결정 경계를 왜곡시킨다"고 서술했다면, 이 문제는 <strong>구체적인 데이터 배치와 이상치 시나리오를 주고 왜곡 메커니즘을 단계적으로 추적</strong>하도록 역방향으로 심화했다.</p>
+    </div>
+    <div class="check-row">
+      <button class="chk-btn chk-ok" onclick="mark(12,true,this)">✅ 맞음</button>
+      <button class="chk-btn chk-no" onclick="mark(12,false,this)">❌ 틀림</button>
+    </div>
+  </div>
+</div>
+
+</div>
+
+
+<!-- ════════════════════════════════
+     섹션 02a — Sigmoid & 로지스틱 회귀
+════════════════════════════════ -->
+<div class="sec-header">
+  <span class="sec-num red">02a</span>
+  <span class="sec-title">Sigmoid &amp; 로지스틱 회귀</span>
+  <div class="sec-line"></div>
+  <span class="sec-slide">슬라이드 10</span>
+</div>
+<div class="quiz-wrap">
+
+<!-- Q13 기본 -->
+<div class="quiz-card" id="qc13">
+  <div class="quiz-head" onclick="tog(13)">
+    <span class="quiz-num-badge">Q13</span>
+    <div class="quiz-inner">
+      <div class="quiz-meta">
+        <span class="tag-base">[기본]</span>
+        <span class="tag-diff">슬라이드 10</span>
+        <span class="stars">⭐</span>
+      </div>
+      <div class="quiz-q">
+        Sigmoid 함수의 정의, 주요 특성(경계값 포함), 미분 공식을 서술하고, 로지스틱 회귀 모델에서 Sigmoid가 필요한 이유를 설명하라.
+      </div>
+    </div>
+    <span class="toggle-icon">▼</span>
+  </div>
+  <div class="quiz-ans">
+    <div class="ans-header"><span class="ans-header-label">모범 답안</span></div>
+    <div class="ans-body">
+      <strong>Sigmoid 함수 정의:</strong>
+      <div class="formula">
+        σ(z) = 1 / (1 + e⁻ᶻ)   <span class="cm">출력 범위: (0, 1)</span>
+      </div>
+      <strong>주요 특성:</strong>
+      <div class="formula">
+        σ(0) = 0.5            <span class="cm">← z=0에서 중립 (0.5)</span><br>
+        z → +∞: σ(z) → 1     <span class="cm">← C₁(양성 클래스)에 가까워짐</span><br>
+        z → −∞: σ(z) → 0     <span class="cm">← C₀(음성 클래스)에 가까워짐</span><br>
+        z=−2: σ ≈ 0.12  │  z=2: σ ≈ 0.88
+      </div>
+      <strong>미분 공식 (역전파 핵심):</strong>
+      <div class="formula">
+        σ'(z) = σ(z) · (1 − σ(z))
+      </div>
+      이미 계산된 σ(z) 값만으로 미분을 표현할 수 있어 역전파에서 추가 계산이 최소화된다.<br><br>
+      <strong>로지스틱 회귀에서 Sigmoid가 필요한 이유:</strong><br>
+      선형 모델 θᵀx는 임의의 실수를 출력하는데, 이진 분류에서는 <em>P(y=1|x) ∈ [0,1]</em>로 해석해야 한다. Sigmoid는 임의의 실수 z를 [0,1] 범위로 압축하여 확률로 해석 가능하게 만든다.
+      <div class="formula">
+        로지스틱 회귀: P(y=1|x; θ) = σ(θᵀx) = 1/(1+exp(−θᵀx))
+      </div>
+    </div>
+    <div class="check-row">
+      <button class="chk-btn chk-ok" onclick="mark(13,true,this)">✅ 맞음</button>
+      <button class="chk-btn chk-no" onclick="mark(13,false,this)">❌ 틀림</button>
+    </div>
+  </div>
+</div>
+
+<!-- Q14 응용 -->
+<div class="quiz-card" id="qc14">
+  <div class="quiz-head" onclick="tog(14)">
+    <span class="quiz-num-badge">Q14</span>
+    <div class="quiz-inner">
+      <div class="quiz-meta">
+        <span class="tag-applied">[응용]</span>
+        <span class="tag-type">개념 결합</span>
+        <span class="tag-diff">슬라이드 10·12</span>
+        <span class="stars">⭐⭐⭐</span>
+      </div>
+      <div class="quiz-q">
+        Sigmoid의 미분 공식 σ'(z) = σ(z)(1−σ(z))가 로지스틱 회귀의 역전파(Chain Rule)에서 어떻게 활용되는지 서술하라.
+        <span class="hint">Cross-Entropy 손실 J에 대한 ∂J/∂θ를 Chain Rule 3단계(∂J/∂z, ∂z/∂θ)로 분해하고, 시그모이드 미분이 어느 단계에서 사용되는지 명시하라.</span>
+      </div>
+    </div>
+    <span class="toggle-icon">▼</span>
+  </div>
+  <div class="quiz-ans">
+    <div class="ans-header"><span class="ans-header-label">모범 답안</span></div>
+    <div class="ans-body">
+      <strong>Chain Rule 3단계 분해:</strong>
+      <div class="formula">
+        손실: J = −(1/N) Σ [y·log(σ(z)) + (1−y)·log(1−σ(z))]<br>
+        단, z = θᵀx<br><br>
+        Step 1 (∂J/∂z — 시그모이드 미분 적용 단계):<br>
+        ∂L/∂z = ∂L/∂σ · ∂σ/∂z<br>
+              = [−y/σ + (1−y)/(1−σ)] · σ(1−σ)<br>
+              = <span class="hl">σ(z) − y</span>   ← 시그모이드 미분이 깔끔하게 약분됨<br><br>
+        Step 2 (∂z/∂θ):<br>
+        z = θᵀx  →  ∂z/∂θ = x<br><br>
+        Step 3 (∂J/∂θ — Chain Rule 합성):<br>
+        ∂J/∂θ = ∂J/∂z · ∂z/∂θ = (σ(z)−y) · x<br>
+              = <span class="hl">(1/N) Xᵀ(ŷ − y)</span>  ← MSE 그래디언트와 형태 동일!
+      </div>
+      <strong>시그모이드 미분의 역할:</strong><br>
+      Step 1에서 ∂L/∂σ와 ∂σ/∂z를 곱하는 과정에서 σ'(z) = σ(z)(1−σ(z))가 사용된다. 이 성질 덕분에 복잡해 보이는 [−y/σ + (1−y)/(1−σ)]·σ(1−σ)가 <em>σ(z)−y로 극도로 단순화</em>된다. 이것이 Cross-Entropy + Sigmoid 조합이 실용적인 핵심 이유다. 미분 공식이 이미 계산된 σ(z) 값만 사용하므로 역전파 계산 비용도 낮다.
+      <div class="key-point">
+        <strong>핵심 결과:</strong> ∂J/∂θ = (1/N)Xᵀ(ŷ−y)는 MSE 그래디언트와 수학적으로 동일한 형태다. 이는 두 문제(회귀/분류)의 경사하강법 구현이 같은 코드 구조를 공유할 수 있음을 의미한다.
+      </div>
+    </div>
+    <div class="variation-box">
+      <div class="variation-title">🔀 응용 포인트</div>
+      <p>강의에서 미분 공식 σ'=σ(1−σ)를 결과로만 제시했다면, 이 문제는 <strong>Chain Rule 3단계를 직접 전개하여 시그모이드 미분이 어느 순간 약분되는지</strong> 추적하도록 심화했다.</p>
+    </div>
+    <div class="check-row">
+      <button class="chk-btn chk-ok" onclick="mark(14,true,this)">✅ 맞음</button>
+      <button class="chk-btn chk-no" onclick="mark(14,false,this)">❌ 틀림</button>
+    </div>
+  </div>
+</div>
+
+</div>
+
+
+<!-- ════════════════════════════════
+     섹션 03 — Cross-Entropy & 경사하강법
+════════════════════════════════ -->
+<div class="sec-header">
+  <span class="sec-num blue">03</span>
+  <span class="sec-title">Cross-Entropy 손실 &amp; 경사하강법</span>
+  <div class="sec-line"></div>
+  <span class="sec-slide">슬라이드 11·12</span>
+</div>
+<div class="quiz-wrap">
+
+<!-- Q15 기본 -->
+<div class="quiz-card" id="qc15">
+  <div class="quiz-head" onclick="tog(15)">
+    <span class="quiz-num-badge">Q15</span>
+    <div class="quiz-inner">
+      <div class="quiz-meta">
+        <span class="tag-base">[기본]</span>
+        <span class="tag-diff">슬라이드 11</span>
+        <span class="stars">⭐⭐</span>
+      </div>
+      <div class="quiz-q">
+        Binary Cross-Entropy 손실의 y=1인 경우와 y=0인 경우를 각각 해석하고, Cross-Entropy 최소화가 Bernoulli 분포에 대한 MLE와 동치임을 직관적으로 서술하라.
+      </div>
+    </div>
+    <span class="toggle-icon">▼</span>
+  </div>
+  <div class="quiz-ans">
+    <div class="ans-header"><span class="ans-header-label">모범 답안</span></div>
+    <div class="ans-body">
+      <strong>Binary Cross-Entropy 정의:</strong>
+      <div class="formula">
+        L(ŷ, y) = −[y·log(ŷ) + (1−y)·log(1−ŷ)]<br>
+        <span class="cm">단, ŷ = σ(θᵀx) = P(y=1|x)</span>
+      </div>
+      <strong>y=1일 때 해석:</strong><br>
+      L = −log(ŷ). ŷ이 1에 가까울수록 L→0(손실 최소), ŷ이 0에 가까울수록 L→∞(손실 최대). 즉 <em>실제 클래스가 1인데 예측을 0에 가깝게 하면 손실이 무한히 커진다</em>. 이는 log 함수의 특성으로, 확신 있는 틀린 예측에 매우 큰 패널티를 부여한다.<br><br>
+      <strong>y=0일 때 해석:</strong><br>
+      L = −log(1−ŷ). ŷ이 0에 가까울수록 L→0, ŷ이 1에 가까울수록 L→∞. 실제 클래스가 0인데 1로 예측할수록 손실이 무한히 커진다.<br><br>
+      <strong>MLE와의 동치 관계:</strong><br>
+      Bernoulli 분포의 우도는 P(y|x) = ŷʸ(1−ŷ)¹⁻ʸ다. 이를 N개 샘플에 대해 최대화(MLE)하면 로그 우도를 최대화하는 것과 같다.
+      <div class="formula">
+        ℓ(θ) = Σ [y·log(ŷ) + (1−y)·log(1−ŷ)]<br>
+        MLE: max ℓ(θ) = min −ℓ(θ) = min J(θ)  <span class="hl">← Cross-Entropy 최소화와 동치</span>
+      </div>
+      즉 Cross-Entropy를 최소화하는 것은 데이터를 가장 잘 설명하는 Bernoulli 확률 모델 파라미터를 찾는 MLE와 수학적으로 완전히 같다.
+    </div>
+    <div class="check-row">
+      <button class="chk-btn chk-ok" onclick="mark(15,true,this)">✅ 맞음</button>
+      <button class="chk-btn chk-no" onclick="mark(15,false,this)">❌ 틀림</button>
+    </div>
+  </div>
+</div>
+
+<!-- Q16 응용 -->
+<div class="quiz-card" id="qc16">
+  <div class="quiz-head" onclick="tog(16)">
+    <span class="quiz-num-badge">Q16</span>
+    <div class="quiz-inner">
+      <div class="quiz-meta">
+        <span class="tag-applied">[응용]</span>
+        <span class="tag-type">수치 변형</span>
+        <span class="tag-diff">슬라이드 12</span>
+        <span class="stars">⭐⭐⭐</span>
+      </div>
+      <div class="quiz-q">
+        로지스틱 회귀의 그래디언트 ∂J/∂θ = (1/N)Xᵀ(ŷ−y)가 MSE 그래디언트와 수학적으로 같은 형태를 가지는 이유를 Chain Rule을 이용해 서술하라.
+        <span class="hint">MSE의 그래디언트 ∇θJ = (2/N)Xᵀ(Xθ−y)와 비교하여, 손실 함수와 출력 함수가 다름에도 형태가 같아지는 이유를 단계별로 추적하라.</span>
+      </div>
+    </div>
+    <span class="toggle-icon">▼</span>
+  </div>
+  <div class="quiz-ans">
+    <div class="ans-header"><span class="ans-header-label">모범 답안</span></div>
+    <div class="ans-body">
+      <strong>MSE 그래디언트 (비교 기준):</strong>
+      <div class="formula">
+        MSE: J = (1/N)||Xθ−y||²<br>
+        ∇θJ = (2/N) Xᵀ(Xθ−y) = (2/N) Xᵀ(ŷ−y)  <span class="cm">(ŷ=Xθ)</span>
+      </div>
+      <strong>Cross-Entropy 그래디언트 도출:</strong>
+      <div class="formula">
+        BCE: J = −(1/N) Σ [y·log(σ(z)) + (1−y)·log(1−σ(z))]  (z = θᵀx)<br><br>
+        Step A: ∂J/∂σ = (1/N)[−y/σ + (1−y)/(1−σ)]<br>
+        Step B: ∂σ/∂z  = σ(z)·(1−σ(z))  ← Sigmoid 미분<br><br>
+        Step C: ∂J/∂z = Step A × Step B<br>
+               = [−y/σ + (1−y)/(1−σ)] · σ(1−σ)<br>
+               = <span class="hl">σ(z) − y = ŷ − y</span>  ← σ(1−σ)가 약분됨<br><br>
+        Step D: ∂J/∂θ = ∂J/∂z · ∂z/∂θ = (ŷ−y)·x<br>
+               → 전체: <span class="hl">(1/N) Xᵀ(ŷ−y)</span>
+      </div>
+      <strong>형태가 같아지는 핵심 이유:</strong><br>
+      Cross-Entropy와 Sigmoid를 <em>짝으로 사용</em>하면 미분 과정에서 σ(z)(1−σ(z)) 항이 분자·분모에서 정확히 약분된다. 이 약분이 일어나는 것은 Cross-Entropy가 Bernoulli MLE의 로그 우도로서 <em>Sigmoid 함수의 역수인 logit 공간에서 선형</em>이기 때문이다. 결과적으로 두 모델의 그래디언트가 모두 "예측 오차 × 입력"의 형태로 귀결되며, 경사하강법 구현 코드를 거의 동일하게 재사용할 수 있다.
+    </div>
+    <div class="variation-box">
+      <div class="variation-title">🔀 응용 포인트</div>
+      <p>강의가 "MSE Grad와 형태 동일"이라고 결론만 제시했다면, 이 문제는 <strong>왜 다른 손실+출력 함수가 같은 그래디언트 형태로 귀결되는지 Step별로 추적</strong>하도록 심화했다.</p>
+    </div>
+    <div class="check-row">
+      <button class="chk-btn chk-ok" onclick="mark(16,true,this)">✅ 맞음</button>
+      <button class="chk-btn chk-no" onclick="mark(16,false,this)">❌ 틀림</button>
+    </div>
+  </div>
+</div>
+
+</div>
+
+
+<!-- ════════════════════════════════
+     섹션 03a — 결정 경계
+════════════════════════════════ -->
+<div class="sec-header">
+  <span class="sec-num green">03a</span>
+  <span class="sec-title">결정 경계 (Decision Boundary)</span>
+  <div class="sec-line"></div>
+  <span class="sec-slide">슬라이드 13</span>
+</div>
+<div class="quiz-wrap">
+
+<!-- Q17 기본 -->
+<div class="quiz-card" id="qc17">
+  <div class="quiz-head" onclick="tog(17)">
+    <span class="quiz-num-badge">Q17</span>
+    <div class="quiz-inner">
+      <div class="quiz-meta">
+        <span class="tag-base">[기본]</span>
+        <span class="tag-diff">슬라이드 13</span>
+        <span class="stars">⭐⭐</span>
+      </div>
+      <div class="quiz-q">
+        로지스틱 회귀의 결정 경계 조건(θᵀx = 0)이 어떻게 유도되는지 서술하고, θ=[−6, 1, 1]인 경우 2차원 결정 경계를 직선 방정식으로 나타내어 각 영역을 해석하라.
+      </div>
+    </div>
+    <span class="toggle-icon">▼</span>
+  </div>
+  <div class="quiz-ans">
+    <div class="ans-header"><span class="ans-header-label">모범 답안</span></div>
+    <div class="ans-body">
+      <strong>결정 경계 조건 유도:</strong><br>
+      결정 규칙은 P(y=1|x) = σ(θᵀx) ≥ 0.5이면 y=1, 그렇지 않으면 y=0이다. σ(z) = 0.5가 되는 조건은 z=0이므로:
+      <div class="formula">
+        σ(θᵀx) = 0.5  ⟺  θᵀx = 0<br>
+        → 2차원 입력: θ₀ + θ₁x₁ + θ₂x₂ = 0  ← 결정 경계 (직선)
+      </div>
+      <strong>θ=[−6, 1, 1] 예시 해석:</strong>
+      <div class="formula">
+        −6 + x₁ + x₂ = 0  →  x₁ + x₂ = 6  (결정 경계 직선)<br><br>
+        x₁ + x₂ > 6  →  θᵀx > 0  →  σ > 0.5  →  y = 1 영역<br>
+        x₁ + x₂ < 6  →  θᵀx < 0  →  σ < 0.5  →  y = 0 영역
+      </div>
+      즉 결정 경계는 x₁+x₂=6인 직선이며, 이 직선의 위쪽(합이 6 초과)이 양성 클래스, 아래쪽이 음성 클래스 영역이다. 로지스틱 회귀는 <em>선형 결정 경계</em>만 표현할 수 있으며, 비선형 경계가 필요하면 특징 변환이나 신경망을 사용해야 한다.
+    </div>
+    <div class="check-row">
+      <button class="chk-btn chk-ok" onclick="mark(17,true,this)">✅ 맞음</button>
+      <button class="chk-btn chk-no" onclick="mark(17,false,this)">❌ 틀림</button>
+    </div>
+  </div>
+</div>
+
+<!-- Q18 응용 -->
+<div class="quiz-card" id="qc18">
+  <div class="quiz-head" onclick="tog(18)">
+    <span class="quiz-num-badge">Q18</span>
+    <div class="quiz-inner">
+      <div class="quiz-meta">
+        <span class="tag-applied">[응용]</span>
+        <span class="tag-type">조건 변형</span>
+        <span class="tag-diff">슬라이드 13</span>
+        <span class="stars">⭐⭐⭐</span>
+      </div>
+      <div class="quiz-q">
+        로지스틱 회귀의 선형 결정 경계로는 분류할 수 없는 데이터 패턴의 예를 들고, 다항 특징 변환으로 비선형 결정 경계를 얻는 원리를 서술하라.
+        <span class="hint">z = θ₀ + θ₁x₁² + θ₂x₂² 형태가 어떤 결정 경계를 만드는지, 원래 특징 공간에서 보면 왜 비선형인지 설명하라.</span>
+      </div>
+    </div>
+    <span class="toggle-icon">▼</span>
+  </div>
+  <div class="quiz-ans">
+    <div class="ans-header"><span class="ans-header-label">모범 답안</span></div>
+    <div class="ans-body">
+      <strong>선형 결정 경계의 한계 — XOR 패턴:</strong><br>
+      예를 들어 (1,1), (0,0) → y=1이고, (1,0), (0,1) → y=0인 XOR 패턴은 직선 하나로 두 클래스를 분리하는 것이 불가능하다. 또 다른 예로 원점을 중심으로 한 원 내부가 y=1, 외부가 y=0인 경우도 직선으로 분리할 수 없다.<br><br>
+      <strong>다항 특징 변환으로 비선형 경계 획득:</strong><br>
+      원래 특징 (x₁, x₂)를 (x₁², x₂²)로 변환하면, 변환된 공간에서의 선형 결정 경계가 원래 공간에서는 비선형으로 나타난다.
+      <div class="formula">
+        z = θ₀ + θ₁x₁² + θ₂x₂² = 0<br>
+        →  θ₁x₁² + θ₂x₂² = −θ₀<br>
+        →  <span class="hl">원형(θ₁=θ₂ > 0), 타원형 결정 경계</span> in 원래 공간
+      </div>
+      변환된 특징 공간 φ(x) = [1, x₁², x₂²]에서는 여전히 <em>선형 분류기(θᵀφ(x)=0)</em>이지만, 원래 x 공간에서 보면 곡선 결정 경계다. 마찬가지로 z = θ₀ + θ₁x₁x₂ + … 같은 교차항을 포함하면 타원·쌍곡선 등 다양한 비선형 경계가 가능하다.<br><br>
+      <strong>선형 결정 경계의 근본적 한계:</strong><br>
+      아무리 θ를 조정해도 θᵀx=0은 항상 초평면(hyperplane)이므로, 원래 특징 공간에서 비선형으로 얽힌 데이터는 분리할 수 없다. 이 한계를 극복하는 근본적인 해법이 <em>신경망(비선형 활성화 함수로 특징을 변환)</em>이다.
+    </div>
+    <div class="variation-box">
+      <div class="variation-title">🔀 응용 포인트</div>
+      <p>강의가 비선형 결정 경계 예시를 나열했다면, 이 문제는 <strong>선형 경계가 왜 한계인지(XOR 예시)를 먼저 확인하고, 특징 변환이 원래 공간에서 왜 비선형 경계로 보이는지 원리를 추적</strong>하도록 심화했다.</p>
+    </div>
+    <div class="check-row">
+      <button class="chk-btn chk-ok" onclick="mark(18,true,this)">✅ 맞음</button>
+      <button class="chk-btn chk-no" onclick="mark(18,false,this)">❌ 틀림</button>
+    </div>
+  </div>
+</div>
+
+</div>
+
+
+<!-- ════════════════════════════════
+     섹션 04 — Softmax & 정규화
+════════════════════════════════ -->
+<div class="sec-header">
+  <span class="sec-num yellow">04</span>
+  <span class="sec-title">다중 클래스 확장 &amp; 정규화</span>
+  <div class="sec-line"></div>
+  <span class="sec-slide">슬라이드 14·15</span>
+</div>
+<div class="quiz-wrap">
+
+<!-- Q19 기본 -->
+<div class="quiz-card" id="qc19">
+  <div class="quiz-head" onclick="tog(19)">
+    <span class="quiz-num-badge">Q19</span>
+    <div class="quiz-inner">
+      <div class="quiz-meta">
+        <span class="tag-base">[기본]</span>
+        <span class="tag-diff">슬라이드 14</span>
+        <span class="stars">⭐⭐</span>
+      </div>
+      <div class="quiz-q">
+        Sigmoid와 Softmax 함수의 관계를 K=2인 경우를 이용해 서술하고, 다중 클래스 Cross-Entropy(Categorical CE) 손실 함수를 설명하라.
+      </div>
+    </div>
+    <span class="toggle-icon">▼</span>
+  </div>
+  <div class="quiz-ans">
+    <div class="ans-header"><span class="ans-header-label">모범 답안</span></div>
+    <div class="ans-body">
+      <strong>Softmax 함수 정의:</strong>
+      <div class="formula">
+        P(y=k|x; W) = exp(wₖᵀx) / Σⱼ exp(wⱼᵀx)<br>
+        <span class="cm">K개 클래스의 확률 합 = 1, 각 원소 ∈ (0,1)</span>
+      </div>
+      <strong>K=2일 때 Sigmoid와 동치:</strong><br>
+      K=2이면 클래스 0과 1에 대해 Softmax를 계산하면:
+      <div class="formula">
+        P(y=1|x) = exp(w₁ᵀx) / [exp(w₀ᵀx) + exp(w₁ᵀx)]<br>
+        분자·분모를 exp(w₀ᵀx)로 나누면:<br>
+        = 1 / [1 + exp(−(w₁−w₀)ᵀx)]<br>
+        = <span class="hl">σ((w₁−w₀)ᵀx)</span>  ← Sigmoid와 동치
+      </div>
+      즉 Softmax는 Sigmoid의 다중 클래스 일반화다.<br><br>
+      <strong>Categorical Cross-Entropy 손실:</strong>
+      <div class="formula">
+        J(W) = −(1/N) Σᵢ Σₖ yᵢₖ · log P(y=k|xᵢ; W)<br>
+        <span class="cm">yᵢₖ: one-hot 레이블 (정답 클래스만 1, 나머지 0)</span>
+      </div>
+      one-hot 레이블이므로 실제로는 정답 클래스 k*에 대한 −log P(y=k*|x)만 계산된다. 이는 Binary CE를 K개 클래스로 자연스럽게 확장한 것이며, Categorical 분포에 대한 MLE와 동치다.
+    </div>
+    <div class="check-row">
+      <button class="chk-btn chk-ok" onclick="mark(19,true,this)">✅ 맞음</button>
+      <button class="chk-btn chk-no" onclick="mark(19,false,this)">❌ 틀림</button>
+    </div>
+  </div>
+</div>
+
+<!-- Q20 응용 -->
+<div class="quiz-card" id="qc20">
+  <div class="quiz-head" onclick="tog(20)">
+    <span class="quiz-num-badge">Q20</span>
+    <div class="quiz-inner">
+      <div class="quiz-meta">
+        <span class="tag-applied">[응용]</span>
+        <span class="tag-type">개념 결합</span>
+        <span class="tag-diff">슬라이드 15</span>
+        <span class="stars">⭐⭐⭐</span>
+      </div>
+      <div class="quiz-q">
+        L1 정규화(Lasso)와 L2 정규화(Ridge)가 각각 Laplace Prior와 Gaussian Prior를 사용한 MAP 추정과 수학적으로 동치임을 직관적으로 서술하라.
+        <span class="hint">MAP 추정 = MLE + 사전 분포(Prior). L2 패널티 λ||θ||²가 Gaussian Prior의 로그값과 어떻게 연결되는지를 포함하라.</span>
+      </div>
+    </div>
+    <span class="toggle-icon">▼</span>
+  </div>
+  <div class="quiz-ans">
+    <div class="ans-header"><span class="ans-header-label">모범 답안</span></div>
+    <div class="ans-body">
+      <strong>MAP 추정의 구조:</strong><br>
+      MLE는 데이터 우도 P(D|θ)만 최대화한다. MAP(Maximum A Posteriori)는 베이즈 정리를 이용해 사전 분포 P(θ)도 함께 고려한다.
+      <div class="formula">
+        MAP: argmax P(θ|D) ∝ argmax [log P(D|θ) + log P(θ)]<br>
+             = argmin [−log P(D|θ) − log P(θ)]<br>
+             = argmin [손실 + 정규화 항]
+      </div>
+      <strong>L2 정규화 = Gaussian Prior MAP:</strong><br>
+      θ에 대한 사전 분포로 평균 0, 분산 1/(2λ)인 Gaussian P(θ) ∝ exp(−λ||θ||²)를 가정하면,
+      <div class="formula">
+        −log P(θ) = λ||θ||²  + const<br>
+        → MAP 목적함수: 손실 + <span class="hl">λ||θ||²</span>  ← L2 정규화 항과 동일
+      </div>
+      <strong>L1 정규화 = Laplace Prior MAP:</strong><br>
+      θ에 대한 사전 분포로 Laplace 분포 P(θ) ∝ exp(−λ||θ||₁)를 가정하면,
+      <div class="formula">
+        −log P(θ) = λ||θ||₁  + const<br>
+        → MAP 목적함수: 손실 + <span class="hl">λ||θ||₁</span>  ← L1 정규화 항과 동일
+      </div>
+      <strong>직관적 의미:</strong><br>
+      정규화는 단순히 "θ가 커지지 않게 막는 공학적 트릭"이 아니라, <em>"θ는 0 근처에 있을 것"이라는 사전 믿음(Prior)을 베이즈 추론으로 반영한 것</em>이다. Gaussian Prior는 θ가 0 근처에 부드럽게 집중되어 있어 L2(모든 특징을 조금씩 사용)가 되고, Laplace Prior는 0에서 더 뾰족하게 집중되어 있어 L1(일부 특징을 정확히 0으로)이 된다.
+    </div>
+    <div class="variation-box">
+      <div class="variation-title">🔀 응용 포인트</div>
+      <p>강의가 "L2=Gaussian Prior MAP, L1=Laplace Prior MAP"를 결론만 예고했다면, 이 문제는 <strong>MAP 추정의 수식 구조에서 −log P(θ)가 정규화 항으로 귀결되는 과정을 직접 추적</strong>하도록 개념을 결합했다.</p>
+    </div>
+    <div class="check-row">
+      <button class="chk-btn chk-ok" onclick="mark(20,true,this)">✅ 맞음</button>
+      <button class="chk-btn chk-no" onclick="mark(20,false,this)">❌ 틀림</button>
+    </div>
+  </div>
+</div>
+
+</div><!-- /quiz-wrap -->
+
+<div class="footer"></div>
+
+<script>
+const S = {};
+
+function tog(n) {
+  const c = document.getElementById('qc'+n);
+  c.classList.toggle('open');
+}
+
+function mark(n, ok, btn) {
+  if (S[n] === ok) {
+    delete S[n];
+    btn.classList.remove('on');
+  } else {
+    S[n] = ok;
+    const card = document.getElementById('qc'+n);
+    card.querySelectorAll('.chk-btn').forEach(b => b.classList.remove('on'));
+    btn.classList.add('on');
+  }
+  document.getElementById('cnt').textContent =
+    Object.values(S).filter(v => v).length;
+}
+
+function resetAll() {
+  Object.keys(S).forEach(k => delete S[k]);
+  document.querySelectorAll('.chk-btn').forEach(b => b.classList.remove('on'));
+  document.querySelectorAll('.quiz-card').forEach(c => c.classList.remove('open'));
+  document.getElementById('cnt').textContent = 0;
+}
+</script>
+</body>
+</html>
