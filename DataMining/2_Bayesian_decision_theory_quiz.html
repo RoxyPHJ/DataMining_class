@@ -1,0 +1,1221 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2. Bayesian Decision Theory — Quiz</title>
+<style>
+:root {
+  --bg: #0a0e1a;
+  --surface: #111827;
+  --surface2: #1a2236;
+  --surface3: #1e2d44;
+  --border: #2a3a55;
+  --accent: #38bdf8;
+  --accent2: #818cf8;
+  --accent3: #34d399;
+  --accent4: #fb923c;
+  --accent5: #f472b6;
+  --text: #e2e8f0;
+  --text-dim: #94a3b8;
+  --text-dimmer: #475569;
+  --shadow: 0 4px 24px rgba(0,0,0,0.5);
+  --correct: #34d399;
+  --wrong: #f87171;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', sans-serif;
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+/* ─── LAYOUT ─── */
+.layout { display: flex; min-height: 100vh; }
+.toc-sidebar {
+  width: 240px; min-width: 240px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  position: sticky; top: 0; height: 100vh;
+  overflow-y: auto; padding: 24px 0;
+  flex-shrink: 0;
+}
+.main-content { flex: 1; padding: 48px 52px; max-width: 860px; }
+
+/* ─── TOC ─── */
+.toc-title {
+  font-family: 'Impact','Arial Narrow',sans-serif;
+  font-size: 10px; letter-spacing: 0.15em;
+  color: var(--text-dimmer); text-transform: uppercase;
+  padding: 0 20px 14px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 10px;
+}
+.toc-type { padding: 10px 20px 4px; font-size: 10px; letter-spacing: 0.1em; color: var(--text-dimmer); text-transform: uppercase; }
+.toc-list { list-style: none; }
+.toc-item a {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 20px;
+  color: var(--text-dim); text-decoration: none; font-size: 12.5px;
+  border-left: 2px solid transparent;
+  transition: all 0.2s;
+}
+.toc-item a:hover { color: var(--accent); background: rgba(56,189,248,0.08); }
+.toc-item a.active { color: var(--accent); border-left-color: var(--accent); background: rgba(56,189,248,0.08); font-weight: 600; }
+.toc-num { font-family: 'Impact','Arial Narrow',sans-serif; font-size: 10px; color: var(--text-dimmer); min-width: 20px; }
+.toc-tag { font-size: 9px; padding: 1px 5px; border-radius: 3px; margin-left: auto; }
+.tag-app { background: rgba(251,146,60,0.15); color: var(--accent4); border: 1px solid rgba(251,146,60,0.3); }
+
+/* ─── HEADER ─── */
+.page-header { margin-bottom: 40px; }
+.course-label { font-family: 'Impact','Arial Narrow',sans-serif; font-size: 11px; letter-spacing: 0.18em; color: var(--accent); text-transform: uppercase; margin-bottom: 8px; }
+.page-title { font-family: 'Impact','Arial Narrow',sans-serif; font-size: 38px; line-height: 1.1; }
+.page-title span { color: var(--accent); }
+.header-divider { margin-top: 18px; height: 2px; background: linear-gradient(90deg, var(--accent) 0%, var(--accent2) 50%, transparent 100%); }
+
+/* ─── SCORE BOARD ─── */
+.scoreboard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px 24px;
+  margin-bottom: 36px;
+  display: flex; align-items: center; gap: 20px;
+  flex-wrap: wrap;
+}
+.score-info { font-size: 13px; color: var(--text-dim); }
+.score-val { font-family: 'Impact','Arial Narrow',sans-serif; font-size: 32px; color: var(--accent); margin-right: 4px; }
+.score-total { font-size: 14px; color: var(--text-dimmer); }
+.score-btn {
+  margin-left: auto;
+  background: var(--accent); color: #0a0e1a;
+  border: none; border-radius: 8px;
+  padding: 10px 22px; font-size: 13px; font-weight: 700;
+  cursor: pointer; font-family: inherit;
+  transition: opacity 0.2s;
+}
+.score-btn:hover { opacity: 0.85; }
+.score-reset {
+  background: transparent; color: var(--text-dimmer);
+  border: 1px solid var(--border); border-radius: 8px;
+  padding: 10px 16px; font-size: 12px;
+  cursor: pointer; font-family: inherit;
+  transition: all 0.2s;
+}
+.score-reset:hover { color: var(--text); border-color: var(--text-dim); }
+
+/* ─── SECTION DIVIDER ─── */
+.section-header {
+  display: flex; align-items: center; gap: 12px;
+  margin: 36px 0 20px;
+}
+.section-tag {
+  font-family: 'Impact','Arial Narrow',sans-serif;
+  font-size: 11px; letter-spacing: 0.12em;
+  padding: 4px 10px; border-radius: 4px;
+  text-transform: uppercase;
+}
+.tag-ox { background: rgba(52,211,153,0.12); color: var(--accent3); border: 1px solid rgba(52,211,153,0.25); }
+.tag-short { background: rgba(56,189,248,0.12); color: var(--accent); border: 1px solid rgba(56,189,248,0.25); }
+.tag-code { background: rgba(129,140,248,0.12); color: var(--accent2); border: 1px solid rgba(129,140,248,0.25); }
+.tag-essay { background: rgba(251,146,60,0.12); color: var(--accent4); border: 1px solid rgba(251,146,60,0.25); }
+.section-title-text { font-family: 'Impact','Arial Narrow',sans-serif; font-size: 22px; color: var(--text); }
+.section-divider { height: 1px; background: var(--border); margin-bottom: 20px; }
+
+/* ─── QUIZ CARD ─── */
+.quiz-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 22px 24px;
+  margin-bottom: 18px;
+  transition: border-color 0.2s;
+}
+.quiz-card:hover { border-color: var(--border); }
+.quiz-card.answered-correct { border-left: 3px solid var(--correct); }
+.quiz-card.answered-wrong { border-left: 3px solid var(--wrong); }
+
+.quiz-meta {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 12px; flex-wrap: wrap;
+}
+.q-num {
+  font-family: 'Impact','Arial Narrow',sans-serif;
+  font-size: 11px; color: var(--text-dimmer);
+}
+.difficulty { font-size: 11px; }
+.applied-badge {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.08em;
+  padding: 2px 7px; border-radius: 3px;
+  background: rgba(251,146,60,0.15); color: var(--accent4);
+  border: 1px solid rgba(251,146,60,0.3);
+}
+.slide-ref-badge {
+  font-size: 10px; color: var(--text-dimmer);
+  margin-left: auto;
+}
+
+.quiz-question {
+  font-size: 14.5px; color: var(--text);
+  line-height: 1.75; margin-bottom: 16px;
+  font-weight: 500;
+}
+.quiz-question code {
+  font-family: 'Menlo','Courier New',monospace;
+  font-size: 13px; color: var(--accent3);
+  background: #0d1117;
+  padding: 2px 6px; border-radius: 3px;
+}
+
+/* ─── OX BUTTONS ─── */
+.ox-buttons { display: flex; gap: 12px; margin-bottom: 14px; }
+.ox-btn {
+  flex: 1; padding: 12px;
+  font-family: 'Impact','Arial Narrow',sans-serif;
+  font-size: 20px; letter-spacing: 0.05em;
+  background: var(--surface2); border: 1.5px solid var(--border);
+  border-radius: 8px; color: var(--text-dim);
+  cursor: pointer; transition: all 0.18s;
+}
+.ox-btn:hover { border-color: var(--accent); color: var(--accent); }
+.ox-btn.selected-o { background: rgba(52,211,153,0.12); border-color: var(--correct); color: var(--correct); }
+.ox-btn.selected-x { background: rgba(248,113,113,0.12); border-color: var(--wrong); color: var(--wrong); }
+
+/* ─── SHORT ANSWER ─── */
+.short-input-wrap { display: flex; gap: 10px; margin-bottom: 14px; align-items: center; }
+.short-input {
+  flex: 1; background: var(--surface2);
+  border: 1.5px solid var(--border); border-radius: 8px;
+  padding: 10px 14px; color: var(--text);
+  font-size: 14px; font-family: inherit;
+  transition: border-color 0.2s; outline: none;
+}
+.short-input:focus { border-color: var(--accent); }
+.check-btn {
+  background: var(--surface2); border: 1.5px solid var(--border);
+  border-radius: 8px; padding: 10px 16px;
+  color: var(--text-dim); font-size: 12.5px;
+  cursor: pointer; font-family: inherit;
+  transition: all 0.18s; white-space: nowrap;
+}
+.check-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ─── CODE BLOCK ─── */
+.code-block {
+  background: #0d1117;
+  border: 1px solid var(--border);
+  border-radius: 8px; padding: 16px 18px;
+  font-family: 'Menlo','Courier New',monospace;
+  font-size: 13px; line-height: 2;
+  margin-bottom: 14px; overflow-x: auto;
+  color: var(--text-dim);
+}
+.code-block .blank {
+  display: inline-block;
+  min-width: 80px; border-bottom: 2px solid var(--accent2);
+  background: rgba(129,140,248,0.08);
+  color: var(--accent2); border-radius: 3px;
+  padding: 0 8px; text-align: center;
+  font-size: 12px; cursor: pointer;
+}
+.code-block .kw { color: #c084fc; }
+.code-block .fn { color: #38bdf8; }
+.code-block .str { color: #34d399; }
+.code-block .cm { color: #475569; font-style: italic; }
+.code-blank-input {
+  background: rgba(129,140,248,0.08);
+  border: none; border-bottom: 2px solid var(--accent2);
+  color: var(--accent2); font-family: 'Menlo','Courier New',monospace;
+  font-size: 13px; padding: 0 6px; width: 120px;
+  outline: none;
+}
+.code-blank-input:focus { border-bottom-color: var(--accent); }
+
+/* ─── ANSWER TOGGLE ─── */
+.answer-toggle {
+  background: transparent; border: 1px solid var(--border);
+  border-radius: 6px; padding: 8px 14px;
+  color: var(--text-dimmer); font-size: 12.5px;
+  cursor: pointer; font-family: inherit;
+  display: flex; align-items: center; gap: 6px;
+  transition: all 0.18s; margin-top: 4px;
+}
+.answer-toggle:hover { border-color: var(--accent2); color: var(--accent2); }
+.answer-toggle .arrow { transition: transform 0.2s; display: inline-block; }
+.answer-toggle.open .arrow { transform: rotate(90deg); }
+
+.answer-box {
+  display: none;
+  margin-top: 12px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px; padding: 16px 18px;
+  font-size: 13.5px;
+}
+.answer-box.visible { display: block; }
+.answer-box .ans-label {
+  font-family: 'Impact','Arial Narrow',sans-serif;
+  font-size: 11px; letter-spacing: 0.1em;
+  color: var(--accent3); text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.answer-box .ans-correct {
+  color: var(--correct); font-weight: 700; font-size: 15px;
+  margin-bottom: 10px;
+}
+.answer-box .ans-explain { color: var(--text-dim); line-height: 1.7; font-size: 13.5px; }
+.answer-box .ans-formula {
+  font-family: 'Menlo','Courier New',monospace;
+  background: #0d1117; border-radius: 6px;
+  padding: 10px 14px; margin: 10px 0;
+  color: var(--accent3); font-size: 12.5px;
+  border-left: 3px solid var(--accent3);
+  line-height: 1.9;
+}
+
+/* ─── RESULT BANNER ─── */
+.result-banner {
+  display: none;
+  background: linear-gradient(135deg, #0d1b2e, #111827);
+  border: 1px solid rgba(56,189,248,0.3);
+  border-radius: 14px; padding: 28px 32px;
+  margin-top: 40px; text-align: center;
+}
+.result-banner.show { display: block; }
+.result-score-big { font-family: 'Impact','Arial Narrow',sans-serif; font-size: 64px; color: var(--accent); line-height: 1; }
+.result-msg { font-size: 16px; color: var(--text-dim); margin-top: 10px; }
+.result-detail { display: flex; justify-content: center; gap: 32px; margin-top: 20px; }
+.result-stat { text-align: center; }
+.result-stat-val { font-family: 'Impact','Arial Narrow',sans-serif; font-size: 28px; }
+.result-stat-val.c { color: var(--correct); }
+.result-stat-val.w { color: var(--wrong); }
+.result-stat-label { font-size: 12px; color: var(--text-dimmer); margin-top: 2px; }
+
+/* ─── PROGRESS BAR ─── */
+.progress-wrap { margin-bottom: 28px; }
+.progress-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-dimmer); margin-bottom: 6px; }
+.progress-bar { height: 4px; background: var(--surface2); border-radius: 2px; overflow: hidden; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 2px; transition: width 0.3s; width: 0%; }
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
+</head>
+<body>
+<div class="layout">
+
+<!-- ─── TOC ─── -->
+<nav class="toc-sidebar" id="toc">
+  <div class="toc-title">퀴즈 목차</div>
+
+  <div class="toc-type">OX 문제</div>
+  <ul class="toc-list">
+    <li class="toc-item"><a href="#q1" id="toc-q1"><span class="toc-num">01</span>조건부 확률 정의</a></li>
+    <li class="toc-item"><a href="#q2" id="toc-q2"><span class="toc-num">02</span>PMF vs PDF</a></li>
+    <li class="toc-item"><a href="#q3" id="toc-q3"><span class="toc-num">03</span>MAP와 ML 조건</a></li>
+    <li class="toc-item"><a href="#q4" id="toc-q4"><span class="toc-num">04</span>손실행렬 응용 <span class="toc-tag tag-app">응용</span></a></li>
+    <li class="toc-item"><a href="#q5" id="toc-q5"><span class="toc-num">05</span>오류와 겹침 응용 <span class="toc-tag tag-app">응용</span></a></li>
+    <li class="toc-item"><a href="#q6" id="toc-q6"><span class="toc-num">06</span>나이브 독립 가정 응용 <span class="toc-tag tag-app">응용</span></a></li>
+  </ul>
+
+  <div class="toc-type">단답형</div>
+  <ul class="toc-list">
+    <li class="toc-item"><a href="#q7" id="toc-q7"><span class="toc-num">07</span>베이즈 정리 구성요소</a></li>
+    <li class="toc-item"><a href="#q8" id="toc-q8"><span class="toc-num">08</span>가방 예제 계산</a></li>
+    <li class="toc-item"><a href="#q9" id="toc-q9"><span class="toc-num">09</span>MAP 결정 규칙</a></li>
+    <li class="toc-item"><a href="#q10" id="toc-q10"><span class="toc-num">10</span>가방 수치 변형 <span class="toc-tag tag-app">응용</span></a></li>
+    <li class="toc-item"><a href="#q11" id="toc-q11"><span class="toc-num">11</span>우도비 임계값 <span class="toc-tag tag-app">응용</span></a></li>
+    <li class="toc-item"><a href="#q12" id="toc-q12"><span class="toc-num">12</span>역방향 베이즈 <span class="toc-tag tag-app">응용</span></a></li>
+  </ul>
+
+  <div class="toc-type">코드 완성형</div>
+  <ul class="toc-list">
+    <li class="toc-item"><a href="#q13" id="toc-q13"><span class="toc-num">13</span>나이브 베이즈 구현</a></li>
+    <li class="toc-item"><a href="#q14" id="toc-q14"><span class="toc-num">14</span>MAP 분류기 구현</a></li>
+    <li class="toc-item"><a href="#q15" id="toc-q15"><span class="toc-num">15</span>조건부 확률 계산 <span class="toc-tag tag-app">응용</span></a></li>
+    <li class="toc-item"><a href="#q16" id="toc-q16"><span class="toc-num">16</span>최소위험 결정 응용 <span class="toc-tag tag-app">응용</span></a></li>
+  </ul>
+
+  <div class="toc-type">서술형</div>
+  <ul class="toc-list">
+    <li class="toc-item"><a href="#q17" id="toc-q17"><span class="toc-num">17</span>사전·사후확률 차이</a></li>
+    <li class="toc-item"><a href="#q18" id="toc-q18"><span class="toc-num">18</span>나이브 베이즈 특징</a></li>
+    <li class="toc-item"><a href="#q19" id="toc-q19"><span class="toc-num">19</span>MAP vs ML 조건 서술 <span class="toc-tag tag-app">응용</span></a></li>
+    <li class="toc-item"><a href="#q20" id="toc-q20"><span class="toc-num">20</span>최소위험 분류기 설계 <span class="toc-tag tag-app">응용</span></a></li>
+  </ul>
+</nav>
+
+<!-- ─── MAIN ─── -->
+<main class="main-content">
+
+  <header class="page-header">
+    <div class="course-label">Data Mining · FE06064001 · Quiz</div>
+    <h1 class="page-title">2. <span>Bayesian</span> Decision Theory<br>퀴즈</h1>
+    <div class="header-divider"></div>
+  </header>
+
+  <!-- 점수판 -->
+  <div class="scoreboard">
+    <div>
+      <div class="score-info">현재 점수</div>
+      <span class="score-val" id="scoreVal">0</span>
+      <span class="score-total">/ 20</span>
+    </div>
+    <div style="flex:1;margin:0 10px;">
+      <div class="progress-label">
+        <span>진행률</span>
+        <span id="progressText">0 / 20 문제 완료</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    </div>
+    <button class="score-reset" onclick="resetAll()">초기화</button>
+    <button class="score-btn" onclick="showResult()">채점 결과 보기</button>
+  </div>
+
+  <!-- ════════════════════════════════════
+       OX 문제
+  ════════════════════════════════════ -->
+  <div class="section-header">
+    <span class="section-tag tag-ox">OX 문제</span>
+    <span class="section-title-text">참 / 거짓 판별</span>
+  </div>
+  <div class="section-divider"></div>
+
+  <!-- Q1 -->
+  <div class="quiz-card" id="q1">
+    <div class="quiz-meta">
+      <span class="q-num">Q01</span>
+      <span class="difficulty">⭐</span>
+      <span class="slide-ref-badge">슬라이드 5–6</span>
+    </div>
+    <div class="quiz-question">
+      조건부 확률 P(A|B)는 사건 B가 발생했을 때 사건 A가 발생할 확률이며,
+      공식은 <code>P(A|B) = P(A∩B) / P(B)</code> 이다. (단, P(B) > 0)
+    </div>
+    <div class="ox-buttons">
+      <button class="ox-btn" onclick="submitOX(1, 'O', 'O')">O</button>
+      <button class="ox-btn" onclick="submitOX(1, 'X', 'O')">X</button>
+    </div>
+    <button class="answer-toggle" onclick="toggleAnswer('a1')"><span class="arrow">▶</span> 정답 및 해설 보기</button>
+    <div class="answer-box" id="a1">
+      <div class="ans-label">정답</div>
+      <div class="ans-correct">O (참)</div>
+      <div class="ans-explain">
+        조건부 확률의 정의 그대로이다. 사건 B가 발생했다는 조건 아래에서 A가 발생할 확률은 두 사건의 교집합 확률을 B의 확률로 나눈 값이다.
+        <div class="ans-formula">P(A|B) = P(A∩B) / P(B),  단 P(B) > 0</div>
+        예) 주사위에서 4 이상(B={4,5,6})이 나왔을 때 짝수(A={2,4,6})일 확률: P(A|B) = (2/6)/(3/6) = 2/3
+      </div>
+    </div>
+  </div>
+
+  <!-- Q2 -->
+  <div class="quiz-card" id="q2">
+    <div class="quiz-meta">
+      <span class="q-num">Q02</span>
+      <span class="difficulty">⭐</span>
+      <span class="slide-ref-badge">슬라이드 7</span>
+    </div>
+    <div class="quiz-question">
+      연속 확률 변수는 확률 질량 함수(PMF)로 기술되며, 이산 확률 변수는 확률 밀도 함수(PDF)로 기술된다.
+    </div>
+    <div class="ox-buttons">
+      <button class="ox-btn" onclick="submitOX(2, 'O', 'X')">O</button>
+      <button class="ox-btn" onclick="submitOX(2, 'X', 'X')">X</button>
+    </div>
+    <button class="answer-toggle" onclick="toggleAnswer('a2')"><span class="arrow">▶</span> 정답 및 해설 보기</button>
+    <div class="answer-box" id="a2">
+      <div class="ans-label">정답</div>
+      <div class="ans-correct">X (거짓)</div>
+      <div class="ans-explain">
+        반대이다. <strong style="color:var(--accent)">이산 확률 변수</strong>는 PMF(확률 질량 함수)로, <strong style="color:var(--accent2)">연속 확률 변수</strong>는 PDF(확률 밀도 함수)로 기술된다.
+        <div class="ans-formula">이산: P(X = xᵢ) ≥ 0,  ΣP(X = xᵢ) = 1  → PMF
+연속: f(x) ≥ 0,  ∫f(x)dx = 1  → PDF</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Q3 -->
+  <div class="quiz-card" id="q3">
+    <div class="quiz-meta">
+      <span class="q-num">Q03</span>
+      <span class="difficulty">⭐⭐</span>
+      <span class="slide-ref-badge">슬라이드 13–14</span>
+    </div>
+    <div class="quiz-question">
+      MAP Classifier와 ML Classifier는 항상 동일한 결과를 출력한다.
+    </div>
+    <div class="ox-buttons">
+      <button class="ox-btn" onclick="submitOX(3, 'O', 'X')">O</button>
+      <button class="ox-btn" onclick="submitOX(3, 'X', 'X')">X</button>
+    </div>
+    <button class="answer-toggle" onclick="toggleAnswer('a3')"><span class="arrow">▶</span> 정답 및 해설 보기</button>
+    <div class="answer-box" id="a3">
+      <div class="ans-label">정답</div>
+      <div class="ans-correct">X (거짓)</div>
+      <div class="ans-explain">
+        ML Classifier는 MAP Classifier의 특수 케이스로, <strong style="color:var(--accent3)">모든 클래스의 사전확률이 동일(uniform prior)할 때만</strong> 두 분류기가 같은 결과를 낸다.
+        <div class="ans-formula">MAP: argmax p(x|wᵢ)·P(wᵢ)
+ML:  argmax p(x|wᵢ)         ← P(wᵢ)가 동일하면 약분 가능</div>
+        사전확률이 다를 경우 MAP는 P(wᵢ)를 가중치로 반영하므로 결과가 달라질 수 있다.
+      </div>
+    </div>
+  </div>
+
+  <!-- Q4 응용 -->
+  <div class="quiz-card" id="q4">
+    <div class="quiz-meta">
+      <span class="q-num">Q04</span>
+      <span class="difficulty">⭐⭐</span>
+      <span class="applied-badge">[응용]</span>
+      <span class="slide-ref-badge">슬라이드 17–19</span>
+    </div>
+    <div class="quiz-question">
+      최소 위험 베이지안 분류기에서 c₁₂(실제 w₁을 w₂로 오분류 비용)가 c₂₁(실제 w₂를 w₁로 오분류 비용)보다 매우 크다면,
+      결정 경계는 w₂ 쪽으로 이동하여 w₁으로 분류되는 영역이 넓어진다.
+    </div>
+    <div class="ox-buttons">
+      <button class="ox-btn" onclick="submitOX(4, 'O', 'O')">O</button>
+      <button class="ox-btn" onclick="submitOX(4, 'X', 'O')">X</button>
+    </div>
+    <button class="answer-toggle" onclick="toggleAnswer('a4')"><span class="arrow">▶</span> 정답 및 해설 보기</button>
+    <div class="answer-box" id="a4">
+      <div class="ans-label">정답</div>
+      <div class="ans-correct">O (참)</div>
+      <div class="ans-explain">
+        <strong style="color:var(--accent4)">조건 변형 적용:</strong> c₁₂ &gt; c₂₁인 경우를 우도비 결정 규칙으로 분석한다.
+        <div class="ans-formula">우도비 임계값 = (c₂₁ - c₂₂)·P(w₂) / (c₁₂ - c₁₁)·P(w₁)</div>
+        c₁₂가 커질수록 분모가 커져 임계값이 작아진다. 즉, <strong style="color:var(--accent3)">더 작은 우도비로도 w₁으로 분류</strong>되어 w₁ 결정 영역이 넓어진다.<br>
+        직관적으로: w₁을 w₂로 오분류하는 것이 비용이 매우 크면, 가능한 한 w₁으로 분류하려 한다.
+      </div>
+    </div>
+  </div>
+
+  <!-- Q5 응용 -->
+  <div class="quiz-card" id="q5">
+    <div class="quiz-meta">
+      <span class="q-num">Q05</span>
+      <span class="difficulty">⭐⭐</span>
+      <span class="applied-badge">[응용]</span>
+      <span class="slide-ref-badge">슬라이드 16</span>
+    </div>
+    <div class="quiz-question">
+      두 클래스의 분포가 전혀 겹치지 않더라도 (완전히 분리된 경우), 분류기의 오류 확률은 항상 0보다 크다.
+    </div>
+    <div class="ox-buttons">
+      <button class="ox-btn" onclick="submitOX(5, 'O', 'X')">O</button>
+      <button class="ox-btn" onclick="submitOX(5, 'X', 'X')">X</button>
+    </div>
+    <button class="answer-toggle" onclick="toggleAnswer('a5')"><span class="arrow">▶</span> 정답 및 해설 보기</button>
+    <div class="answer-box" id="a5">
+      <div class="ans-label">정답</div>
+      <div class="ans-correct">X (거짓)</div>
+      <div class="ans-explain">
+        <strong style="color:var(--accent4)">조건 변형 적용:</strong> 강의에서는 "겹침이 클수록 오류가 크다"고 했는데, 역방향으로 생각하면 된다.
+        <div class="ans-formula">E = (1/2)∫₋∞ᵗ p(x|w₂)dx + (1/2)∫ₜ∞ p(x|w₁)dx</div>
+        두 분포가 완전히 분리된 경우, 겹치는 영역의 확률 질량이 0이므로 이론적으로 오류 확률 E = 0이 가능하다. 강의의 핵심은 "실제로는 분포가 겹쳐 오류가 불가피하다"는 것이지, 항상 E &gt; 0이라는 뜻이 아니다.
+      </div>
+    </div>
+  </div>
+
+  <!-- Q6 응용 -->
+  <div class="quiz-card" id="q6">
+    <div class="quiz-meta">
+      <span class="q-num">Q06</span>
+      <span class="difficulty">⭐⭐⭐</span>
+      <span class="applied-badge">[응용]</span>
+      <span class="slide-ref-badge">슬라이드 8, 20–21</span>
+    </div>
+    <div class="quiz-question">
+      나이브 베이즈 분류기에서 조건부 독립 가정이 실제로 성립하지 않으면, 분류 결과는 반드시 부정확해지므로 실용적으로 사용할 수 없다.
+    </div>
+    <div class="ox-buttons">
+      <button class="ox-btn" onclick="submitOX(6, 'O', 'X')">O</button>
+      <button class="ox-btn" onclick="submitOX(6, 'X', 'X')">X</button>
+    </div>
+    <button class="answer-toggle" onclick="toggleAnswer('a6')"><span class="arrow">▶</span> 정답 및 해설 보기</button>
+    <div class="answer-box" id="a6">
+      <div class="ans-label">정답</div>
+      <div class="ans-correct">X (거짓)</div>
+      <div class="ans-explain">
+        <strong style="color:var(--accent4)">개념 결합:</strong> 독립 가정 + 나이브 베이즈 실용성을 함께 적용한다.
+        강의에서 명시적으로 "독립 가정이 비현실적이지만 실제로 잘 동작한다(performs well in practice)"고 언급한다.<br><br>
+        이유: 분류에는 정확한 확률값이 아니라 <strong style="color:var(--accent3)">클래스 간 상대적 비교</strong>만 필요하다. 독립 가정이 틀려도 상대적 순위(argmax)가 올바르게 유지되는 경우가 많다.
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ════════════════════════════════════
+       단답형
+  ════════════════════════════════════ -->
+  <div class="section-header" style="margin-top:48px;">
+    <span class="section-tag tag-short">단답형</span>
+    <span class="section-title-text">핵심 용어 / 계산</span>
+  </div>
+  <div class="section-divider"></div>
+
+  <!-- Q7 -->
+  <div class="quiz-card" id="q7">
+    <div class="quiz-meta">
+      <span class="q-num">Q07</span>
+      <span class="difficulty">⭐</span>
+      <span class="slide-ref-badge">슬라이드 9</span>
+    </div>
+    <div class="quiz-question">
+      베이즈 정리 <code>P(X|Y) = P(Y|X)·P(X) / P(Y)</code> 에서 P(Y)를 무엇이라 부르는가?
+      또한 P(Y)의 전개식을 쓰시오.
+    </div>
+    <div class="short-input-wrap">
+      <input type="text" class="short-input" id="i7" placeholder="P(Y)의 명칭을 입력...">
+      <button class="check-btn" onclick="checkShort(7, ['주변확률','marginal probability','marginal','주변 확률'])">확인</button>
+    </div>
+    <button class="answer-toggle" onclick="toggleAnswer('a7')"><span class="arrow">▶</span> 정답 및 해설 보기</button>
+    <div class="answer-box" id="a7">
+      <div class="ans-label">정답</div>
+      <div class="ans-correct">주변확률 (Marginal Probability)</div>
+      <div class="ans-explain">
+        P(Y)는 <strong style="color:var(--accent)">주변확률(marginal probability)</strong> 또는 정규화 상수(normalization constant)라 부른다.
+        <div class="ans-formula">P(Y) = Σᵢ P(Y|Xᵢ) · P(Xᵢ)   (모든 가능한 Xᵢ에 대한 합산)</div>
+        분류 문제에서는 P(Y)가 모든 클래스에 대해 동일하므로, 사후확률 비교 시 생략 가능하다 (MAP 분류기의 근거).
+      </div>
+    </div>
+  </div>
+
+  <!-- Q8 -->
+  <div class="quiz-card" id="q8">
+    <div class="quiz-meta">
+      <span class="q-num">Q08</span>
+      <span class="difficulty">⭐⭐</span>
+      <span class="slide-ref-badge">슬라이드 9–10</span>
+    </div>
+    <div class="quiz-question">
+      강의의 가방 예제에서 가방 A(흰 공 7개, 파란 공 3개), 가방 B(흰 공 9개, 파란 공 6개)이고 각 가방을 선택할 확률이 동일하다(P(A)=P(B)=0.5).<br>
+      흰 공을 뽑았을 때 가방 B에서 뽑혔을 사후확률 <code>P(B|white)</code>를 기약분수로 구하시오.
+    </div>
+    <div class="short-input-wrap">
+      <input type="text" class="short-input" id="i8" placeholder="예: 6/13">
+      <button class="check-btn" onclick="checkShort(8, ['6/13','6／13'])">확인</button>
+    </div>
+    <button class="answer-toggle" onclick="toggleAnswer('a8')"><span class="arrow">▶</span> 정답 및 해설 보기</button>
+    <div class="answer-box" id="a8">
+      <div class="ans-label">정답</div>
+      <div class="ans-correct">6/13</div>
+      <div class="ans-explain">
+        <div class="ans-formula">P(white|B) = 9/15 = 3/5 = 0.6
+P(A) = P(B) = 0.5
+P(white) = P(white|A)·P(A) + P(white|B)·P(B)
+         = 0.7×0.5 + 0.6×0.5 = 0.65
+
+P(B|white) = P(white|B)·P(B) / P(white)
+           = (0.6×0.5) / 0.65
+           = 0.3 / 0.65 = 6/13 ≈ 0.462</div>
+        P(A|white) = 7/13 ≈ 0.538, P(B|white) = 6/13 ≈ 0.462이므로 흰 공을 뽑았을 때 가방 A에서 뽑혔을 가능성이 더 높다.
+      </div>
+    </div>
+  </div>
+
+  <!-- Q9 -->
+  <div class="quiz-card" id="q9">
+    <div class="quiz-meta">
+      <span class="q-num">Q09</span>
+      <span class="difficulty">⭐⭐</span>
+      <span class="slide-ref-badge">슬라이드 13–14</span>
+    </div>
+    <div class="quiz-question">
+      MAP(Maximum A Posteriori) Classifier의 결정 규칙을 수식으로 쓰시오.
+      (argmax 형태로, 사용하는 확률 요소를 모두 포함할 것)
+    </div>
+    <div class="short-input-wrap">
+      <input type="text" class="short-input" id="i9" placeholder="argmax ...">
+      <button class="check-btn" onclick="checkShort(9, ['argmax p(x|wi)P(wi)','argmax p(x|wi)*P(wi)','argmax p(x|w_i)P(w_i)','argmax 우도×사전확률','argmax 우도 x 사전확률'])">확인</button>
+    </div>
+    <button class="answer-toggle" onclick="toggleAnswer('a9')"><span class="arrow">▶</span> 정답 및 해설 보기</button>
+    <div class="answer-box" id="a9">
+      <div class="ans-label">정답</div>
+      <div class="ans-correct">argmax p(x|wᵢ)·P(wᵢ)</div>
+      <div class="ans-explain">
+        MAP 분류기는 사후확률 비교에서 분모 p(x)를 제거하고, 우도와 사전확률의 곱으로 결정한다.
+        <div class="ans-formula">P(wᵢ|x) = p(x|wᵢ)·P(wᵢ) / p(x)
+→ p(x)는 모든 클래스에 동일 → 제거
+→ argmax p(x|wᵢ)·P(wᵢ)</div>
+        이것이 Posterior Classifier의 근사적 표현이며, ML Classifier는 P(wᵢ)가 균일할 때의 특수 케이스이다.
+      </div>
+    </div>
+  </div>
+
+  <!-- Q10 응용 -->
+  <div class="quiz-card" id="q10">
+    <div class="quiz-meta">
+      <span class="q-num">Q10</span>
+      <span class="difficulty">⭐⭐</span>
+      <span class="applied-badge">[응용]</span>
+      <span class="slide-ref-badge">슬라이드 9–10</span>
+    </div>
+    <div class="quiz-question">
+      <strong style="color:var(--accent4)">[수치 변형]</strong> 가방 A에 흰 공 6개·파란 공 4개, 가방 B에 흰 공 8개·파란 공 2개가 있다.
+      각 가방을 선택할 확률은 동일(P(A)=P(B)=0.5)하다.<br>
+      흰 공을 뽑았을 때 <code>P(A|white)</code>를 기약분수로 구하시오.
+    </div>
+    <div class="short-input-wrap">
+      <input type="text" class="short-input" id="i10" placeholder="예: 3/7">
+      <button class="check-btn" onclick="checkShort(10, ['3/7','3／7'])">확인</button>
+    </div>
+    <button class="answer-toggle" onclick="toggleAnswer('a10')"><span class="arrow">▶</span> 정답 및 해설 보기</button>
+    <div class="answer-box" id="a10">
+      <div class="ans-label">정답</div>
+      <div class="ans-correct">3/7</div>
+      <div class="ans-explain">
+        <strong style="color:var(--accent4)">풀이 과정:</strong> 베이즈 정리를 동일하게 적용하되 수치만 변경한다.
+        <div class="ans-formula">P(white|A) = 6/10 = 0.6
+P(white|B) = 8/10 = 0.8
+
+P(white) = 0.6×0.5 + 0.8×0.5 = 0.7
+
+P(A|white) = P(white|A)·P(A) / P(white)
+           = (0.6 × 0.5) / 0.7
+           = 0.3 / 0.7 = 3/7 ≈ 0.429</div>
+        흰 공이 많은 B 쪽으로 사후확률이 더 많이 쏠려 P(B|white) = 4/7 ≈ 0.571이 된다.
+      </div>
+    </div>
+  </div>
+
+  <!-- Q11 응용 -->
+  <div class="quiz-card" id="q11">
+    <div class="quiz-meta">
+      <span class="q-num">Q11</span>
+      <span class="difficulty">⭐⭐⭐</span>
+      <span class="applied-badge">[응용]</span>
+      <span class="slide-ref-badge">슬라이드 17–19</span>
+    </div>
+    <div class="quiz-question">
+      최소 위험 분류기에서 c₁₁ = 0, c₂₂ = 0, c₁₂ = 2, c₂₁ = 1이고 P(w₁) = P(w₂) = 0.5일 때,
+      우도비 결정 규칙의 임계값(threshold)은 얼마인가?
+      즉, <code>p(x|w₁)/p(x|w₂) > ?</code> 이면 w₁으로 분류한다.
+    </div>
+    <div class="short-input-wrap">
+      <input type="text" class="short-input" id="i11" placeholder="임계값 숫자를 입력...">
+      <button class="check-btn" onclick="checkShort(11, ['1/2','0.5','1／2'])">확인</button>
+    </div>
+    <button class="answer-toggle" onclick="toggleAnswer('a11')"><span class="arrow">▶</span> 정답 및 해설 보기</button>
+    <div class="answer-box" id="a11">
+      <div class="ans-label">정답</div>
+      <div class="ans-correct">1/2 (= 0.5)</div>
+      <div class="ans-explain">
+        <strong style="color:var(--accent4)">풀이 과정:</strong> 우도비 임계값 공식에 대입한다.
+        <div class="ans-formula">임계값 = (c₂₁ - c₂₂)·P(w₂) / (c₁₂ - c₁₁)·P(w₁)
+       = (1 - 0)×0.5 / (2 - 0)×0.5
+       = 0.5 / 1.0
+       = 1/2</div>
+        따라서 p(x|w₁)/p(x|w₂) &gt; 1/2 이면 w₁으로 분류한다.<br>
+        c₁₂=2로 c₂₁=1보다 크므로 임계값이 1보다 작아져(0.5), w₁으로 분류되는 영역이 더 넓어진다.
+      </div>
+    </div>
+  </div>
+
+  <!-- Q12 응용 역방향 -->
+  <div class="quiz-card" id="q12">
+    <div class="quiz-meta">
+      <span class="q-num">Q12</span>
+      <span class="difficulty">⭐⭐⭐</span>
+      <span class="applied-badge">[응용]</span>
+      <span class="slide-ref-badge">슬라이드 9, 22</span>
+    </div>
+    <div class="quiz-question">
+      <strong style="color:var(--accent4)">[역방향]</strong>
+      어떤 이메일 데이터셋에서 P(spam) = 0.4, P(ham) = 0.6이다.
+      특정 단어 w가 포함된 이메일의 사후확률이 P(spam|w) = P(ham|w)로 동일하다면,
+      우도비 <code>P(w|spam) / P(w|ham)</code>의 값은 얼마인가?
+    </div>
+    <div class="short-input-wrap">
+      <input type="text" class="short-input" id="i12" placeholder="분수 또는 소수로 입력...">
+      <button class="check-btn" onclick="checkShort(12, ['3/2','1.5','3／2'])">확인</button>
+    </div>
+    <button class="answer-toggle" onclick="toggleAnswer('a12')"><span class="arrow">▶</span> 정답 및 해설 보기</button>
+    <div class="answer-box" id="a12">
+      <div class="ans-label">정답</div>
+      <div class="ans-correct">3/2 (= 1.5)</div>
+      <div class="ans-explain">
+        <strong style="color:var(--accent4)">역방향 적용:</strong> 결과(사후확률 동일)에서 입력(우도비)을 역산한다.
+        <div class="ans-formula">P(spam|w) = P(ham|w) 조건에서:
+
+P(w|spam)·P(spam) / P(w) = P(w|ham)·P(ham) / P(w)
+
+→ P(w|spam)·P(spam) = P(w|ham)·P(ham)
+
+→ P(w|spam) / P(w|ham) = P(ham) / P(spam)
+                        = 0.6 / 0.4 = 3/2</div>
+        직관: 스팸 사전확률이 낮을수록(P(spam)=0.4 &lt; 0.6), 사후확률을 동일하게 만들려면 우도비가 더 높아야 한다.
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ════════════════════════════════════
+       코드 완성형
+  ════════════════════════════════════ -->
+  <div class="section-header" style="margin-top:48px;">
+    <span class="section-tag tag-code">코드 완성형</span>
+    <span class="section-title-text">빈칸 채우기</span>
+  </div>
+  <div class="section-divider"></div>
+
+  <!-- Q13 -->
+  <div class="quiz-card" id="q13">
+    <div class="quiz-meta">
+      <span class="q-num">Q13</span>
+      <span class="difficulty">⭐⭐</span>
+      <span class="slide-ref-badge">슬라이드 21–22</span>
+    </div>
+    <div class="quiz-question">
+      아래는 나이브 베이즈 스팸 필터를 Python으로 구현한 코드이다. 빈칸 ①②③을 채우시오.
+    </div>
+    <div class="code-block">
+<span class="kw">def</span> <span class="fn">naive_bayes_spam</span>(email_words, word_counts, n_total, n_spam):
+    <span class="cm"># ① 사전확률 P(spam)</span>
+    p_spam = n_spam / <input type="text" class="code-blank-input" id="c13a" placeholder="①">
+
+    <span class="cm"># ② 우도 곱 계산 (나이브 가정)</span>
+    log_likelihood = <span class="fn">sum</span>(
+        <span class="fn">log</span>(word_counts[w] / n_spam)
+        <span class="kw">for</span> w <span class="kw">in</span> email_words
+    )
+
+    <span class="cm"># ③ 사후확률 ∝ 사전확률 × 우도 곱</span>
+    log_posterior = <span class="fn">log</span>(<input type="text" class="code-blank-input" id="c13b" placeholder="②">) + <input type="text" class="code-blank-input" id="c13c" placeholder="③">
+
+    <span class="kw">return</span> log_posterior
+    </div>
+    <button class="answer-toggle" onclick="toggleAnswer('a13')"><span class="arrow">▶</span> 정답 및 해설 보기</button>
+    <div class="answer-box" id="a13">
+      <div class="ans-label">정답</div>
+      <div class="ans-correct">① n_total &nbsp;&nbsp; ② p_spam &nbsp;&nbsp; ③ log_likelihood</div>
+      <div class="ans-explain">
+        <div class="ans-formula">① P(spam) = n_spam / n_total          → 전체 이메일 수로 나눔
+② log(P(spam))  → 나이브 베이즈에서 log 변환으로 곱셈→덧셈
+③ log_likelihood → Σ log P(wᵢ|spam)의 합산값</div>
+        로그 공간에서의 나이브 베이즈: log P(spam|w₁,...,wₙ) ∝ log P(spam) + Σ log P(wᵢ|spam)<br>
+        로그를 사용하는 이유: 매우 작은 확률값들을 곱하면 언더플로우가 발생하므로, 로그 덧셈으로 변환한다.
+      </div>
+    </div>
+  </div>
+
+  <!-- Q14 -->
+  <div class="quiz-card" id="q14">
+    <div class="quiz-meta">
+      <span class="q-num">Q14</span>
+      <span class="difficulty">⭐⭐</span>
+      <span class="slide-ref-badge">슬라이드 13–14</span>
+    </div>
+    <div class="quiz-question">
+      아래는 이진 MAP 분류기를 구현한 코드이다. 빈칸 ①②를 채우시오.
+    </div>
+    <div class="code-block">
+<span class="kw">def</span> <span class="fn">map_classifier</span>(x, likelihood_w1, likelihood_w2, prior_w1, prior_w2):
+    <span class="cm"># MAP: argmax p(x|wᵢ) * P(wᵢ)</span>
+    score_w1 = likelihood_w1 * <input type="text" class="code-blank-input" id="c14a" placeholder="①">
+    score_w2 = likelihood_w2 * <input type="text" class="code-blank-input" id="c14b" placeholder="②">
+
+    <span class="kw">if</span> score_w1 &gt; score_w2:
+        <span class="kw">return</span> <span class="str">"w1"</span>
+    <span class="kw">else</span>:
+        <span class="kw">return</span> <span class="str">"w2"</span>
+    </div>
+    <button class="answer-toggle" onclick="toggleAnswer('a14')"><span class="arrow">▶</span> 정답 및 해설 보기</button>
+    <div class="answer-box" id="a14">
+      <div class="ans-label">정답</div>
+      <div class="ans-correct">① prior_w1 &nbsp;&nbsp; ② prior_w2</div>
+      <div class="ans-explain">
+        MAP 분류기의 결정 규칙: 우도(likelihood)와 사전확률(prior)의 곱이 가장 큰 클래스를 선택한다.
+        <div class="ans-formula">score_w1 = p(x|w₁) × P(w₁)  = likelihood_w1 × prior_w1
+score_w2 = p(x|w₂) × P(w₂)  = likelihood_w2 × prior_w2
+
+if score_w1 > score_w2: → w₁으로 분류</div>
+        만약 prior_w1 == prior_w2라면 사전확률이 약분되어 ML Classifier와 동일한 결과가 된다.
+      </div>
+    </div>
+  </div>
+
+  <!-- Q15 응용 -->
+  <div class="quiz-card" id="q15">
+    <div class="quiz-meta">
+      <span class="q-num">Q15</span>
+      <span class="difficulty">⭐⭐</span>
+      <span class="applied-badge">[응용]</span>
+      <span class="slide-ref-badge">슬라이드 5–6</span>
+    </div>
+    <div class="quiz-question">
+      <strong style="color:var(--accent4)">[수치 변형]</strong> 아래 코드는 주사위 실험에서 조건부 확률을 계산한다.
+      사건 A = {2, 4, 6} (짝수), 사건 B = {3, 4, 5, 6} (3 이상)일 때 P(A|B)를 구하도록 빈칸 ①②를 채우시오.
+    </div>
+    <div class="code-block">
+sample_space = {1, 2, 3, 4, 5, 6}
+A = {2, 4, 6}
+B = {3, 4, 5, 6}    <span class="cm"># 강의 예제와 다른 B (수치 변형)</span>
+
+A_inter_B = <input type="text" class="code-blank-input" id="c15a" placeholder="①" style="width:80px;">   <span class="cm"># A ∩ B</span>
+p_A_given_B = len(A_inter_B) / <input type="text" class="code-blank-input" id="c15b" placeholder="②" style="width:60px;">
+
+<span class="cm"># 기댓값: p_A_given_B = ?</span>
+    </div>
+    <button class="answer-toggle" onclick="toggleAnswer('a15')"><span class="arrow">▶</span> 정답 및 해설 보기</button>
+    <div class="answer-box" id="a15">
+      <div class="ans-label">정답</div>
+      <div class="ans-correct">① A & B 또는 {4,6} &nbsp;&nbsp; ② len(B) &nbsp;&nbsp; 결과: P(A|B) = 2/4 = 0.5</div>
+      <div class="ans-explain">
+        <strong style="color:var(--accent4)">수치 변형 풀이:</strong> 강의 예제에서 B={4,5,6}이었지만, 여기서는 B={3,4,5,6}으로 확장된다.
+        <div class="ans-formula">A ∩ B = {2,4,6} ∩ {3,4,5,6} = {4,6}  → len = 2
+P(B) = 4/6  → len(B) = 4
+
+P(A|B) = P(A∩B)/P(B) = (2/6)/(4/6) = 2/4 = 1/2 = 0.5</div>
+        강의 예제(B={4,5,6})와 비교: P(A|B) = 2/3 → 0.667에서, B가 더 넓어지면(하한이 3으로 낮아짐) P(A|B)가 0.5로 감소. B에 홀수 3이 추가되었기 때문.
+      </div>
+    </div>
+  </div>
+
+  <!-- Q16 응용 -->
+  <div class="quiz-card" id="q16">
+    <div class="quiz-meta">
+      <span class="q-num">Q16</span>
+      <span class="difficulty">⭐⭐⭐</span>
+      <span class="applied-badge">[응용]</span>
+      <span class="slide-ref-badge">슬라이드 17–19</span>
+    </div>
+    <div class="quiz-question">
+      <strong style="color:var(--accent4)">[개념 결합]</strong> 아래는 최소 위험 분류기의 결정 함수이다. 빈칸 ①②③을 채우시오.<br>
+      (q₁ &lt; q₂ 이면 w₁으로 분류, q₁ &gt; q₂ 이면 w₂로 분류)
+    </div>
+    <div class="code-block">
+<span class="kw">def</span> <span class="fn">min_risk_classifier</span>(px_w1, px_w2, pw1, pw2, c11, c12, c21, c22):
+    <span class="cm"># q₁: x를 w₁으로 결정할 때의 조건부 위험</span>
+    q1 = c11 * <input type="text" class="code-blank-input" id="c16a" placeholder="①" style="width:80px;"> + c21 * <input type="text" class="code-blank-input" id="c16b" placeholder="②" style="width:80px;">
+
+    <span class="cm"># q₂: x를 w₂으로 결정할 때의 조건부 위험</span>
+    q2 = c12 * px_w1 * pw1 + <input type="text" class="code-blank-input" id="c16c" placeholder="③" style="width:130px;">
+
+    <span class="kw">return</span> <span class="str">"w1"</span> <span class="kw">if</span> q1 &lt; q2 <span class="kw">else</span> <span class="str">"w2"</span>
+    </div>
+    <button class="answer-toggle" onclick="toggleAnswer('a16')"><span class="arrow">▶</span> 정답 및 해설 보기</button>
+    <div class="answer-box" id="a16">
+      <div class="ans-label">정답</div>
+      <div class="ans-correct">① px_w1 * pw1 &nbsp;&nbsp; ② px_w2 * pw2 &nbsp;&nbsp; ③ c22 * px_w2 * pw2</div>
+      <div class="ans-explain">
+        <div class="ans-formula">q₁ = c₁₁·p(x|w₁)·P(w₁) + c₂₁·p(x|w₂)·P(w₂)
+   = c11*(px_w1*pw1) + c21*(px_w2*pw2)
+
+q₂ = c₁₂·p(x|w₁)·P(w₁) + c₂₂·p(x|w₂)·P(w₂)
+   = c12*(px_w1*pw1) + c22*(px_w2*pw2)</div>
+        q₁이 작을수록 "w₁으로 결정"하는 것이 기대 위험이 낮다. c₁₁=c₂₂=0(올바른 분류 비용 없음), c₁₂≠c₂₁이면 비대칭 손실 구조가 만들어진다.
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ════════════════════════════════════
+       서술형
+  ════════════════════════════════════ -->
+  <div class="section-header" style="margin-top:48px;">
+    <span class="section-tag tag-essay">서술형</span>
+    <span class="section-title-text">개념 서술 / 비교</span>
+  </div>
+  <div class="section-divider"></div>
+
+  <!-- Q17 -->
+  <div class="quiz-card" id="q17">
+    <div class="quiz-meta">
+      <span class="q-num">Q17</span>
+      <span class="difficulty">⭐⭐</span>
+      <span class="slide-ref-badge">슬라이드 9</span>
+    </div>
+    <div class="quiz-question">
+      사전확률(Prior Probability)과 사후확률(Posterior Probability)의 차이를 설명하고,
+      베이즈 정리에서 두 확률이 어떻게 연결되는지 서술하시오.
+    </div>
+    <button class="answer-toggle" onclick="toggleAnswer('a17')"><span class="arrow">▶</span> 모범 답안 보기</button>
+    <div class="answer-box" id="a17">
+      <div class="ans-label">모범 답안</div>
+      <div class="ans-explain">
+        <strong style="color:var(--accent)">사전확률 P(X)</strong>: 어떠한 증거(데이터)도 관찰하기 전에 사건 X에 대해 가지는 초기 믿음(belief)의 확률이다. 과거 경험이나 도메인 지식으로 결정된다.<br><br>
+        <strong style="color:var(--accent2)">사후확률 P(X|Y)</strong>: 새로운 증거 Y를 관찰한 후 업데이트된 X에 대한 확률이다. 사전확률에 우도 정보를 반영하여 갱신된 값이다.<br><br>
+        <strong style="color:var(--accent3)">베이즈 정리에서의 연결:</strong>
+        <div class="ans-formula">P(X|Y) = P(Y|X) · P(X) / P(Y)
+         ↑         ↑          ↑
+      사후확률   우도     사전확률</div>
+        즉, 새로운 증거 Y(우도 P(Y|X))를 통해 사전확률 P(X)를 사후확률 P(X|Y)로 <strong>업데이트</strong>하는 프레임워크이다. 가방 예제에서 P(A)=0.5(사전)가 흰 공을 뽑은 후 P(A|white)=7/13(사후)으로 바뀌는 것이 이에 해당한다.
+      </div>
+    </div>
+  </div>
+
+  <!-- Q18 -->
+  <div class="quiz-card" id="q18">
+    <div class="quiz-meta">
+      <span class="q-num">Q18</span>
+      <span class="difficulty">⭐⭐</span>
+      <span class="slide-ref-badge">슬라이드 8, 20–22</span>
+    </div>
+    <div class="quiz-question">
+      나이브 베이즈(Naïve Bayes) 분류기에서 "나이브(Naïve)"한 이유는 무엇인가?
+      그 가정이 비현실적임에도 실용적으로 사용되는 이유를 함께 설명하시오.
+    </div>
+    <button class="answer-toggle" onclick="toggleAnswer('a18')"><span class="arrow">▶</span> 모범 답안 보기</button>
+    <div class="answer-box" id="a18">
+      <div class="ans-label">모범 답안</div>
+      <div class="ans-explain">
+        <strong style="color:var(--accent)">나이브한 이유:</strong> 클래스 레이블이 주어졌을 때 모든 특징(feature)들이 <strong>조건부 독립(conditionally independent)</strong>이라 가정하기 때문이다.
+        <div class="ans-formula">P(w₁,w₂,...,wₙ|spam) = P(w₁|spam)·P(w₂|spam)·...·P(wₙ|spam)</div>
+        실제로는 단어 "free"와 "discount"가 스팸 메일에서 함께 자주 등장하는 등 특징 간 상관이 존재하므로 이 가정은 대부분 현실에서 성립하지 않는다.<br><br>
+        <strong style="color:var(--accent3)">그럼에도 실용적인 이유:</strong><br>
+        분류 문제에서는 정확한 확률값보다 <strong>클래스 간 상대적 크기(argmax)</strong>가 중요하다. 독립 가정이 틀리더라도 클래스 순위가 올바르게 유지되는 경우가 많아 실제 성능이 좋다. 또한 파라미터 수가 적어 학습에 필요한 데이터양이 적고 계산이 빠르다.
+      </div>
+    </div>
+  </div>
+
+  <!-- Q19 응용 -->
+  <div class="quiz-card" id="q19">
+    <div class="quiz-meta">
+      <span class="q-num">Q19</span>
+      <span class="difficulty">⭐⭐⭐</span>
+      <span class="applied-badge">[응용]</span>
+      <span class="slide-ref-badge">슬라이드 13–15</span>
+    </div>
+    <div class="quiz-question">
+      <strong style="color:var(--accent4)">[조건 변형]</strong>
+      아래 세 상황에서 Posterior, MAP, ML 분류기 중 어느 분류기를 사용해야 하는지 각각 쓰고, 그 이유를 서술하시오.<br><br>
+      (가) 클래스별 사전확률을 정확히 알고 있으며, 사후확률을 직접 계산할 수 있다.<br>
+      (나) 우도 함수는 알지만 모든 클래스의 사전확률이 같다.<br>
+      (다) 우도 함수는 알고, 사전확률도 알지만 사후확률 계산이 어렵다 (p(x) 계산 불가).
+    </div>
+    <button class="answer-toggle" onclick="toggleAnswer('a19')"><span class="arrow">▶</span> 모범 답안 보기</button>
+    <div class="answer-box" id="a19">
+      <div class="ans-label">모범 답안</div>
+      <div class="ans-explain">
+        <strong style="color:var(--accent)">(가) → Posterior (Bayes) Classifier</strong><br>
+        사후확률 P(wᵢ|x)를 직접 계산할 수 있으므로 argmax P(wᵢ|x)를 사용. 이론적으로 가장 최적이다.<br><br>
+
+        <strong style="color:var(--accent2)">(나) → ML Classifier</strong><br>
+        사전확률이 균일하면 P(wᵢ)가 약분되어 우도만으로 분류. argmax p(x|wᵢ). MAP와 ML이 동일한 결과를 낸다.<br><br>
+
+        <strong style="color:var(--accent3)">(다) → MAP Classifier</strong><br>
+        p(x) = Σ p(x|wᵢ)P(wᵢ)를 직접 계산하기 어렵더라도, 분류는 클래스 간 비교만 필요하므로 분모를 생략할 수 있다.
+        <div class="ans-formula">P(wᵢ|x) = p(x|wᵢ)·P(wᵢ) / p(x)
+→ p(x)는 모든 클래스에 동일 → 제거
+→ argmax p(x|wᵢ)·P(wᵢ)  ← MAP</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Q20 응용 -->
+  <div class="quiz-card" id="q20">
+    <div class="quiz-meta">
+      <span class="q-num">Q20</span>
+      <span class="difficulty">⭐⭐⭐</span>
+      <span class="applied-badge">[응용]</span>
+      <span class="slide-ref-badge">슬라이드 17–19</span>
+    </div>
+    <div class="quiz-question">
+      <strong style="color:var(--accent4)">[개념 결합]</strong>
+      의료 진단 시스템에서 질병(w₁) / 정상(w₂)을 분류한다.
+      아래 조건을 바탕으로 최소 위험 분류기의 손실 행렬을 설계하고,
+      MAP 분류기 대비 결정 경계가 어느 방향으로 이동하는지 설명하시오.<br><br>
+      조건: "질병인데 정상으로 분류"하는 것이 "정상인데 질병으로 분류"하는 것보다 10배 더 위험하다.
+      올바른 분류 비용은 0이다.
+    </div>
+    <button class="answer-toggle" onclick="toggleAnswer('a20')"><span class="arrow">▶</span> 모범 답안 보기</button>
+    <div class="answer-box" id="a20">
+      <div class="ans-label">모범 답안</div>
+      <div class="ans-explain">
+        <strong style="color:var(--accent)">손실 행렬 설계:</strong>
+        <div class="ans-formula">          결정: w₁(질병)  결정: w₂(정상)
+실제: w₁(질병)    c₁₁ = 0       c₁₂ = 10  ← 미탐지: 매우 위험
+실제: w₂(정상)    c₂₁ = 1       c₂₂ = 0   ← 거짓 경보: 덜 위험</div>
+
+        <strong style="color:var(--accent2)">우도비 임계값 계산 (P(w₁)=P(w₂)=0.5 가정):</strong>
+        <div class="ans-formula">임계값 = (c₂₁ - c₂₂)·P(w₂) / (c₁₂ - c₁₁)·P(w₁)
+       = (1 - 0)×0.5 / (10 - 0)×0.5
+       = 0.5 / 5.0 = 0.1</div>
+
+        <strong style="color:var(--accent3)">결정 경계 이동 방향:</strong><br>
+        MAP 분류기의 임계값은 P(w₁)=P(w₂)일 때 1.0이다. 최소 위험 분류기의 임계값은 0.1로 훨씬 작다.<br>
+        즉, p(x|w₁)/p(x|w₂) &gt; 0.1만 되어도 "질병(w₁)"으로 분류하게 된다.<br><br>
+        <strong>→ 결정 경계가 w₂(정상) 방향으로 이동</strong>하여 w₁으로 분류되는 영역이 대폭 넓어진다. 이는 미탐지 비용이 매우 크기 때문에 조금이라도 질병 가능성이 있으면 질병으로 분류하려는 보수적 설계를 반영한다.
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── 결과 배너 ─── -->
+  <div class="result-banner" id="resultBanner">
+    <div style="font-family:'Impact','Arial Narrow',sans-serif;font-size:13px;letter-spacing:0.15em;color:var(--text-dimmer);margin-bottom:8px;">FINAL RESULT</div>
+    <div class="result-score-big" id="resultScoreBig">0</div>
+    <div style="font-size:14px;color:var(--text-dimmer);margin-top:4px;">/ 20 문제</div>
+    <div class="result-msg" id="resultMsg">—</div>
+    <div class="result-detail">
+      <div class="result-stat"><div class="result-stat-val c" id="resultCorrect">0</div><div class="result-stat-label">정답</div></div>
+      <div class="result-stat"><div class="result-stat-val w" id="resultWrong">0</div><div class="result-stat-label">오답</div></div>
+      <div class="result-stat"><div class="result-stat-val" style="color:var(--text-dimmer)" id="resultPending">0</div><div class="result-stat-label">미제출</div></div>
+    </div>
+  </div>
+
+</main>
+</div>
+
+<script>
+// ─── STATE ───
+const state = {
+  answers: {},      // qNum → 'correct'|'wrong'
+  totalQ: 20
+};
+
+function updateProgress() {
+  const done = Object.keys(state.answers).length;
+  const correct = Object.values(state.answers).filter(v=>v==='correct').length;
+  document.getElementById('scoreVal').textContent = correct;
+  document.getElementById('progressText').textContent = done + ' / ' + state.totalQ + ' 문제 완료';
+  document.getElementById('progressFill').style.width = (done/state.totalQ*100) + '%';
+}
+
+// ─── OX ───
+function submitOX(qNum, chosen, correct) {
+  const card = document.getElementById('q'+qNum);
+  const btns = card.querySelectorAll('.ox-btn');
+  btns.forEach(b => {
+    b.onclick = null;
+    b.style.opacity = '0.5';
+  });
+  const isCorrect = chosen === correct;
+  state.answers[qNum] = isCorrect ? 'correct' : 'wrong';
+  card.classList.remove('answered-correct','answered-wrong');
+  card.classList.add(isCorrect ? 'answered-correct' : 'answered-wrong');
+
+  // highlight selected button
+  btns.forEach(b => {
+    if (b.textContent.trim() === chosen) {
+      b.style.opacity = '1';
+      b.style.borderColor = isCorrect ? 'var(--correct)' : 'var(--wrong)';
+      b.style.color = isCorrect ? 'var(--correct)' : 'var(--wrong)';
+      b.style.background = isCorrect ? 'rgba(52,211,153,0.12)' : 'rgba(248,113,113,0.12)';
+    }
+  });
+  updateProgress();
+}
+
+// ─── SHORT ANSWER ───
+function checkShort(qNum, acceptedList) {
+  const input = document.getElementById('i'+qNum);
+  const val = input.value.trim().toLowerCase().replace(/\s/g,'');
+  const accepted = acceptedList.map(a=>a.toLowerCase().replace(/\s/g,''));
+  const isCorrect = accepted.some(a=>val===a || val.includes(a));
+  const card = document.getElementById('q'+qNum);
+  card.classList.remove('answered-correct','answered-wrong');
+  card.classList.add(isCorrect ? 'answered-correct' : 'answered-wrong');
+  input.style.borderColor = isCorrect ? 'var(--correct)' : 'var(--wrong)';
+  input.style.color = isCorrect ? 'var(--correct)' : 'var(--wrong)';
+  state.answers[qNum] = isCorrect ? 'correct' : 'wrong';
+  updateProgress();
+}
+
+// ─── ANSWER TOGGLE ───
+function toggleAnswer(id) {
+  const box = document.getElementById(id);
+  const btn = box.previousElementSibling;
+  const isVisible = box.classList.contains('visible');
+  box.classList.toggle('visible');
+  btn.classList.toggle('open');
+  btn.querySelector('.arrow').textContent = isVisible ? '▶' : '▼';
+}
+
+// ─── SCORE RESULT ───
+function showResult() {
+  const correct = Object.values(state.answers).filter(v=>v==='correct').length;
+  const wrong = Object.values(state.answers).filter(v=>v==='wrong').length;
+  const pending = state.totalQ - correct - wrong;
+  const pct = Math.round(correct/state.totalQ*100);
+
+  document.getElementById('resultScoreBig').textContent = correct;
+  document.getElementById('resultCorrect').textContent = correct;
+  document.getElementById('resultWrong').textContent = wrong;
+  document.getElementById('resultPending').textContent = pending;
+
+  let msg = '';
+  if(pct>=90) msg='🎉 완벽합니다! 베이지안 이론을 완전히 이해했어요.';
+  else if(pct>=70) msg='👍 잘했습니다! 틀린 문제를 다시 복습해 보세요.';
+  else if(pct>=50) msg='📚 절반은 왔어요! 사후확률과 분류기 개념을 다시 확인하세요.';
+  else msg='💪 강의 정리 파일과 함께 개념부터 다시 복습해 봅시다.';
+
+  document.getElementById('resultMsg').textContent = msg;
+  const banner = document.getElementById('resultBanner');
+  banner.classList.add('show');
+  banner.scrollIntoView({behavior:'smooth', block:'center'});
+}
+
+// ─── RESET ───
+function resetAll() {
+  state.answers = {};
+  document.querySelectorAll('.ox-btn').forEach(b=>{
+    b.style.opacity=''; b.style.borderColor=''; b.style.color=''; b.style.background='';
+  });
+  document.querySelectorAll('.ox-btn').forEach(b=>{
+    const card = b.closest('.quiz-card');
+    const qMatch = card.id.match(/q(\d+)/);
+    if(qMatch){
+      const n = parseInt(qMatch[1]);
+      const correctMap={1:'O',2:'X',3:'X',4:'O',5:'X',6:'X'};
+      if(correctMap[n]) b.onclick = ()=>submitOX(n, b.textContent.trim(), correctMap[n]);
+    }
+  });
+  document.querySelectorAll('.short-input').forEach(i=>{
+    i.value=''; i.style.borderColor=''; i.style.color='';
+  });
+  document.querySelectorAll('.code-blank-input').forEach(i=>{ i.value=''; });
+  document.querySelectorAll('.quiz-card').forEach(c=>{ c.classList.remove('answered-correct','answered-wrong'); });
+  document.querySelectorAll('.answer-box').forEach(b=>{ b.classList.remove('visible'); });
+  document.querySelectorAll('.answer-toggle').forEach(b=>{ b.classList.remove('open'); b.querySelector('.arrow').textContent='▶'; });
+  document.getElementById('resultBanner').classList.remove('show');
+  updateProgress();
+  // re-bind OX buttons
+  bindOX();
+}
+
+function bindOX() {
+  const correctMap={1:'O',2:'X',3:'X',4:'O',5:'X',6:'X'};
+  for(let n=1;n<=6;n++){
+    const card=document.getElementById('q'+n);
+    if(!card) continue;
+    card.querySelectorAll('.ox-btn').forEach(b=>{
+      b.onclick=()=>submitOX(n, b.textContent.trim(), correctMap[n]);
+    });
+  }
+}
+
+// ─── TOC ACTIVE ───
+const sections = [];
+for(let i=1;i<=20;i++){
+  const el=document.getElementById('q'+i);
+  if(el) sections.push(el);
+}
+function updateTOC(){
+  let current='';
+  sections.forEach(s=>{
+    if(s.getBoundingClientRect().top<=160) current=s.id;
+  });
+  document.querySelectorAll('.toc-item a').forEach(a=>{
+    a.classList.remove('active');
+    if(a.getAttribute('href')==='#'+current) a.classList.add('active');
+  });
+}
+window.addEventListener('scroll',updateTOC);
+document.querySelector('.main-content')?.addEventListener('scroll',updateTOC);
+document.querySelectorAll('.toc-item a').forEach(a=>{
+  a.addEventListener('click',e=>{
+    e.preventDefault();
+    const t=document.querySelector(a.getAttribute('href'));
+    if(t) t.scrollIntoView({behavior:'smooth',block:'start'});
+  });
+});
+bindOX();
+updateProgress();
+</script>
+</body>
+</html>
