@@ -1,0 +1,1252 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>9. Pattern Mining — Quiz</title>
+<style>
+:root {
+  --bg: #0a0e1a;
+  --surface: #111827;
+  --surface2: #1a2236;
+  --surface3: #1e2d45;
+  --border: #1f2f4a;
+  --accent: #38bdf8;
+  --accent2: #818cf8;
+  --accent3: #34d399;
+  --accent4: #f59e0b;
+  --accent5: #f87171;
+  --text: #e2e8f0;
+  --text-muted: #94a3b8;
+  --text-dim: #64748b;
+  --code-bg: #0d1520;
+  --correct: #34d399;
+  --wrong: #f87171;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',sans-serif;
+  font-size:15px;
+  line-height:1.7;
+  min-height:100vh;
+}
+
+/* ── HEADER ── */
+.header{
+  background:var(--surface);
+  border-bottom:1px solid var(--border);
+  padding:24px 40px;
+  position:sticky;top:0;z-index:100;
+  display:flex;align-items:center;justify-content:space-between;
+  gap:20px;flex-wrap:wrap;
+}
+.header-left .label{font-size:11px;letter-spacing:3px;color:var(--accent);text-transform:uppercase;margin-bottom:4px;}
+.header-left h1{font-family:'Impact','Arial Narrow',sans-serif;font-size:26px;letter-spacing:1px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.score-board{
+  display:flex;gap:16px;align-items:center;flex-wrap:wrap;
+}
+.score-chip{
+  background:var(--surface2);border:1px solid var(--border);border-radius:8px;
+  padding:8px 16px;text-align:center;min-width:80px;
+}
+.score-chip .val{font-family:'Impact','Arial Narrow',sans-serif;font-size:22px;color:var(--accent);}
+.score-chip .lbl{font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;}
+.btn-submit{
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  border:none;border-radius:8px;padding:10px 22px;
+  font-family:'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+  font-size:14px;font-weight:700;color:#0a0e1a;cursor:pointer;
+  transition:opacity .2s;white-space:nowrap;
+}
+.btn-submit:hover{opacity:.85;}
+.btn-reset{
+  background:var(--surface2);border:1px solid var(--border);border-radius:8px;
+  padding:10px 18px;font-size:13px;color:var(--text-muted);cursor:pointer;
+  transition:all .2s;white-space:nowrap;
+}
+.btn-reset:hover{color:var(--text);border-color:var(--accent);}
+
+/* ── MAIN ── */
+.main{max-width:860px;margin:0 auto;padding:40px 24px 80px;}
+
+/* ── SECTION DIVIDER ── */
+.sec-divider{
+  display:flex;align-items:center;gap:14px;
+  margin:40px 0 20px;
+}
+.sec-divider .sec-label{
+  font-family:'Impact','Arial Narrow',sans-serif;
+  font-size:11px;letter-spacing:3px;color:var(--accent2);
+  background:rgba(129,140,248,.1);border:1px solid rgba(129,140,248,.3);
+  border-radius:4px;padding:4px 10px;white-space:nowrap;text-transform:uppercase;
+}
+.sec-divider .sec-line{flex:1;height:1px;background:linear-gradient(90deg,var(--border),transparent);}
+
+/* ── QUESTION CARD ── */
+.q-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:12px;padding:26px 28px;margin-bottom:18px;
+  transition:border-color .2s;
+}
+.q-card.answered-correct{border-color:rgba(52,211,153,.4);}
+.q-card.answered-wrong{border-color:rgba(248,113,113,.4);}
+
+.q-meta{
+  display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;
+}
+.q-num{
+  font-family:'Impact','Arial Narrow',sans-serif;font-size:12px;
+  letter-spacing:2px;color:var(--accent);
+  background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.25);
+  border-radius:4px;padding:3px 9px;
+}
+.q-type{
+  font-size:11px;letter-spacing:1px;text-transform:uppercase;
+  border-radius:4px;padding:3px 9px;border:1px solid;
+}
+.type-mc{color:#38bdf8;border-color:rgba(56,189,248,.3);background:rgba(56,189,248,.07);}
+.type-ox{color:#34d399;border-color:rgba(52,211,153,.3);background:rgba(52,211,153,.07);}
+.type-sa{color:#f59e0b;border-color:rgba(245,158,11,.3);background:rgba(245,158,11,.07);}
+.type-calc{color:#818cf8;border-color:rgba(129,140,248,.3);background:rgba(129,140,248,.07);}
+.type-judge{color:#f87171;border-color:rgba(248,113,113,.3);background:rgba(248,113,113,.07);}
+.type-result{color:#fb923c;border-color:rgba(251,146,60,.3);background:rgba(251,146,60,.07);}
+.type-essay{color:#e879f9;border-color:rgba(232,121,249,.3);background:rgba(232,121,249,.07);}
+
+.q-app{
+  font-size:11px;color:var(--accent3);
+  background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.3);
+  border-radius:4px;padding:3px 9px;letter-spacing:1px;
+}
+.q-diff{font-size:13px;margin-left:auto;}
+.q-slide{font-size:11px;color:var(--text-dim);font-family:'Menlo','Courier New',monospace;}
+
+.q-text{font-size:15px;color:var(--text);margin-bottom:18px;line-height:1.75;}
+.q-text strong{color:var(--accent);}
+
+/* ── DB TABLE ── */
+.db-table{border-collapse:collapse;font-size:13px;margin:12px 0;width:auto;}
+.db-table th{background:var(--surface3);color:var(--accent);padding:7px 14px;
+  font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px solid var(--border);}
+.db-table td{padding:6px 14px;color:var(--text-muted);border-bottom:1px solid var(--border);}
+.db-table tr:hover td{background:var(--surface2);}
+
+/* formula */
+.fml{
+  background:var(--code-bg);border:1px solid var(--border);
+  border-left:3px solid var(--accent2);border-radius:6px;
+  padding:10px 16px;margin:10px 0;
+  font-family:'Menlo','Courier New',monospace;font-size:13px;color:var(--accent2);
+}
+
+/* ── OPTIONS ── */
+.options{display:flex;flex-direction:column;gap:9px;margin-bottom:16px;}
+.opt-btn{
+  display:flex;align-items:center;gap:12px;
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:8px;padding:11px 16px;cursor:pointer;
+  text-align:left;color:var(--text-muted);font-size:14px;
+  transition:all .18s;font-family:inherit;width:100%;
+}
+.opt-btn:hover:not(:disabled){background:var(--surface3);color:var(--text);border-color:var(--accent);}
+.opt-btn:disabled{cursor:default;}
+.opt-btn.selected{border-color:var(--accent2);background:rgba(129,140,248,.1);color:var(--text);}
+.opt-btn.correct{border-color:var(--correct);background:rgba(52,211,153,.1);color:var(--correct);}
+.opt-btn.wrong{border-color:var(--wrong);background:rgba(248,113,113,.1);color:var(--wrong);}
+.opt-label{
+  min-width:26px;height:26px;border-radius:6px;
+  display:flex;align-items:center;justify-content:center;
+  font-weight:700;font-size:13px;background:var(--surface);
+  border:1px solid var(--border);flex-shrink:0;
+}
+
+/* OX */
+.ox-wrap{display:flex;gap:12px;margin-bottom:16px;}
+.ox-btn{
+  flex:1;padding:14px;border-radius:8px;border:1px solid var(--border);
+  background:var(--surface2);cursor:pointer;font-size:28px;
+  font-family:inherit;transition:all .18s;
+}
+.ox-btn:hover:not(:disabled){border-color:var(--accent);background:var(--surface3);}
+.ox-btn:disabled{cursor:default;}
+.ox-btn.selected{border-color:var(--accent2);background:rgba(129,140,248,.1);}
+.ox-btn.correct{border-color:var(--correct);background:rgba(52,211,153,.1);}
+.ox-btn.wrong{border-color:var(--wrong);background:rgba(248,113,113,.1);}
+
+/* SHORT ANSWER */
+.sa-wrap{display:flex;gap:10px;margin-bottom:16px;align-items:center;flex-wrap:wrap;}
+.sa-input{
+  flex:1;min-width:200px;background:var(--surface2);border:1px solid var(--border);
+  border-radius:8px;padding:10px 14px;color:var(--text);font-size:14px;
+  font-family:inherit;outline:none;transition:border-color .2s;
+}
+.sa-input:focus{border-color:var(--accent);}
+.sa-input:disabled{opacity:.6;cursor:default;}
+.sa-input.correct{border-color:var(--correct);}
+.sa-input.wrong{border-color:var(--wrong);}
+.btn-check{
+  background:var(--surface2);border:1px solid var(--accent2);
+  border-radius:8px;padding:10px 18px;color:var(--accent2);
+  font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;
+  font-family:inherit;white-space:nowrap;
+}
+.btn-check:hover{background:rgba(129,140,248,.1);}
+.btn-check:disabled{opacity:.4;cursor:default;}
+
+/* ── ANSWER TOGGLE ── */
+.ans-toggle{
+  background:none;border:1px solid var(--border);border-radius:6px;
+  padding:7px 14px;color:var(--text-dim);font-size:12px;cursor:pointer;
+  display:flex;align-items:center;gap:6px;transition:all .2s;
+  font-family:inherit;
+}
+.ans-toggle:hover{color:var(--text);border-color:var(--accent);}
+.ans-toggle .arrow{transition:transform .2s;display:inline-block;}
+.ans-toggle.open .arrow{transform:rotate(180deg);}
+
+.ans-box{
+  margin-top:12px;background:var(--surface2);border:1px solid var(--border);
+  border-left:3px solid var(--accent3);border-radius:8px;
+  padding:16px 18px;display:none;
+}
+.ans-box.show{display:block;}
+.ans-box .ans-label{
+  font-size:11px;color:var(--accent3);letter-spacing:1px;
+  text-transform:uppercase;margin-bottom:8px;font-weight:700;
+}
+.ans-box .ans-text{color:var(--text-muted);font-size:14px;line-height:1.75;}
+.ans-box .ans-text strong{color:var(--text);}
+.ans-box .ans-text .key{
+  display:inline-block;background:rgba(52,211,153,.15);
+  border:1px solid rgba(52,211,153,.3);border-radius:4px;
+  padding:1px 8px;color:var(--accent3);font-family:'Menlo','Courier New',monospace;
+  font-size:12px;margin:1px;
+}
+.ans-box .ans-text .wrong-key{
+  display:inline-block;background:rgba(248,113,113,.1);
+  border:1px solid rgba(248,113,113,.3);border-radius:4px;
+  padding:1px 8px;color:var(--accent5);font-family:'Menlo','Courier New',monospace;
+  font-size:12px;margin:1px;
+}
+.ans-box .process{
+  background:var(--code-bg);border:1px solid var(--border);border-radius:6px;
+  padding:12px 14px;margin-top:10px;
+  font-family:'Menlo','Courier New',monospace;font-size:12.5px;
+  color:var(--accent2);line-height:1.7;
+}
+
+/* ── RESULT BANNER ── */
+.result-banner{
+  background:var(--surface);border:1px solid var(--border);border-radius:12px;
+  padding:28px 32px;text-align:center;margin-bottom:36px;display:none;
+}
+.result-banner.show{display:block;}
+.result-banner .big{
+  font-family:'Impact','Arial Narrow',sans-serif;font-size:52px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.result-banner .sub{color:var(--text-muted);font-size:15px;margin-top:6px;}
+.result-banner .grade{
+  font-size:22px;font-weight:700;margin-top:10px;
+}
+
+/* ── PROGRESS BAR ── */
+.progress-wrap{height:3px;background:var(--border);border-radius:2px;margin-top:8px;}
+.progress-bar{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));
+  border-radius:2px;transition:width .3s;}
+
+/* ── MISC ── */
+code{background:var(--code-bg);border:1px solid var(--border);border-radius:4px;
+  padding:1px 6px;font-family:'Menlo','Courier New',monospace;font-size:12.5px;color:var(--accent2);}
+.alert-y{background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.3);
+  border-radius:6px;padding:10px 14px;margin:10px 0;font-size:13.5px;color:var(--text-muted);}
+.alert-y strong{color:var(--accent4);}
+</style>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<header class="header">
+  <div class="header-left">
+    <div class="label">Data Mining · 9. Pattern Mining</div>
+    <h1>QUIZ — 25문제</h1>
+  </div>
+  <div class="score-board">
+    <div class="score-chip">
+      <div class="val" id="answered-val">0</div>
+      <div class="lbl">답변</div>
+    </div>
+    <div class="score-chip">
+      <div class="val" id="correct-val">—</div>
+      <div class="lbl">정답</div>
+    </div>
+    <div class="score-chip">
+      <div class="val" id="total-val">25</div>
+      <div class="lbl">전체</div>
+    </div>
+    <button class="btn-submit" onclick="submitAll()">채점하기</button>
+    <button class="btn-reset" onclick="resetAll()">초기화</button>
+  </div>
+  <div style="width:100%;">
+    <div class="progress-wrap"><div class="progress-bar" id="progress-bar" style="width:0%"></div></div>
+  </div>
+</header>
+
+<main class="main">
+
+<!-- ── 결과 배너 ── -->
+<div class="result-banner" id="result-banner">
+  <div class="big" id="result-score"></div>
+  <div class="sub" id="result-sub"></div>
+  <div class="grade" id="result-grade"></div>
+</div>
+
+<!-- ════════════════════════════════════════
+     PART 1 — 객관식 (6문제)
+════════════════════════════════════════ -->
+<div class="sec-divider">
+  <span class="sec-label">Part 1 · 객관식 (4지선다)</span>
+  <div class="sec-line"></div>
+</div>
+
+<!-- Q1 -->
+<div class="q-card" id="qcard-1">
+  <div class="q-meta">
+    <span class="q-num">Q01</span>
+    <span class="q-type type-mc">객관식</span>
+    <span class="q-diff">⭐</span>
+    <span class="q-slide">Slide 3</span>
+  </div>
+  <div class="q-text">
+    빈발 패턴(Frequent Pattern)의 종류가 <strong>아닌</strong> 것은?
+  </div>
+  <div class="options" id="opts-1">
+    <button class="opt-btn" onclick="selectMC(1,this,'wrong')"><span class="opt-label">①</span>Frequent Itemsets — 함께 등장하는 아이템 집합</button>
+    <button class="opt-btn" onclick="selectMC(1,this,'wrong')"><span class="opt-label">②</span>Sequential Patterns — 특정 순서로 등장하는 아이템 패턴</button>
+    <button class="opt-btn" onclick="selectMC(1,this,'correct')"><span class="opt-label">③</span>Cluster Patterns — 유사한 데이터를 군집화하는 패턴</button>
+    <button class="opt-btn" onclick="selectMC(1,this,'wrong')"><span class="opt-label">④</span>Structured Patterns — 서브그래프, 서브트리 등 구조 패턴</button>
+  </div>
+  <button class="ans-toggle" onclick="toggleAns(1)"><span class="arrow">▼</span> 정답 및 해설</button>
+  <div class="ans-box" id="ans-1">
+    <div class="ans-label">정답</div>
+    <div class="ans-text">
+      <span class="key">③ Cluster Patterns</span><br><br>
+      강의에서 제시한 빈발 패턴의 3가지 유형은 <strong>Frequent Itemsets, Sequential Patterns, Structured Patterns</strong>이다. 클러스터링(군집화)은 별도의 데이터 마이닝 태스크이며 빈발 패턴의 유형에 속하지 않는다.
+    </div>
+  </div>
+</div>
+
+<!-- Q2 -->
+<div class="q-card" id="qcard-2">
+  <div class="q-meta">
+    <span class="q-num">Q02</span>
+    <span class="q-type type-mc">객관식</span>
+    <span class="q-diff">⭐</span>
+    <span class="q-slide">Slide 5</span>
+  </div>
+  <div class="q-text">
+    연관 규칙 <code>A ⇒ B</code>에서 반드시 성립해야 하는 조건으로 올바른 것은?
+  </div>
+  <div class="options" id="opts-2">
+    <button class="opt-btn" onclick="selectMC(2,this,'wrong')"><span class="opt-label">①</span>A ∩ B ≠ ∅ (A와 B는 공통 원소를 가져야 한다)</button>
+    <button class="opt-btn" onclick="selectMC(2,this,'correct')"><span class="opt-label">②</span>A ∩ B = ∅, A ≠ ∅, B ≠ ∅ (A와 B는 서로소이며 모두 비어있지 않다)</button>
+    <button class="opt-btn" onclick="selectMC(2,this,'wrong')"><span class="opt-label">③</span>A ⊆ B (A는 B의 부분집합이어야 한다)</button>
+    <button class="opt-btn" onclick="selectMC(2,this,'wrong')"><span class="opt-label">④</span>|A| = |B| (A와 B의 크기가 같아야 한다)</button>
+  </div>
+  <button class="ans-toggle" onclick="toggleAns(2)"><span class="arrow">▼</span> 정답 및 해설</button>
+  <div class="ans-box" id="ans-2">
+    <div class="ans-label">정답</div>
+    <div class="ans-text">
+      <span class="key">② A ∩ B = ∅, A ≠ ∅, B ≠ ∅</span><br><br>
+      연관 규칙 A ⇒ B는 A와 B가 겹치지 않는(서로소) 별개의 아이템셋이어야 한다. 둘 다 비어있지 않아야 하며, support = P(A ∪ B)로 "둘이 함께 등장하는" 확률을 측정한다.
+    </div>
+  </div>
+</div>
+
+<!-- Q3 -->
+<div class="q-card" id="qcard-3">
+  <div class="q-meta">
+    <span class="q-num">Q03</span>
+    <span class="q-type type-mc">객관식</span>
+    <span class="q-diff">⭐⭐</span>
+    <span class="q-slide">Slide 7</span>
+  </div>
+  <div class="q-text">
+    연관 규칙 마이닝 문제를 <strong>빈발 아이템셋 탐색 문제로 환원</strong>할 수 있는 근거는?
+  </div>
+  <div class="options" id="opts-3">
+    <button class="opt-btn" onclick="selectMC(3,this,'wrong')"><span class="opt-label">①</span>모든 연관 규칙의 confidence는 항상 1이기 때문이다</button>
+    <button class="opt-btn" onclick="selectMC(3,this,'wrong')"><span class="opt-label">②</span>support와 confidence는 항상 동일한 값을 가지기 때문이다</button>
+    <button class="opt-btn" onclick="selectMC(3,this,'correct')"><span class="opt-label">③</span>support_count(A), support_count(B), support_count(A∪B)만 알면 A⇒B와 B⇒A의 confidence를 모두 계산할 수 있기 때문이다</button>
+    <button class="opt-btn" onclick="selectMC(3,this,'wrong')"><span class="opt-label">④</span>빈발 아이템셋은 항상 강한 연관 규칙을 형성하기 때문이다</button>
+  </div>
+  <button class="ans-toggle" onclick="toggleAns(3)"><span class="arrow">▼</span> 정답 및 해설</button>
+  <div class="ans-box" id="ans-3">
+    <div class="ans-label">정답</div>
+    <div class="ans-text">
+      <span class="key">③</span><br><br>
+      <strong>confidence(A⇒B) = support_count(A∪B) / support_count(A)</strong><br>
+      support_count 세 값(A, B, A∪B)만 구하면 A⇒B와 B⇒A의 confidence를 모두 계산할 수 있다. 즉 빈발 아이템셋 탐색만으로 규칙 생성이 가능하다.
+    </div>
+  </div>
+</div>
+
+<!-- Q4 -->
+<div class="q-card" id="qcard-4">
+  <div class="q-meta">
+    <span class="q-num">Q04</span>
+    <span class="q-type type-mc">객관식</span>
+    <span class="q-diff">⭐⭐</span>
+    <span class="q-slide">Slide 14</span>
+  </div>
+  <div class="q-text">
+    Apriori 알고리즘의 <strong>Antimonotonicity(반단조성)</strong>에 대한 설명으로 옳은 것은?
+  </div>
+  <div class="options" id="opts-4">
+    <button class="opt-btn" onclick="selectMC(4,this,'wrong')"><span class="opt-label">①</span>빈발 아이템셋의 모든 superset도 빈발하다</button>
+    <button class="opt-btn" onclick="selectMC(4,this,'correct')"><span class="opt-label">②</span>비빈발 아이템셋의 모든 superset도 비빈발하다</button>
+    <button class="opt-btn" onclick="selectMC(4,this,'wrong')"><span class="opt-label">③</span>아이템을 추가하면 support가 증가한다</button>
+    <button class="opt-btn" onclick="selectMC(4,this,'wrong')"><span class="opt-label">④</span>빈발 아이템셋과 비빈발 아이템셋은 같은 수의 subset을 가진다</button>
+  </div>
+  <button class="ans-toggle" onclick="toggleAns(4)"><span class="arrow">▼</span> 정답 및 해설</button>
+  <div class="ans-box" id="ans-4">
+    <div class="ans-label">정답</div>
+    <div class="ans-text">
+      <span class="key">② 비빈발 아이템셋의 모든 superset도 비빈발하다</span><br><br>
+      Antimonotonicity의 핵심: 아이템셋 ℐ가 min_sup를 만족하지 못하면, 아이템 A를 추가한 <strong>ℐ ∪ A는 ℐ보다 더 적게 등장</strong>하므로 역시 min_sup를 만족하지 못한다. 이 성질을 이용해 후보 아이템셋을 대규모로 가지치기(pruning)할 수 있다.
+    </div>
+  </div>
+</div>
+
+<!-- Q5 -->
+<div class="q-card" id="qcard-5">
+  <div class="q-meta">
+    <span class="q-num">Q05</span>
+    <span class="q-type type-mc">객관식</span>
+    <span class="q-diff">⭐⭐</span>
+    <span class="q-slide">Slide 15</span>
+  </div>
+  <div class="q-text">
+    Apriori 알고리즘의 <strong>Join 단계</strong>에서 두 (k−1)-itemset을 조인할 수 있는 조건은?
+  </div>
+  <div class="options" id="opts-5">
+    <button class="opt-btn" onclick="selectMC(5,this,'wrong')"><span class="opt-label">①</span>두 아이템셋의 모든 원소가 서로 다를 때</button>
+    <button class="opt-btn" onclick="selectMC(5,this,'wrong')"><span class="opt-label">②</span>두 아이템셋의 마지막 원소만 동일할 때</button>
+    <button class="opt-btn" onclick="selectMC(5,this,'correct')"><span class="opt-label">③</span>앞 (k−2)개 원소가 동일하고 마지막 원소만 다를 때 (사전순 정렬 기준)</span></button>
+    <button class="opt-btn" onclick="selectMC(5,this,'wrong')"><span class="opt-label">④</span>두 아이템셋의 support count가 동일할 때</button>
+  </div>
+  <button class="ans-toggle" onclick="toggleAns(5)"><span class="arrow">▼</span> 정답 및 해설</button>
+  <div class="ans-box" id="ans-5">
+    <div class="ans-label">정답</div>
+    <div class="ans-text">
+      <span class="key">③</span><br><br>
+      사전순(lexicographic order) 정렬 기준으로, 두 (k−1)-itemset l₁, l₂가 <strong>앞 k−2개 아이템은 동일</strong>하고 <strong>마지막 아이템만 다르며(l₁[k-1] &lt; l₂[k-1])</strong>을 만족해야 조인 가능하다. 이 조건이 중복 후보 생성을 방지한다.
+    </div>
+  </div>
+</div>
+
+<!-- Q6 -->
+<div class="q-card" id="qcard-6">
+  <div class="q-meta">
+    <span class="q-num">Q06</span>
+    <span class="q-type type-mc">객관식</span>
+    <span class="q-diff">⭐⭐⭐</span>
+    <span class="q-slide">Slide 15</span>
+  </div>
+  <div class="q-text">
+    Apriori의 <strong>Prune 단계</strong>에서 후보 3-itemset <code>{A, B, C}</code>를 제거하는 조건으로 정확한 것은?
+  </div>
+  <div class="options" id="opts-6">
+    <button class="opt-btn" onclick="selectMC(6,this,'wrong')"><span class="opt-label">①</span>{A,B,C}의 support count가 0일 때</button>
+    <button class="opt-btn" onclick="selectMC(6,this,'wrong')"><span class="opt-label">②</span>{A,B,C} 자체가 L₃에 없을 때</button>
+    <button class="opt-btn" onclick="selectMC(6,this,'correct')"><span class="opt-label">③</span>{A,B,C}의 2-item subset 중 하나라도 L₂에 없을 때</button>
+    <button class="opt-btn" onclick="selectMC(6,this,'wrong')"><span class="opt-label">④</span>{A,B,C}의 모든 2-item subset이 L₂에 없을 때</button>
+  </div>
+  <button class="ans-toggle" onclick="toggleAns(6)"><span class="arrow">▼</span> 정답 및 해설</button>
+  <div class="ans-box" id="ans-6">
+    <div class="ans-label">정답</div>
+    <div class="ans-text">
+      <span class="key">③ 하나라도 없을 때</span><br><br>
+      Antimonotonicity에 의해: "빈발 k-itemset의 <strong>모든</strong> (k-1)-subset이 빈발해야 한다." 따라서 (k-1)-subset 중 <strong>하나라도</strong> Lₖ₋₁에 없으면 해당 후보는 빈발할 수 없으므로 제거한다. ④처럼 '모두'가 아니라 '하나라도'가 조건이다.
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     PART 2 — OX 문제 (4문제)
+════════════════════════════════════════ -->
+<div class="sec-divider">
+  <span class="sec-label">Part 2 · OX 문제</span>
+  <div class="sec-line"></div>
+</div>
+
+<!-- Q7 -->
+<div class="q-card" id="qcard-7">
+  <div class="q-meta">
+    <span class="q-num">Q07</span>
+    <span class="q-type type-ox">OX</span>
+    <span class="q-diff">⭐</span>
+    <span class="q-slide">Slide 6</span>
+  </div>
+  <div class="q-text">
+    <strong>[O/X]</strong> 빈발 아이템셋의 빈도(occurrence frequency)는 해당 아이템셋을 포함하는 트랜잭션의 수이며, 이를 <em>absolute support</em>라고도 한다.
+  </div>
+  <div class="ox-wrap" id="ox-7">
+    <button class="ox-btn" onclick="selectOX(7,this,'correct')">⭕ O</button>
+    <button class="ox-btn" onclick="selectOX(7,this,'wrong')">❌ X</button>
+  </div>
+  <button class="ans-toggle" onclick="toggleAns(7)"><span class="arrow">▼</span> 정답 및 해설</button>
+  <div class="ans-box" id="ans-7">
+    <div class="ans-label">정답: O</div>
+    <div class="ans-text">
+      occurrence frequency = support count = absolute support (절대 지지도). 이에 대응하여 전체 트랜잭션 대비 비율은 <strong>relative support (상대 지지도)</strong>라 한다.
+    </div>
+  </div>
+</div>
+
+<!-- Q8 -->
+<div class="q-card" id="qcard-8">
+  <div class="q-meta">
+    <span class="q-num">Q08</span>
+    <span class="q-type type-ox">OX</span>
+    <span class="q-diff">⭐⭐</span>
+    <span class="q-slide">Slide 11</span>
+  </div>
+  <div class="q-text">
+    <strong>[O/X]</strong> support(A ⇒ B)에서 <code>∪</code>(합집합)를 사용하는 이유는 A와 B의 공통 원소(교집합)를 구하는 것이 목적이기 때문이다.
+  </div>
+  <div class="ox-wrap" id="ox-8">
+    <button class="ox-btn" onclick="selectOX(8,this,'wrong')">⭕ O</button>
+    <button class="ox-btn" onclick="selectOX(8,this,'correct')">❌ X</button>
+  </div>
+  <button class="ans-toggle" onclick="toggleAns(8)"><span class="arrow">▼</span> 정답 및 해설</button>
+  <div class="ans-box" id="ans-8">
+    <div class="ans-label">정답: X</div>
+    <div class="ans-text">
+      ∪를 사용하는 이유는 A와 B를 <strong>합쳐 하나의 아이템셋을 형성</strong>하기 위해서이다. A ∩ B = ∅이므로 교집합은 공집합이어서 의미가 없다. support(A∪B)는 "A와 B가 함께 등장하는 트랜잭션의 비율"을 의미한다.
+    </div>
+  </div>
+</div>
+
+<!-- Q9 -->
+<div class="q-card" id="qcard-9">
+  <div class="q-meta">
+    <span class="q-num">Q09</span>
+    <span class="q-type type-ox">OX</span>
+    <span class="q-diff">⭐⭐</span>
+    <span class="q-slide">Slide 13</span>
+  </div>
+  <div class="q-text">
+    <strong>[O/X]</strong> Apriori 알고리즘은 매 반복(iteration)마다 데이터베이스 전체를 한 번씩 스캔한다.
+  </div>
+  <div class="ox-wrap" id="ox-9">
+    <button class="ox-btn" onclick="selectOX(9,this,'correct')">⭕ O</button>
+    <button class="ox-btn" onclick="selectOX(9,this,'wrong')">❌ X</button>
+  </div>
+  <button class="ans-toggle" onclick="toggleAns(9)"><span class="arrow">▼</span> 정답 및 해설</button>
+  <div class="ans-box" id="ans-9">
+    <div class="ans-label">정답: O</div>
+    <div class="ans-text">
+      Apriori는 level-wise 탐색 방식으로, 각 k에 대해 Cₖ의 support count를 세기 위해 <strong>전체 DB를 한 번 스캔</strong>한다. DB 크기가 클수록 이 반복 스캔이 성능 병목이 된다.
+    </div>
+  </div>
+</div>
+
+<!-- Q10 -->
+<div class="q-card" id="qcard-10">
+  <div class="q-meta">
+    <span class="q-num">Q10</span>
+    <span class="q-type type-ox">OX</span>
+    <span class="q-diff">⭐⭐⭐</span>
+    <span class="q-slide">Slide 12</span>
+  </div>
+  <div class="q-text">
+    <strong>[O/X]</strong> Maximal Frequent Itemset은 Closed Frequent Itemset의 부분집합이다. 즉, 모든 Maximal Frequent Itemset은 Closed Frequent Itemset이기도 하다.
+  </div>
+  <div class="ox-wrap" id="ox-10">
+    <button class="ox-btn" onclick="selectOX(10,this,'correct')">⭕ O</button>
+    <button class="ox-btn" onclick="selectOX(10,this,'wrong')">❌ X</button>
+  </div>
+  <button class="ans-toggle" onclick="toggleAns(10)"><span class="arrow">▼</span> 정답 및 해설</button>
+  <div class="ans-box" id="ans-10">
+    <div class="ans-label">정답: O</div>
+    <div class="ans-text">
+      Maximal Frequent Itemset X는 모든 proper superset이 <strong>비빈발</strong>하므로, X보다 support count가 같거나 큰 superset이 존재하지 않는다. 이는 Closed Frequent Itemset의 정의(모든 proper superset의 support count &lt; X의 support count)를 만족하므로, <strong>Maximal ⊆ Closed</strong> 관계가 성립한다.
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     PART 3 — 단답형 (3문제)
+════════════════════════════════════════ -->
+<div class="sec-divider">
+  <span class="sec-label">Part 3 · 단답형</span>
+  <div class="sec-line"></div>
+</div>
+
+<!-- Q11 -->
+<div class="q-card" id="qcard-11">
+  <div class="q-meta">
+    <span class="q-num">Q11</span>
+    <span class="q-type type-sa">단답형</span>
+    <span class="q-diff">⭐</span>
+    <span class="q-slide">Slide 6</span>
+  </div>
+  <div class="q-text">
+    빈발 k-itemset의 집합을 나타내는 표기는? (예: 빈발 2-itemset 집합 → <code>L₂</code>)
+    <br>그렇다면 빈발 <strong>3-itemset</strong>의 집합은 어떻게 표기하는가?
+  </div>
+  <div class="sa-wrap">
+    <input class="sa-input" id="sa-11" type="text" placeholder="답 입력...">
+    <button class="btn-check" onclick="checkSA(11, ['L3','L₃','l3'])">확인</button>
+  </div>
+  <button class="ans-toggle" onclick="toggleAns(11)"><span class="arrow">▼</span> 정답 및 해설</button>
+  <div class="ans-box" id="ans-11">
+    <div class="ans-label">정답</div>
+    <div class="ans-text">
+      <span class="key">L₃</span><br><br>
+      빈발 k-itemset의 집합은 <strong>Lₖ</strong>로 표기한다. L₁ = 빈발 1-itemset 집합, L₂ = 빈발 2-itemset 집합, L₃ = 빈발 3-itemset 집합.
+    </div>
+  </div>
+</div>
+
+<!-- Q12 -->
+<div class="q-card" id="qcard-12">
+  <div class="q-meta">
+    <span class="q-num">Q12</span>
+    <span class="q-type type-sa">단답형</span>
+    <span class="q-diff">⭐⭐</span>
+    <span class="q-slide">Slide 14</span>
+  </div>
+  <div class="q-text">
+    Apriori 알고리즘에서 사용하는 성질로, "테스트를 통과하지 못하는 집합의 모든 superset도 동일한 테스트를 통과하지 못한다"는 성질의 명칭은?
+  </div>
+  <div class="sa-wrap">
+    <input class="sa-input" id="sa-12" type="text" placeholder="영어로 입력...">
+    <button class="btn-check" onclick="checkSA(12, ['antimonotonicity','anti-monotonicity','반단조성'])">확인</button>
+  </div>
+  <button class="ans-toggle" onclick="toggleAns(12)"><span class="arrow">▼</span> 정답 및 해설</button>
+  <div class="ans-box" id="ans-12">
+    <div class="ans-label">정답</div>
+    <div class="ans-text">
+      <span class="key">Antimonotonicity</span> (반단조성)<br><br>
+      이 성질 덕분에 비빈발 아이템셋의 superset 전체를 한 번에 가지치기할 수 있어, Apriori가 지수적 탐색 공간을 효율적으로 줄일 수 있다.
+    </div>
+  </div>
+</div>
+
+<!-- Q13 -->
+<div class="q-card" id="qcard-13">
+  <div class="q-meta">
+    <span class="q-num">Q13</span>
+    <span class="q-type type-sa">단답형</span>
+    <span class="q-diff">⭐⭐</span>
+    <span class="q-slide">Slide 8</span>
+  </div>
+  <div class="q-text">
+    연관 규칙 마이닝의 <strong>2단계 프로세스</strong>에서, 2단계는 "빈발 아이템셋으로부터 강한 연관 규칙을 생성"하는 것이다. 이때 강한(strong) 연관 규칙이 되려면 만족해야 하는 두 가지 임계값은?
+  </div>
+  <div class="sa-wrap">
+    <input class="sa-input" id="sa-13" type="text" placeholder="두 가지 조건 입력 (예: A, B)">
+    <button class="btn-check" onclick="checkSA(13, ['minimum support,minimum confidence','min_sup,min_conf','최소지지도,최소신뢰도','minimum confidence,minimum support','min support,min confidence'])">확인</button>
+  </div>
+  <button class="ans-toggle" onclick="toggleAns(13)"><span class="arrow">▼</span> 정답 및 해설</button>
+  <div class="ans-box" id="ans-13">
+    <div class="ans-label">정답</div>
+    <div class="ans-text">
+      <span class="key">minimum support</span> + <span class="key">minimum confidence</span><br><br>
+      강한 연관 규칙은 <strong>min_sup(최소 지지도)</strong>와 <strong>min_conf(최소 신뢰도)</strong> 두 임계값을 모두 만족해야 한다.
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     PART 4 — 종합 판단형 (3문제)
+════════════════════════════════════════ -->
+<div class="sec-divider">
+  <span class="sec-label">Part 4 · 종합 판단형</span>
+  <div class="sec-line"></div>
+</div>
+
+<!-- Q14 -->
+<div class="q-card" id="qcard-14">
+  <div class="q-meta">
+    <span class="q-num">Q14</span>
+    <span class="q-type type-judge">종합 판단형</span>
+    <span class="q-diff">⭐⭐</span>
+    <span class="q-slide">Slide 5–7</span>
+  </div>
+  <div class="q-text">
+    다음 중 <strong>옳지 않은</strong> 설명은?
+  </div>
+  <div class="options" id="opts-14">
+    <button class="opt-btn" onclick="selectMC(14,this,'wrong')"><span class="opt-label">①</span>support(A⇒B) = P(A∪B): A와 B가 동시에 등장하는 트랜잭션의 비율이다</button>
+    <button class="opt-btn" onclick="selectMC(14,this,'wrong')"><span class="opt-label">②</span>confidence(A⇒B) = support_count(A∪B) / support_count(A)</button>
+    <button class="opt-btn" onclick="selectMC(14,this,'correct')"><span class="opt-label">③</span>confidence(A⇒B)와 confidence(B⇒A)는 항상 동일한 값을 가진다</button>
+    <button class="opt-btn" onclick="selectMC(14,this,'wrong')"><span class="opt-label">④</span>연관 규칙 A⇒B에서 A와 B는 서로 공통 원소를 갖지 않는다</button>
+  </div>
+  <button class="ans-toggle" onclick="toggleAns(14)"><span class="arrow">▼</span> 정답 및 해설</button>
+  <div class="ans-box" id="ans-14">
+    <div class="ans-label">정답</div>
+    <div class="ans-text">
+      <span class="key">③</span><br><br>
+      confidence(A⇒B) = support_count(A∪B) / <strong>support_count(A)</strong><br>
+      confidence(B⇒A) = support_count(A∪B) / <strong>support_count(B)</strong><br><br>
+      분모가 다르므로 support_count(A) ≠ support_count(B)이면 두 confidence는 다른 값을 가진다. 강의 예제에서도 {I1,I5}⇒I2 = 100%, I2⇒{I1,I5} = 29%로 서로 다르다.
+    </div>
+  </div>
+</div>
+
+<!-- Q15 -->
+<div class="q-card" id="qcard-15">
+  <div class="q-meta">
+    <span class="q-num">Q15</span>
+    <span class="q-type type-judge">종합 판단형</span>
+    <span class="q-diff">⭐⭐⭐</span>
+    <span class="q-slide">Slide 12–14</span>
+  </div>
+  <div class="q-text">
+    다음 중 Apriori 알고리즘과 Antimonotonicity에 대한 설명으로 <strong>옳은 것</strong>만 모두 고른 것은?<br><br>
+    <em>ㄱ. 빈발 아이템셋의 모든 비공 부분집합도 빈발하다.</em><br>
+    <em>ㄴ. 길이 100인 빈발 아이템셋은 총 2¹⁰⁰−1개의 빈발 부분집합을 포함한다.</em><br>
+    <em>ㄷ. Apriori는 C₄=∅이 되면 더 이상 빈발 아이템셋이 없으므로 탐색을 종료한다.</em><br>
+    <em>ㄹ. Prune 단계에서 후보의 (k−1)-subset 중 하나라도 비빈발이면 해당 후보를 제거한다.</em>
+  </div>
+  <div class="options" id="opts-15">
+    <button class="opt-btn" onclick="selectMC(15,this,'wrong')"><span class="opt-label">①</span>ㄱ, ㄴ</button>
+    <button class="opt-btn" onclick="selectMC(15,this,'wrong')"><span class="opt-label">②</span>ㄱ, ㄷ, ㄹ</button>
+    <button class="opt-btn" onclick="selectMC(15,this,'correct')"><span class="opt-label">③</span>ㄱ, ㄴ, ㄷ, ㄹ (모두 옳다)</button>
+    <button class="opt-btn" onclick="selectMC(15,this,'wrong')"><span class="opt-label">④</span>ㄴ, ㄷ</button>
+  </div>
+  <button class="ans-toggle" onclick="toggleAns(15)"><span class="arrow">▼</span> 정답 및 해설</button>
+  <div class="ans-box" id="ans-15">
+    <div class="ans-label">정답</div>
+    <div class="ans-text">
+      <span class="key">③ 모두 옳다</span><br><br>
+      ㄱ. Apriori Property 정의 — 올바름<br>
+      ㄴ. 길이 n인 집합의 비공 부분집합 수 = 2ⁿ−1 — 올바름<br>
+      ㄷ. 알고리즘 종료 조건: Cₖ=∅이면 더 이상 후보가 없으므로 탐색 종료 — 올바름<br>
+      ㄹ. Prune 조건: (k−1)-subset 중 하나라도 Lₖ₋₁에 없으면 제거 — 올바름
+    </div>
+  </div>
+</div>
+
+<!-- Q16 -->
+<div class="q-card" id="qcard-16">
+  <div class="q-meta">
+    <span class="q-num">Q16</span>
+    <span class="q-type type-judge">종합 판단형</span>
+    <span class="q-diff">⭐⭐⭐</span>
+    <span class="q-slide">Slide 16–19</span>
+  </div>
+  <div class="q-text">
+    강의 예제(|D|=9, min_sup=2)의 L₂는 아래와 같다. 다음 설명 중 <strong>틀린 것</strong>은?<br>
+    <div style="margin:10px 0;font-family:'Menlo','Courier New',monospace;font-size:13px;color:var(--accent2);">
+      L₂ = { {I1,I2}:4, {I1,I3}:4, {I1,I5}:2, {I2,I3}:4, {I2,I4}:2, {I2,I5}:2 }
+    </div>
+  </div>
+  <div class="options" id="opts-16">
+    <button class="opt-btn" onclick="selectMC(16,this,'wrong')"><span class="opt-label">①</span>{I1,I4}는 support count=1로 min_sup=2 미달이라 L₂에서 제외되었다</button>
+    <button class="opt-btn" onclick="selectMC(16,this,'wrong')"><span class="opt-label">②</span>L₂에서 생성되는 C₃ 후보 중 {I1,I3,I5}는 {I3,I5}가 L₂에 없으므로 prune된다</button>
+    <button class="opt-btn" onclick="selectMC(16,this,'correct')"><span class="opt-label">③</span>L₂에서 C₃를 생성할 때 {I1,I2,I4}는 join 조건을 만족하므로 초기 후보에 포함된다</button>
+    <button class="opt-btn" onclick="selectMC(16,this,'wrong')"><span class="opt-label">④</span>최종 L₃ = { {I1,I2,I3}:2, {I1,I2,I5}:2 }이다</button>
+  </div>
+  <button class="ans-toggle" onclick="toggleAns(16)"><span class="arrow">▼</span> 정답 및 해설</button>
+  <div class="ans-box" id="ans-16">
+    <div class="ans-label">정답</div>
+    <div class="ans-text">
+      <span class="key">③</span><br><br>
+      {I1,I2,I4}의 2-item subset은 {I1,I2}, {I1,I4}, {I2,I4}이다. <strong>{I1,I4}는 L₂에 없으므로</strong> Prune 단계에서 제거된다. Join 조건은 만족하더라도 Prune에서 걸러지므로 최종 C₃에 포함되지 않는다.
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     PART 5 — 결과 도출형 (2문제)
+════════════════════════════════════════ -->
+<div class="sec-divider">
+  <span class="sec-label">Part 5 · 결과 도출형</span>
+  <div class="sec-line"></div>
+</div>
+
+<!-- Q17 -->
+<div class="q-card" id="qcard-17">
+  <div class="q-meta">
+    <span class="q-num">Q17</span>
+    <span class="q-type type-result">결과 도출형</span>
+    <span class="q-diff">⭐⭐</span>
+    <span class="q-slide">Slide 14</span>
+  </div>
+  <div class="q-text">
+    현재 {milk, bread}의 support = <strong>0.1</strong>이고 min_sup = <strong>0.3</strong>이다.<br>
+    이 상황에서 아이템 butter를 추가하여 {milk, bread, butter}를 만든다면, 이 새 아이템셋의 빈발 여부 결과는?
+  </div>
+  <div class="options" id="opts-17">
+    <button class="opt-btn" onclick="selectMC(17,this,'wrong')"><span class="opt-label">①</span>butter가 매우 자주 등장하므로 빈발할 수도 있다</button>
+    <button class="opt-btn" onclick="selectMC(17,this,'correct')"><span class="opt-label">②</span>반드시 비빈발이다 — support({milk,bread,butter}) ≤ 0.1 &lt; 0.3</button>
+    <button class="opt-btn" onclick="selectMC(17,this,'wrong')"><span class="opt-label">③</span>DB를 다시 스캔해야만 판단할 수 있다</button>
+    <button class="opt-btn" onclick="selectMC(17,this,'wrong')"><span class="opt-label">④</span>butter의 individual support에 따라 달라진다</button>
+  </div>
+  <button class="ans-toggle" onclick="toggleAns(17)"><span class="arrow">▼</span> 정답 및 해설</button>
+  <div class="ans-box" id="ans-17">
+    <div class="ans-label">정답</div>
+    <div class="ans-text">
+      <span class="key">② 반드시 비빈발</span><br><br>
+      Antimonotonicity에 의해: 아이템셋에 아이템을 추가하면 support는 <strong>같거나 감소</strong>한다. {milk,bread}가 이미 0.1 &lt; 0.3이므로, 어떤 아이템을 추가해도 support는 0.1 이하가 된다. DB 재스캔 없이 즉시 판단 가능하다.
+    </div>
+  </div>
+</div>
+
+<!-- Q18 -->
+<div class="q-card" id="qcard-18">
+  <div class="q-meta">
+    <span class="q-num">Q18</span>
+    <span class="q-type type-result">결과 도출형</span>
+    <span class="q-app">[응용]</span>
+    <span class="q-diff">⭐⭐⭐</span>
+    <span class="q-slide">Slide 14–15</span>
+  </div>
+  <div class="q-text">
+    현재 min_sup = 0.4로 설정되어 L₂에 {A,B}, {A,C}, {B,C}, {B,D}가 있다. min_sup를 <strong>0.2로 낮추면</strong> 이전에 제거되었던 {A,D}(support=0.25)가 L₂에 추가된다고 하자. 이때 후보 3-itemset {A,B,D}에 대해 Prune 단계 결과는?
+  </div>
+  <div class="options" id="opts-18">
+    <button class="opt-btn" onclick="selectMC(18,this,'wrong')"><span class="opt-label">①</span>제거된다 — {A,D}가 이전 L₂에 없었으므로</button>
+    <button class="opt-btn" onclick="selectMC(18,this,'correct')"><span class="opt-label">②</span>유지된다 — 새 L₂에서 {A,B}, {A,D}, {B,D} 모두 존재하므로</button>
+    <button class="opt-btn" onclick="selectMC(18,this,'wrong')"><span class="opt-label">③</span>항상 제거된다 — {A,B,D}는 원래 C₃에서 생성되지 않는다</button>
+    <button class="opt-btn" onclick="selectMC(18,this,'wrong')"><span class="opt-label">④</span>판단 불가 — min_sup가 바뀌면 Antimonotonicity가 성립하지 않는다</button>
+  </div>
+  <button class="ans-toggle" onclick="toggleAns(18)"><span class="arrow">▼</span> 정답 및 해설</button>
+  <div class="ans-box" id="ans-18">
+    <div class="ans-label">정답 (응용 풀이)</div>
+    <div class="ans-text">
+      <span class="key">② 유지된다</span><br><br>
+      <strong>적용 개념:</strong> min_sup 조건 변경 + Prune 판단<br>
+      <div class="process">
+[Prune 검사: {A,B,D}의 2-item subset]
+- {A,B}: 새 L₂에 존재 ✓
+- {A,D}: support=0.25 ≥ min_sup=0.2 → 새 L₂에 존재 ✓
+- {B,D}: 새 L₂에 존재 ✓
+
+→ 모든 (k-1)-subset이 존재 → 제거되지 않음 (유지)
+      </div>
+      min_sup를 낮추면 이전에 비빈발이었던 아이템셋이 새로 L₂에 편입될 수 있고, 이로 인해 이전에 pruning되었을 후보가 유지될 수 있다.
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     PART 6 — 계산형 (6문제: 기본 3 + 응용 3)
+════════════════════════════════════════ -->
+<div class="sec-divider">
+  <span class="sec-label">Part 6 · 계산형 (기본 + 응용)</span>
+  <div class="sec-line"></div>
+</div>
+
+<!-- 공통 DB -->
+<div class="card" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px 24px;margin-bottom:20px;">
+  <div style="font-size:11px;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;">📋 Q19–Q24 공통 트랜잭션 DB (|D| = 5)</div>
+  <table class="db-table">
+    <thead><tr><th>TID</th><th>Items</th></tr></thead>
+    <tbody>
+      <tr><td>T1</td><td>milk, bread, beer</td></tr>
+      <tr><td>T2</td><td>milk, diaper, beer, coke</td></tr>
+      <tr><td>T3</td><td>milk, bread, diaper, beer</td></tr>
+      <tr><td>T4</td><td>bread, diaper, coke</td></tr>
+      <tr><td>T5</td><td>milk, bread, diaper, coke</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- Q19 기본 계산형 -->
+<div class="q-card" id="qcard-19">
+  <div class="q-meta">
+    <span class="q-num">Q19</span>
+    <span class="q-type type-calc">계산형</span>
+    <span class="q-diff">⭐</span>
+    <span class="q-slide">Slide 9</span>
+  </div>
+  <div class="q-text">
+    위 DB에서 <strong>support_count({diaper})</strong>는 얼마인가?
+  </div>
+  <div class="sa-wrap">
+    <input class="sa-input" id="sa-19" type="text" placeholder="숫자 입력...">
+    <button class="btn-check" onclick="checkSA(19, ['4'])">확인</button>
+  </div>
+  <button class="ans-toggle" onclick="toggleAns(19)"><span class="arrow">▼</span> 정답 및 해설</button>
+  <div class="ans-box" id="ans-19">
+    <div class="ans-label">정답</div>
+    <div class="ans-text">
+      <span class="key">4</span>
+      <div class="process">
+T1: milk, bread, beer          → diaper ✗
+T2: milk, diaper, beer, coke   → diaper ✓
+T3: milk, bread, diaper, beer  → diaper ✓
+T4: bread, diaper, coke        → diaper ✓
+T5: milk, bread, diaper, coke  → diaper ✓
+
+support_count({diaper}) = 4
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Q20 기본 계산형 -->
+<div class="q-card" id="qcard-20">
+  <div class="q-meta">
+    <span class="q-num">Q20</span>
+    <span class="q-type type-calc">계산형</span>
+    <span class="q-diff">⭐⭐</span>
+    <span class="q-slide">Slide 9–10</span>
+  </div>
+  <div class="q-text">
+    위 DB에서 <strong>confidence({diaper} ⇒ {coke})</strong>를 계산하시오. (분수 또는 소수점 2자리로)
+  </div>
+  <div class="sa-wrap">
+    <input class="sa-input" id="sa-20" type="text" placeholder="예: 0.75 또는 3/4">
+    <button class="btn-check" onclick="checkSA(20, ['0.75','3/4','75%'])">확인</button>
+  </div>
+  <button class="ans-toggle" onclick="toggleAns(20)"><span class="arrow">▼</span> 정답 및 해설</button>
+  <div class="ans-box" id="ans-20">
+    <div class="ans-label">정답</div>
+    <div class="ans-text">
+      <span class="key">0.75 (3/4)</span>
+      <div class="process">
+support_count({diaper}) = 4  (T2,T3,T4,T5)
+support_count({diaper,coke}) = 3  (T2,T4,T5)
+
+confidence({diaper}⇒{coke})
+  = support_count({diaper,coke}) / support_count({diaper})
+  = 3 / 4 = 0.75
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Q21 기본 계산형 -->
+<div class="q-card" id="qcard-21">
+  <div class="q-meta">
+    <span class="q-num">Q21</span>
+    <span class="q-type type-calc">계산형</span>
+    <span class="q-diff">⭐⭐</span>
+    <span class="q-slide">Slide 9</span>
+  </div>
+  <div class="q-text">
+    위 DB에서 min_sup = <strong>0.6</strong>일 때, 빈발 <strong>2-itemset</strong> 중 support가 가장 높은 아이템셋과 그 relative support를 구하시오.
+  </div>
+  <div class="sa-wrap">
+    <input class="sa-input" id="sa-21" type="text" placeholder="예: {A,B}, 0.X">
+    <button class="btn-check" onclick="checkSA(21, ['{milk,bread},0.6','{milk,bread}, 0.6','milk bread 0.6','{milk,diaper},0.6','{milk,diaper}, 0.6'])">확인</button>
+  </div>
+  <button class="ans-toggle" onclick="toggleAns(21)"><span class="arrow">▼</span> 정답 및 해설</button>
+  <div class="ans-box" id="ans-21">
+    <div class="ans-label">정답</div>
+    <div class="ans-text">
+      <span class="key">{milk,bread} 또는 {milk,diaper}, 0.6</span>
+      <div class="process">
+주요 2-itemset 계산 (|D|=5):
+{milk,bread}:   T1,T3,T5 → 3/5 = 0.6 ✓
+{milk,diaper}:  T2,T3,T5 → 3/5 = 0.6 ✓
+{milk,beer}:    T1,T2,T3 → 3/5 = 0.6 ✓
+{bread,diaper}: T3,T4,T5 → 3/5 = 0.6 ✓
+{milk,coke}:    T2,T5    → 2/5 = 0.4 ✗
+
+→ min_sup=0.6 이상인 2-itemset 다수 존재
+→ 최고 support = 0.6 (여러 아이템셋이 동률)
+      </div>
+      {milk,bread}, {milk,diaper}, {milk,beer}, {bread,diaper} 등이 모두 support = 0.6으로 공동 최고.
+    </div>
+  </div>
+</div>
+
+<!-- Q22 응용 계산형 -->
+<div class="q-card" id="qcard-22">
+  <div class="q-meta">
+    <span class="q-num">Q22</span>
+    <span class="q-type type-calc">계산형</span>
+    <span class="q-app">[응용 · 역방향]</span>
+    <span class="q-diff">⭐⭐</span>
+    <span class="q-slide">Slide 10</span>
+  </div>
+  <div class="q-text">
+    위 DB에서 어떤 규칙 <code>X ⇒ {beer}</code>의 confidence가 <strong>1.0 (100%)</strong>이다.<br>
+    X의 후보로 가능한 단일 아이템을 모두 구하시오.
+    <div class="alert-y" style="margin-top:10px;"><strong>힌트:</strong> confidence = support_count(X∪{beer}) / support_count(X) = 1.0이려면 X가 등장하는 모든 트랜잭션에 beer도 있어야 한다.</div>
+  </div>
+  <div class="sa-wrap">
+    <input class="sa-input" id="sa-22" type="text" placeholder="예: {A}, {B}">
+    <button class="btn-check" onclick="checkSA(22, ['{beer}','beer 자기자신','없음','없다','none','해당없음'])">확인</button>
+  </div>
+  <button class="ans-toggle" onclick="toggleAns(22)"><span class="arrow">▼</span> 정답 및 해설</button>
+  <div class="ans-box" id="ans-22">
+    <div class="ans-label">정답 (응용 풀이)</div>
+    <div class="ans-text">
+      <span class="key">해당 없음 (단일 아이템으로는 불가)</span>
+      <div class="process">
+beer가 등장하는 트랜잭션: T1, T2, T3 (3개)
+
+각 단일 아이템의 등장 트랜잭션:
+- milk: T1,T2,T3,T5 → T5에 beer 없음 → conf &lt; 1.0 ✗
+- bread: T1,T3,T4,T5 → T4,T5에 beer 없음 → conf &lt; 1.0 ✗
+- diaper: T2,T3,T4,T5 → T4,T5에 beer 없음 → conf &lt; 1.0 ✗
+- coke: T2,T4,T5 → T4,T5에 beer 없음 → conf &lt; 1.0 ✗
+- beer: 자기 자신이므로 규칙 성립 불가
+
+→ 단일 아이템 X로 confidence=1.0인 규칙 없음
+      </div>
+      <strong>응용 포인트:</strong> 역방향으로 "어떤 X가 이 결과를 만드는가"를 찾는 문제. beer가 없는 트랜잭션(T4, T5)에 milk, bread, diaper, coke가 모두 등장하므로 단일 아이템으로는 confidence=1.0 달성 불가.
+    </div>
+  </div>
+</div>
+
+<!-- Q23 응용 계산형 -->
+<div class="q-card" id="qcard-23">
+  <div class="q-meta">
+    <span class="q-num">Q23</span>
+    <span class="q-type type-calc">계산형</span>
+    <span class="q-app">[응용 · 수치 변형]</span>
+    <span class="q-diff">⭐⭐⭐</span>
+    <span class="q-slide">Slide 9–10</span>
+  </div>
+  <div class="q-text">
+    위 DB에 트랜잭션 <strong>T6 = {milk, bread, coke}</strong>가 추가되어 |D| = 6이 되었다.<br>
+    이때 <strong>confidence({milk} ⇒ {bread})</strong>를 구하시오.
+  </div>
+  <div class="sa-wrap">
+    <input class="sa-input" id="sa-23" type="text" placeholder="분수 또는 소수...">
+    <button class="btn-check" onclick="checkSA(23, ['4/5','0.8','0.80','80%'])">확인</button>
+  </div>
+  <button class="ans-toggle" onclick="toggleAns(23)"><span class="arrow">▼</span> 정답 및 해설</button>
+  <div class="ans-box" id="ans-23">
+    <div class="ans-label">정답 (응용 풀이)</div>
+    <div class="ans-text">
+      <span class="key">4/5 = 0.8</span>
+      <div class="process">
+T6 추가 후 (|D|=6):
+T1: milk, bread, beer
+T2: milk, diaper, beer, coke
+T3: milk, bread, diaper, beer
+T4: bread, diaper, coke
+T5: milk, bread, diaper, coke
+T6: milk, bread, coke  ← 추가
+
+support_count({milk})        = T1,T2,T3,T5,T6 = 5
+support_count({milk,bread})  = T1,T3,T5,T6    = 4
+
+confidence({milk}⇒{bread}) = 4/5 = 0.8
+      </div>
+      원래 DB(5개)에서는 3/4 = 0.75였으나, T6 추가로 milk가 5번, {milk,bread}가 4번 등장하여 confidence = 0.8로 상승.
+    </div>
+  </div>
+</div>
+
+<!-- Q24 응용 계산형 -->
+<div class="q-card" id="qcard-24">
+  <div class="q-meta">
+    <span class="q-num">Q24</span>
+    <span class="q-type type-calc">계산형</span>
+    <span class="q-app">[응용 · 개념 결합]</span>
+    <span class="q-diff">⭐⭐⭐</span>
+    <span class="q-slide">Slide 9, 14</span>
+  </div>
+  <div class="q-text">
+    원본 DB(|D|=5)에서 min_sup = <strong>0.5</strong>로 설정한다.<br>
+    3-itemset {milk, bread, diaper}의 <strong>relative support</strong>를 계산하고, 이 아이템셋이 빈발인지 판단하시오.<br>
+    또한, Antimonotonicity에 의해 이 결과로부터 {milk, bread, diaper, beer}의 빈발 여부도 즉시 판단하시오.
+  </div>
+  <div class="sa-wrap">
+    <input class="sa-input" id="sa-24" type="text" placeholder="support값, 빈발여부, superset빈발여부">
+    <button class="btn-check" onclick="checkSA(24, ['0.4,비빈발,비빈발','2/5,비빈발,비빈발','0.4 비빈발 비빈발'])">확인</button>
+  </div>
+  <button class="ans-toggle" onclick="toggleAns(24)"><span class="arrow">▼</span> 정답 및 해설</button>
+  <div class="ans-box" id="ans-24">
+    <div class="ans-label">정답 (응용 풀이)</div>
+    <div class="ans-text">
+      <span class="key">support=0.4, 비빈발, {milk,bread,diaper,beer}도 비빈발</span>
+      <div class="process">
+[Step 1] support_count({milk,bread,diaper}) 계산:
+T1: milk,bread,beer         → diaper ✗
+T2: milk,diaper,beer,coke   → bread ✗
+T3: milk,bread,diaper,beer  → ✓
+T4: bread,diaper,coke       → milk ✗
+T5: milk,bread,diaper,coke  → ✓
+
+support_count = 2
+support = 2/5 = 0.4 &lt; min_sup=0.5
+→ {milk,bread,diaper}: 비빈발 ✗
+
+[Step 2] Antimonotonicity 적용:
+{milk,bread,diaper,beer} ⊃ {milk,bread,diaper}
+부분집합이 비빈발이므로 superset도 반드시 비빈발
+→ DB 재스캔 없이 즉시 판단 가능
+      </div>
+      <strong>개념 결합 포인트:</strong> Support 계산(기본) + Antimonotonicity의 즉시 판단 능력(Apriori Property)을 동시에 적용하는 문제.
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     PART 7 — 서술형 (1문제)
+════════════════════════════════════════ -->
+<div class="sec-divider">
+  <span class="sec-label">Part 7 · 서술형</span>
+  <div class="sec-line"></div>
+</div>
+
+<!-- Q25 -->
+<div class="q-card" id="qcard-25">
+  <div class="q-meta">
+    <span class="q-num">Q25</span>
+    <span class="q-type type-essay">서술형</span>
+    <span class="q-diff">⭐⭐⭐</span>
+    <span class="q-slide">Slide 12–15</span>
+  </div>
+  <div class="q-text">
+    Apriori 알고리즘이 빈발 아이템셋 탐색에서 발생하는 <strong>조합 폭발(Combinational Explosion)</strong> 문제를 어떤 원리로 해결하는지 서술하시오.<br>
+    <em>(Join 단계와 Prune 단계의 역할, Antimonotonicity 성질 활용을 포함할 것)</em>
+  </div>
+  <div style="margin-bottom:16px;">
+    <textarea id="essay-25" style="width:100%;min-height:120px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;color:var(--text);font-size:14px;font-family:inherit;line-height:1.7;resize:vertical;outline:none;" placeholder="답안을 입력하세요..."></textarea>
+  </div>
+  <button class="ans-toggle" onclick="toggleAns(25)"><span class="arrow">▼</span> 채점 기준 및 모범 답안 보기</button>
+  <div class="ans-box" id="ans-25">
+    <div class="ans-label">채점 기준 및 모범 답안</div>
+    <div class="ans-text">
+      <strong>필수 키워드 (3~5개)</strong><br>
+      <span class="key">Antimonotonicity</span> <span class="key">Prune</span> <span class="key">(k-1)-subset</span> <span class="key">후보 생성(Join)</span> <span class="key">Level-wise</span><br><br>
+      <strong>핵심 논리 구조</strong><br>
+      ① 조합 폭발 문제 제시 → ② Apriori Property (Antimonotonicity) 정의 → ③ 이를 적용한 Prune 단계 설명 → ④ 효율성 달성<br><br>
+      <strong>주요 감점 요인</strong><br>
+      <span class="wrong-key">Join 조건 미언급</span> — 앞 (k-2)개 동일, 사전순 정렬 조건 누락<br>
+      <span class="wrong-key">Prune 조건 모호화</span> — "비빈발 subset이 있으면"이 아닌 "빈발하지 않으면" 등 모호 표현<br>
+      <span class="wrong-key">Antimonotonicity 미정의</span> — 성질 이름 없이 결과만 설명<br><br>
+      <strong>모범 답안</strong><br>
+      아이템 수 n이 클 때 모든 아이템셋의 수는 2ⁿ에 달하여 완전 탐색이 불가하다. Apriori는 <strong>Antimonotonicity(반단조성)</strong>—"비빈발 아이템셋의 모든 superset도 비빈발"—을 활용하여 이를 해결한다.<br><br>
+      구체적으로 두 단계로 구성된다. 먼저 <strong>Join 단계</strong>에서 사전순으로 정렬된 빈발 (k-1)-itemset Lₖ₋₁을 자기 자신과 조인하되, 앞 k-2개 아이템이 동일하고 마지막 아이템만 다른 쌍만 결합하여 후보 k-itemset Cₖ를 생성한다. 이후 <strong>Prune 단계</strong>에서 각 후보의 (k-1)-subset을 검사하여, 하나라도 Lₖ₋₁에 없으면 해당 후보를 제거한다. 비빈발 subset이 존재한다는 것은 Antimonotonicity에 의해 그 superset도 반드시 비빈발임을 보장하기 때문이다. 이 방식으로 Apriori는 실제 DB 스캔 없이 대량의 후보를 사전에 제거하여 탐색 공간을 획기적으로 줄인다.
+    </div>
+  </div>
+</div>
+
+</main>
+
+<script>
+  // ── 상태 관리 ──
+  const state = { answered: new Set(), correct: new Set() };
+
+  function updateHeader() {
+    document.getElementById('answered-val').textContent = state.answered.size;
+    document.getElementById('progress-bar').style.width = (state.answered.size / 25 * 100) + '%';
+  }
+
+  // ── 객관식 선택 ──
+  function selectMC(qNum, btn, result) {
+    const opts = document.querySelectorAll(`#opts-${qNum} .opt-btn`);
+    opts.forEach(b => { b.disabled = true; b.classList.remove('selected'); });
+    btn.classList.add('selected');
+    state.answered.add(qNum);
+    updateHeader();
+    // 자동 정오 표시
+    if (result === 'correct') {
+      btn.classList.add('correct');
+      state.correct.add(qNum);
+      document.getElementById(`qcard-${qNum}`).classList.add('answered-correct');
+    } else {
+      btn.classList.add('wrong');
+      document.getElementById(`qcard-${qNum}`).classList.add('answered-wrong');
+      // 정답 버튼 표시
+      opts.forEach(b => {
+        if (b.onclick.toString().includes("'correct'")) b.classList.add('correct');
+      });
+    }
+    autoOpenAns(qNum);
+  }
+
+  // ── OX 선택 ──
+  function selectOX(qNum, btn, result) {
+    const btns = document.querySelectorAll(`#ox-${qNum} .ox-btn`);
+    btns.forEach(b => { b.disabled = true; b.classList.remove('selected'); });
+    btn.classList.add('selected');
+    state.answered.add(qNum);
+    updateHeader();
+    if (result === 'correct') {
+      btn.classList.add('correct');
+      state.correct.add(qNum);
+      document.getElementById(`qcard-${qNum}`).classList.add('answered-correct');
+    } else {
+      btn.classList.add('wrong');
+      document.getElementById(`qcard-${qNum}`).classList.add('answered-wrong');
+      btns.forEach(b => {
+        if (b.onclick.toString().includes("'correct'")) b.classList.add('correct');
+      });
+    }
+    autoOpenAns(qNum);
+  }
+
+  // ── 단답형 확인 ──
+  function checkSA(qNum, answers) {
+    const inp = document.getElementById(`sa-${qNum}`);
+    const val = inp.value.trim().toLowerCase().replace(/\s+/g,'');
+    const correct = answers.some(a => val === a.toLowerCase().replace(/\s+/g,'') ||
+                                       val.includes(a.toLowerCase().replace(/\s+/g,'')));
+    inp.disabled = true;
+    document.querySelector(`#qcard-${qNum} .btn-check`).disabled = true;
+    state.answered.add(qNum);
+    updateHeader();
+    if (correct) {
+      inp.classList.add('correct');
+      state.correct.add(qNum);
+      document.getElementById(`qcard-${qNum}`).classList.add('answered-correct');
+    } else {
+      inp.classList.add('wrong');
+      document.getElementById(`qcard-${qNum}`).classList.add('answered-wrong');
+    }
+    autoOpenAns(qNum);
+  }
+
+  function autoOpenAns(qNum) {
+    const box = document.getElementById(`ans-${qNum}`);
+    const btn = document.querySelector(`#qcard-${qNum} .ans-toggle`);
+    if (box && !box.classList.contains('show')) {
+      setTimeout(() => { box.classList.add('show'); btn && btn.classList.add('open'); }, 350);
+    }
+  }
+
+  // ── 정답 토글 ──
+  function toggleAns(qNum) {
+    const box = document.getElementById(`ans-${qNum}`);
+    const btn = document.querySelector(`#qcard-${qNum} .ans-toggle`);
+    box.classList.toggle('show');
+    btn.classList.toggle('open');
+  }
+
+  // ── 전체 채점 ──
+  function submitAll() {
+    const score = state.correct.size;
+    const pct = Math.round(score / 25 * 100);
+    document.getElementById('correct-val').textContent = score;
+    document.getElementById('result-score').textContent = `${score} / 25`;
+    document.getElementById('result-sub').textContent = `정답률 ${pct}% · ${state.answered.size}문제 답변`;
+    let grade = '';
+    if (pct >= 90) grade = '🏆 A+ 완벽한 이해!';
+    else if (pct >= 80) grade = '✅ A — 핵심 개념 탄탄';
+    else if (pct >= 70) grade = '📘 B — 복습이 필요한 부분 있음';
+    else if (pct >= 60) grade = '⚠️ C — 강의 자료 재검토 권장';
+    else grade = '🔁 재학습 필요 — 처음부터 다시';
+    document.getElementById('result-grade').textContent = grade;
+    const banner = document.getElementById('result-banner');
+    banner.classList.add('show');
+    banner.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  // ── 초기화 ──
+  function resetAll() {
+    if (!confirm('모든 답변을 초기화하시겠습니까?')) return;
+    location.reload();
+  }
+</script>
+</body>
+</html>
